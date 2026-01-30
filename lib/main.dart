@@ -37,6 +37,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Waterboard',
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: AppBarThemeData(
+          backgroundColor: Colors.grey.shade300
+        )
+      ),
       home: MainPage(comms: comms,)
     );
   }

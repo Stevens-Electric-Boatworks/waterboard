@@ -14,11 +14,14 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Stevens Electric Boatworks", style: TextStyle(fontWeight: FontWeight.bold),),
+        title: Text(
+          "Stevens Electric Boatworks",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         leading: ClockText(),
         leadingWidth: 100,
-        toolbarHeight: 35
+        toolbarHeight: 40,
       ),
       body: Center(
         child: Column(
@@ -48,20 +51,19 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 80,
                           endValue: 120,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 120,
                           endValue: 150,
-                          color: Colors.red.shade300,
+                          color: Colors.red.shade400,
                         ),
                         GaugeRange(
                           startValue: 150,
                           endValue: 200,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
@@ -69,7 +71,9 @@ class MainPage extends StatelessWidget {
                 ROSListenable(
                   valueNotifier: comms.subscribe("/electrical/temp_sensors/in"),
                   builder: (context, value) {
-                    var current = (value["inlet_temp"] as double).round().toDouble();
+                    var current = (value["inlet_temp"] as double)
+                        .round()
+                        .toDouble();
                     return Gauge(
                       value: current,
                       minimum: 0,
@@ -86,28 +90,31 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 50,
                           endValue: 70,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 70,
                           endValue: 90,
-                          color: Colors.red.shade300,
+                          color: Colors.red.shade500,
                         ),
                         GaugeRange(
                           startValue: 90,
                           endValue: 100,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
                 //Outlet Temp Current
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/electrical/temp_sensors/out"),
+                  valueNotifier: comms.subscribe(
+                    "/electrical/temp_sensors/out",
+                  ),
                   builder: (context, value) {
-                    var data = (value["outlet_temp"] as double).round().toDouble();
+                    var data = (value["outlet_temp"] as double)
+                        .round()
+                        .toDouble();
                     return Gauge(
                       value: data,
                       minimum: 0,
@@ -124,20 +131,19 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 50,
                           endValue: 70,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 70,
                           endValue: 90,
-                          color: Colors.red.shade300,
+                          color: Colors.red.shade500,
                         ),
                         GaugeRange(
                           startValue: 90,
                           endValue: 100,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
@@ -173,15 +179,14 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 40,
                           endValue: 50,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 50,
                           endValue: 60,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
@@ -189,7 +194,10 @@ class MainPage extends StatelessWidget {
                 ROSListenable(
                   valueNotifier: comms.subscribe("/motion/vtg"),
                   builder: (context, value) {
-                    var speed = (value["speed"] as double).round().toDouble().abs();
+                    var speed = (value["speed"] as double)
+                        .round()
+                        .toDouble()
+                        .abs();
                     return Gauge(
                       value: speed,
                       minimum: 0,
@@ -206,15 +214,14 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 25,
                           endValue: 35,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 35,
                           endValue: 50,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
@@ -239,22 +246,21 @@ class MainPage extends StatelessWidget {
                         GaugeRange(
                           startValue: 1500,
                           endValue: 2100,
-                          color: Colors.yellow,
+                          color: Colors.yellow.shade600,
                         ),
                         GaugeRange(
                           startValue: 2100,
                           endValue: 2500,
-                          color: Colors.red.shade900,
+                          color: Color.fromRGBO(255, 0, 0, 1.0),
                         ),
                       ],
-                      
                     );
                   },
                 ),
               ],
             ),
           ],
-        )
+        ),
       ),
     );
   }
