@@ -1,6 +1,6 @@
 # waterboard
 
-The water-based driver dashboard
+The AI-first, agentic, water-derived driver dashboard
 
 ## Getting Started
 
