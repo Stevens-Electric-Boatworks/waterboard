@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/services/ros_comms.dart';
@@ -22,7 +24,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     widget.comms.connectionState.addListener(() {
-      print("Called");
+      print("Listener State: ${widget.comms.connectionState.value}");
       if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
         print("Showing websocket dialog!");
         showWebsocketDisconnectedDialog();
@@ -31,8 +33,14 @@ class _MainPageState extends State<MainPage> {
         print("Showing rosbridge dialog!");
         showROSBridgeDisconnectedDialog();
       }
-      else {
-        closeConnectionDialog();
+      else if(widget.comms.connectionState.value == ConnectionState.connected) {
+        print("Closing everything!");
+        //weird race condition fix
+        Timer(Duration(milliseconds: 200), () {
+          if(widget.comms.connectionState.value == ConnectionState.connected) {
+            closeConnectionDialog();
+          }
+        },);
       }
     });
     widget.comms.startConnectionRoutine();
@@ -320,7 +328,6 @@ class _MainPageState extends State<MainPage> {
           );
         },
       );
-      print("Showing the websocket disconnect dialog");
       Navigator.of(context).push(_connectionAlertDialog!);
     });
   }
@@ -336,14 +343,13 @@ class _MainPageState extends State<MainPage> {
             title: Center(child: Text("ROSBridge Data Stale")),
             titleTextStyle: Theme.of(context).textTheme.displayLarge,
             content: Text(
-              "The websocket is initalized, but there is stale data from ROSBridge. \nThis could imply ROSBridge is down, or the ROS Control System is down.",
+              "The websocket is initalized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
           );
         },
       );
-      print("Showing new dialog!");
       Navigator.of(context).push(_connectionAlertDialog!);
     });
   }
