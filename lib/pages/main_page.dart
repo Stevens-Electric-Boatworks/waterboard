@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/gauge.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
@@ -28,23 +29,45 @@ class _MainPageState extends State<MainPage> {
       if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
         print("Showing websocket dialog!");
         showWebsocketDisconnectedDialog();
-      }
-      else if (widget.comms.connectionState.value == ConnectionState.noROSBridge) {
+      } else if (widget.comms.connectionState.value ==
+          ConnectionState.noROSBridge) {
         print("Showing rosbridge dialog!");
         showROSBridgeDisconnectedDialog();
-      }
-      else if(widget.comms.connectionState.value == ConnectionState.connected) {
+      } else if (widget.comms.connectionState.value ==
+          ConnectionState.connected) {
         print("Closing everything!");
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if(widget.comms.connectionState.value == ConnectionState.connected) {
+          if (widget.comms.connectionState.value == ConnectionState.connected) {
             closeConnectionDialog();
           }
-        },);
+        });
       }
     });
+
     widget.comms.startConnectionRoutine();
   }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final state = widget.comms.connectionState.value;
+
+      if (state == ConnectionState.noWebsocket) {
+        showWebsocketDisconnectedDialog();
+      } else if (state == ConnectionState.noROSBridge) {
+        showROSBridgeDisconnectedDialog();
+      }
+    });
+  }
+  bool get isOnMainPage {
+    final route = ModalRoute.of(context);
+    return route != null && route.isCurrent;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +78,19 @@ class _MainPageState extends State<MainPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: ClockText(),
+        leading: Container(
+          decoration: BoxDecoration(border: BoxBorder.all(color: Colors.black)),
+          margin: EdgeInsets.all(4),
+          child: Center(
+            child: ClockText(style: Theme.of(context).textTheme.titleSmall),
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => showSettingsDialog(),
+            icon: Icon(Icons.settings),
+          ),
+        ],
         leadingWidth: 100,
         toolbarHeight: 40,
       ),
@@ -311,7 +346,7 @@ class _MainPageState extends State<MainPage> {
 
   void showWebsocketDisconnectedDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || !isOnMainPage) return;
       closeConnectionDialog();
       _connectionAlertDialog = DialogRoute(
         context: context,
@@ -325,15 +360,22 @@ class _MainPageState extends State<MainPage> {
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
+            actions: [
+              TextButton(
+                onPressed: () { showSettingsDialog(); },
+                child: Text("Open Settings"),
+              )
+            ],
           );
         },
       );
       Navigator.of(context).push(_connectionAlertDialog!);
     });
   }
+
   void showROSBridgeDisconnectedDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || !isOnMainPage) return;
       closeConnectionDialog();
       _connectionAlertDialog = DialogRoute(
         context: context,
@@ -347,6 +389,12 @@ class _MainPageState extends State<MainPage> {
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
+            actions: [
+              TextButton(
+                onPressed: () { showSettingsDialog(); },
+                child: Text("Open Settings"),
+              )
+            ],
           );
         },
       );
@@ -355,9 +403,21 @@ class _MainPageState extends State<MainPage> {
   }
 
   void closeConnectionDialog() {
-    if(_connectionAlertDialog != null) {
+    if (_connectionAlertDialog != null) {
       Navigator.of(context).removeRoute(_connectionAlertDialog!);
       _connectionAlertDialog = null;
     }
+  }
+
+  void showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Waterboard Settings"),
+          content: SettingsDialog(comms: widget.comms,),
+        );
+      },
+    );
   }
 }

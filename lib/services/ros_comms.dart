@@ -8,7 +8,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 //https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
 
 class ROSComms {
-  final Map<String, List<ValueNotifier<Map<String, dynamic>>>> _subscriptions =
+  final Map<String, ValueNotifier<Map<String, dynamic>>> _subscriptions =
       {};
   WebSocketChannel? _channel;
   final ValueNotifier<ConnectionState> _connectionState = ValueNotifier(ConnectionState.unknown);
@@ -90,11 +90,11 @@ class ROSComms {
       var msg = json.decode(message);
       if (msg["op"] == "publish") {
         if (_subscriptions.containsKey(msg["topic"])) {
-          for (var notifier in _subscriptions[msg["topic"]]!) {
-            Map<String, dynamic> data = msg["msg"];
-            if (data.isEmpty) continue;
-            notifier.value = data;
-          }
+          ValueNotifier notifier = _subscriptions[msg["topic"]]!;
+          Map<String, dynamic> data = msg["msg"];
+          if (data.isEmpty) return;
+          notifier.value = data;
+
         }
       } else {
         print("Found unknown operation: ${msg["op"]}");
@@ -106,12 +106,12 @@ class ROSComms {
   ValueNotifier<Map<String, dynamic>> subscribe(String topic) {
     var notifier = ValueNotifier<Map<String, dynamic>>({});
     if (_subscriptions.containsKey(topic)) {
-      _subscriptions[topic]!.add(notifier);
-      return notifier;
+      print("sending old value notifier for $topic");
+      return _subscriptions[topic]!;
     }
     //subscribe to new topic
     _subscribedTopics.add(topic);
-    _subscriptions[topic] = [notifier];
+    _subscriptions[topic] = notifier;
     return notifier;
   }
 

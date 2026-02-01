@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class ClockText extends StatefulWidget {
-  const ClockText({super.key});
+  final TextStyle? style;
+  const ClockText({super.key, required this.style});
 
   @override
   State<ClockText> createState() => _ClockTextState();
@@ -36,22 +37,10 @@ class _ClockTextState extends State<ClockText> {
     String two(int n) => n.toString().padLeft(2, '0');
     String amPm = _now.hour >= 12 ? 'PM' : 'AM';
 
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          border: BoxBorder.all(
-            color: Colors.black
-          )
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Text(
-            '$hour:${two(_now.minute)}:${two(_now.second)} $amPm',
-            style: Theme.of(context).textTheme.titleSmall,
-            softWrap: false,
-          ),
-        ),
-      ),
+    return Text(
+      '$hour:${two(_now.minute)}:${two(_now.second)} $amPm',
+      style: widget.style,
+      softWrap: false,
     );
 
   }
