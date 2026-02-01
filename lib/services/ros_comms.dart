@@ -10,7 +10,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class ROSComms {
   final Map<String, List<ValueNotifier<Map<String, dynamic>>>> _subscriptions =
       {};
-  late WebSocketChannel _channel;
+  WebSocketChannel? _channel;
   final ValueNotifier<ConnectionState> _connectionState = ValueNotifier(ConnectionState.unknown);
 
   final List<String> _subscribedTopics = [];
@@ -33,6 +33,11 @@ class ROSComms {
 
   Future<void> _websocketTimerTick() async {
     try {
+      if(_channel?.closeCode != null) {
+        print("Socket Closed");
+        _rosbridgeTimer?.cancel();
+        _connectionState.value = ConnectionState.noWebsocket;
+      }
       if (_connectionState.value == ConnectionState.noWebsocket || connectionState.value == ConnectionState.unknown) {
         await _connect();
       }
@@ -46,7 +51,7 @@ class ROSComms {
     final wsUrl = Uri.parse('ws://127.0.0.1:9090');
     _channel = WebSocketChannel.connect(wsUrl);
     try {
-      await _channel.ready;
+      await _channel!.ready;
     } on SocketException catch (e) {
       _connectionState.value = ConnectionState.noWebsocket;
       print(
@@ -74,12 +79,13 @@ class ROSComms {
     print("Sending test message.");
 
     _socket_send_subcriptions();
-    _channel.stream.listen((message) {
+    _channel?.stream.listen((message) {
       _last_rosbridge_msg = DateTime.now().millisecondsSinceEpoch;
       if(_connectionState.value != ConnectionState.connected) {
         _socket_send_subcriptions();
       }
       _connectionState.value = ConnectionState.connected;
+      // print("STATE: ${_connectionState.value}");
 
       var msg = json.decode(message);
       if (msg["op"] == "publish") {
@@ -111,7 +117,7 @@ class ROSComms {
 
   void _socket_send_subcriptions() {
     for(var topic in _subscribedTopics) {
-      _channel.sink.add(json.encode({"op": "subscribe", "topic": topic}));
+      _channel?.sink.add(json.encode({"op": "subscribe", "topic": topic}));
     }
   }
 }
