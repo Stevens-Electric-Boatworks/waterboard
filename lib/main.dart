@@ -3,7 +3,7 @@ import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'main_page.dart';
+import 'pages/main_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Waterboard',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
