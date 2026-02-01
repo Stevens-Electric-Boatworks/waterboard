@@ -1,14 +1,42 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/gauge.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   final ROSComms comms;
 
   const MainPage({super.key, required this.comms});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  Widget? dialogWidget;
+  DialogRoute? _connectionAlertDialog;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.comms.connectionState.addListener(() {
+      print("Called");
+      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
+        print("Showing websocket dialog!");
+        showWebsocketDisconnectedDialog();
+      }
+      else if (widget.comms.connectionState.value == ConnectionState.noROSBridge) {
+        print("Showing rosbridge dialog!");
+        showROSBridgeDisconnectedDialog();
+      }
+      else {
+        closeConnectionDialog();
+      }
+    });
+    widget.comms.startConnectionRoutine();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +60,9 @@ class MainPage extends StatelessWidget {
               children: [
                 //Motor Current
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/motors/can_motor_data"),
+                  valueNotifier: widget.comms.subscribe(
+                    "/motors/can_motor_data",
+                  ),
                   builder: (context, value) {
                     var current = (value["current"] as int).toDouble();
                     return Gauge(
@@ -69,7 +99,9 @@ class MainPage extends StatelessWidget {
                 ),
                 //Inlet Temp Current
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/electrical/temp_sensors/in"),
+                  valueNotifier: widget.comms.subscribe(
+                    "/electrical/temp_sensors/in",
+                  ),
                   builder: (context, value) {
                     var current = (value["inlet_temp"] as double)
                         .round()
@@ -108,7 +140,7 @@ class MainPage extends StatelessWidget {
                 ),
                 //Outlet Temp Current
                 ROSListenable(
-                  valueNotifier: comms.subscribe(
+                  valueNotifier: widget.comms.subscribe(
                     "/electrical/temp_sensors/out",
                   ),
                   builder: (context, value) {
@@ -155,7 +187,9 @@ class MainPage extends StatelessWidget {
               children: [
                 //Motor Temp
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/motors/can_motor_data"),
+                  valueNotifier: widget.comms.subscribe(
+                    "/motors/can_motor_data",
+                  ),
                   builder: (context, value) {
                     var data = (value["motor_temp"] as int).toDouble();
                     return Gauge(
@@ -192,7 +226,7 @@ class MainPage extends StatelessWidget {
                 ),
                 //Boat Speed
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/motion/vtg"),
+                  valueNotifier: widget.comms.subscribe("/motion/vtg"),
                   builder: (context, value) {
                     var speed = (value["speed"] as double)
                         .round()
@@ -227,7 +261,9 @@ class MainPage extends StatelessWidget {
                 ),
                 //Motor RPM
                 ROSListenable(
-                  valueNotifier: comms.subscribe("/motors/can_motor_data"),
+                  valueNotifier: widget.comms.subscribe(
+                    "/motors/can_motor_data",
+                  ),
                   builder: (context, value) {
                     var data = (value["rpm"] as int).round().toDouble().abs();
                     return Gauge(
@@ -263,5 +299,59 @@ class MainPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void showWebsocketDisconnectedDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Websocket Disconnected")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+          );
+        },
+      );
+      print("Showing the websocket disconnect dialog");
+      Navigator.of(context).push(_connectionAlertDialog!);
+    });
+  }
+  void showROSBridgeDisconnectedDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Data Stale")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket is initalized, but there is stale data from ROSBridge. \nThis could imply ROSBridge is down, or the ROS Control System is down.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+          );
+        },
+      );
+      print("Showing new dialog!");
+      Navigator.of(context).push(_connectionAlertDialog!);
+    });
+  }
+
+  void closeConnectionDialog() {
+    if(_connectionAlertDialog != null) {
+      Navigator.of(context).removeRoute(_connectionAlertDialog!);
+      _connectionAlertDialog = null;
+    }
   }
 }
