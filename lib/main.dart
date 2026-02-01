@@ -24,7 +24,6 @@ void main() async {
     await windowManager.focus();
   });
   ROSComms comms = ROSComms();
-  comms.connect_to_websocket();
   runApp(MyApp(comms));
 }
 
