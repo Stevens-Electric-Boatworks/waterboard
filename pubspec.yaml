@@ -38,6 +38,7 @@ dependencies:
   web_socket_channel: ^3.0.3
   syncfusion_flutter_gauges: ^32.1.25
   text_gradiate: ^1.0.1
+  shared_preferences: ^2.5.4
 
 dev_dependencies:
   flutter_test:
