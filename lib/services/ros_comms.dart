@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 //https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
 
@@ -47,7 +48,8 @@ class ROSComms {
 
   Future<void> _connect() async {
     print("Attempting connection to websocket.");
-    final wsUrl = Uri.parse('ws://127.0.0.1:9090');
+    var prefs = await SharedPreferences.getInstance();
+    final wsUrl = Uri.parse('ws://${prefs.getString("websocket.ip") ?? "127.0.0.1"}:${prefs.getInt("websocket.port") ?? 9090}');
     _channel = WebSocketChannel.connect(wsUrl);
     try {
       await _channel!.ready;
@@ -100,6 +102,14 @@ class ROSComms {
       }
     });
 
+  }
+
+  void reconnect() async {
+    print("Reconnecting to websocket");
+    _rosbridgeTimer?.cancel();
+    _websocketTimer?.cancel();
+    await _channel?.sink.close();
+    startConnectionRoutine();
   }
 
   ValueNotifier<Map<String, dynamic>> subscribe(String topic) {
