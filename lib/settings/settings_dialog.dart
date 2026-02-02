@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waterboard/pages/display_mode_page.dart';
+import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/services/ros_comms.dart';
 
 class SettingsDialog extends StatelessWidget {
@@ -12,10 +12,10 @@ class SettingsDialog extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         FilledButton(
-          child: Text("Enter Display Mode"),
+          child: Text("Enter Standby Mode"),
           onPressed: () {
             Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) {
-              return DisplayModePage(comms: comms,);
+              return StandbyMode(comms: comms,);
             }));
           },
         )

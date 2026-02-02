@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -41,7 +40,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarThemeData(
           backgroundColor: Colors.grey.shade300
-        )
+        ),
+        fontFamily: "inter",
       ),
       home: MainPage(comms: comms,)
     );
