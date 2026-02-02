@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/widgets/time_text.dart';
 
 class SettingsDialog extends StatefulWidget {
   final ROSComms comms;
@@ -106,7 +107,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 }));
               },
             ),
-          )
+          ),
+          SizedBox(height: 10),
+          Center(child: ClockText(style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
         ],
       ),
     );
