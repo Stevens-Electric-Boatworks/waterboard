@@ -25,17 +25,13 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     widget.comms.connectionState.addListener(() {
-      print("Listener State: ${widget.comms.connectionState.value}");
       if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
-        print("Showing websocket dialog!");
         showWebsocketDisconnectedDialog();
       } else if (widget.comms.connectionState.value ==
           ConnectionState.noROSBridge) {
-        print("Showing rosbridge dialog!");
         showROSBridgeDisconnectedDialog();
       } else if (widget.comms.connectionState.value ==
           ConnectionState.connected) {
-        print("Closing everything!");
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
           if (widget.comms.connectionState.value == ConnectionState.connected) {
@@ -385,7 +381,7 @@ class _MainPageState extends State<MainPage> {
             title: Center(child: Text("ROSBridge Data Stale")),
             titleTextStyle: Theme.of(context).textTheme.displayLarge,
             content: Text(
-              "The websocket is initalized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
+              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
