@@ -8,6 +8,8 @@ import 'package:waterboard/widgets/gauge.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
+import '../widgets/ros_connection_state_widget.dart';
+
 class MainPage extends StatefulWidget {
   final ROSComms comms;
 
@@ -80,6 +82,12 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
         actions: [
+          ValueListenableBuilder(
+            valueListenable: widget.comms.connectionState,
+            builder: (context, value, child) =>
+                ROSConnectionStateWidget(value: value, fontSize: 18, iconSize: 18),
+          ),
+          SizedBox(width: 15,),
           IconButton(
             onPressed: () => showSettingsDialog(),
             icon: Icon(Icons.settings),
