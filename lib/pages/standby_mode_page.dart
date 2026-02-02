@@ -6,6 +6,8 @@ import 'package:text_gradiate/text_gradiate.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
+import '../widgets/ros_connection_state_widget.dart';
+
 class StandbyMode extends StatefulWidget {
   final ROSComms comms;
 
@@ -38,7 +40,6 @@ class _StandbyModeState extends State<StandbyMode> {
     }
     if(_paused) return;
     setState(() {
-      print("updating slideshow");
       _currentSlide = (_currentSlide + 1) % slides.length;
       _timer = Timer(
         Duration(seconds: slides[_currentSlide].$2),
@@ -49,7 +50,6 @@ class _StandbyModeState extends State<StandbyMode> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _timer.cancel();
   }
@@ -169,7 +169,7 @@ class _StandbyModeState extends State<StandbyMode> {
                   ValueListenableBuilder(
                     valueListenable: widget.comms.connectionState,
                     builder: (context, value, child) =>
-                        getConnectionStatusWidget(value, 82, 82),
+                        ROSConnectionStateWidget(value: value, fontSize: 82, iconSize: 82),
                   ),
                 ],
               ),
@@ -178,55 +178,6 @@ class _StandbyModeState extends State<StandbyMode> {
         ],
       ),
     );
-  }
-
-  Widget getConnectionStatusWidget(
-    ConnectionState value,
-    double fontSize,
-    double iconSize,
-  ) {
-    final TextStyle style = TextStyle(
-      fontSize: fontSize,
-      fontWeight: FontWeight.w700,
-    );
-    if (value == ConnectionState.connected) {
-      return Row(
-        children: [
-          Icon(Icons.wifi, color: Colors.green, size: iconSize),
-          Text(
-            " Connected",
-            style: style.merge(TextStyle(color: Colors.green)),
-          ),
-        ],
-      );
-    } else if (value == ConnectionState.noROSBridge) {
-      return Row(
-        children: [
-          Icon(Icons.wifi_off, color: Colors.yellow, size: iconSize),
-          Text(
-            " Stale Data",
-            style: style.merge(TextStyle(color: Colors.yellow)),
-          ),
-        ],
-      );
-    } else if (value == ConnectionState.noWebsocket) {
-      return Row(
-        children: [
-          Icon(Icons.wifi_off, color: Colors.red, size: iconSize),
-          Text(
-            " No ROSBridge Connection",
-            style: style.merge(TextStyle(color: Colors.red)),
-          ),
-        ],
-      );
-    } else {
-      return Row(
-        children: [
-          Icon(Icons.question_mark, size: iconSize),
-          Text("Unknown", style: style),
-        ],
-      );
-    }
   }
 
   Widget sponsorsSlide() {
@@ -437,7 +388,7 @@ class _StandbyModeState extends State<StandbyMode> {
                   ValueListenableBuilder(
                     valueListenable: widget.comms.connectionState,
                     builder: (context, value, child) =>
-                        getConnectionStatusWidget(value, 52, 52),
+                        ROSConnectionStateWidget(value: value, fontSize: 52, iconSize: 52),
                   ),
                 ],
               ),
