@@ -20,7 +20,6 @@ class _StandbyModeState extends State<StandbyMode> {
     (() => logoAndTimeSlide(), 20),
     (() => sponsorsSlide(), 10),
   ];
-
   late Timer _timer;
   bool _paused = false;
   int _currentSlide = 0;
@@ -75,6 +74,7 @@ class _StandbyModeState extends State<StandbyMode> {
         ),
       ),
       body: Focus(
+        autofocus: true,
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent) {
             if (event.logicalKey == LogicalKeyboardKey.escape) {
