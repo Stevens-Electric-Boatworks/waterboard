@@ -53,9 +53,7 @@ class _MainPageState extends State<MainPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
       final state = widget.comms.connectionState.value;
-
       if (state == ConnectionState.noWebsocket) {
         showWebsocketDisconnectedDialog();
       } else if (state == ConnectionState.noROSBridge) {
@@ -346,8 +344,9 @@ class _MainPageState extends State<MainPage> {
 
   void showWebsocketDisconnectedDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !isOnMainPage) return;
+      if (!mounted) return;
       closeConnectionDialog();
+      if(!isOnMainPage) return;
       _connectionAlertDialog = DialogRoute(
         context: context,
         barrierDismissible: false,
@@ -375,8 +374,9 @@ class _MainPageState extends State<MainPage> {
 
   void showROSBridgeDisconnectedDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !isOnMainPage) return;
+      if (!mounted) return;
       closeConnectionDialog();
+      if(!isOnMainPage) return;
       _connectionAlertDialog = DialogRoute(
         context: context,
         barrierDismissible: false,
