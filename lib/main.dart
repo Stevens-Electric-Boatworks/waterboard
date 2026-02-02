@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:window_manager/window_manager.dart';
@@ -7,21 +10,23 @@ import 'pages/main_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line.
-  await windowManager.ensureInitialized();
-  final windowSize = Size(1200, 800);
-  WindowOptions windowOptions = WindowOptions(
-    minimumSize: windowSize,
-    maximumSize: windowSize,
-    size: windowSize,
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  if((Platform.isWindows || Platform.isMacOS || kDebugMode) && !Platform.isLinux ) {
+    await windowManager.ensureInitialized();
+    final windowSize = Size(1200, 800);
+    WindowOptions windowOptions = WindowOptions(
+      minimumSize: windowSize,
+      maximumSize: windowSize,
+      size: windowSize,
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   ROSComms comms = ROSComms();
   runApp(MyApp(comms));
 }
