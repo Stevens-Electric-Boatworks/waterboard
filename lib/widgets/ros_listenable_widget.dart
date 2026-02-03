@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class ROSListenable extends StatefulWidget {
   final ValueNotifier<Map<String, dynamic>> valueNotifier;
-  final Widget Function(BuildContext context, Map<String, dynamic> value) builder;
+  final Widget Function(BuildContext context, Map<String, dynamic> value)
+  builder;
 
   const ROSListenable({
     super.key,
@@ -29,12 +30,9 @@ class _ROSListenableState extends State<ROSListenable> {
       _lastUpdate = DateTime.now();
     });
 
-    _ticker = Timer.periodic(
-      const Duration(milliseconds: 250),
-          (_) {
-        if (mounted) setState(() {});
-      },
-    );
+    _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -43,8 +41,7 @@ class _ROSListenableState extends State<ROSListenable> {
     super.dispose();
   }
 
-  bool get _isStale =>
-      DateTime.now().difference(_lastUpdate) > staleAfter;
+  bool get _isStale => DateTime.now().difference(_lastUpdate) > staleAfter;
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +55,7 @@ class _ROSListenableState extends State<ROSListenable> {
         return Stack(
           alignment: Alignment.center,
           children: [
-            RepaintBoundary(
-              child: widget.builder(context, value),
-            ),
+            RepaintBoundary(child: widget.builder(context, value)),
 
             if (_isStale)
               Positioned.fill(

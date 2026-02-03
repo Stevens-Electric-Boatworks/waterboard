@@ -12,7 +12,19 @@ class Gauge extends StatelessWidget {
   final double positionFactor;
   final String title;
   final int backgroundOpacity;
-  const Gauge({super.key, required this.value, required this.minimum, required this.maximum, required this.annotationText, required this.ranges, this.thickness = 35, this.positionFactor = 0.69, this.backgroundOpacity = 50, required this.title, required this.unitText});
+  const Gauge({
+    super.key,
+    required this.value,
+    required this.minimum,
+    required this.maximum,
+    required this.annotationText,
+    required this.ranges,
+    this.thickness = 35,
+    this.positionFactor = 0.69,
+    this.backgroundOpacity = 50,
+    required this.title,
+    required this.unitText,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +69,7 @@ class Gauge extends StatelessWidget {
             GaugeAnnotation(
               widget: Text(
                 title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
               angle: 90,
               positionFactor: 0.4,
@@ -70,7 +79,7 @@ class Gauge extends StatelessWidget {
               widget: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.all(Radius.circular(5))
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -83,7 +92,7 @@ class Gauge extends StatelessWidget {
                         fontSize: 30,
                       ),
                     ),
-                    SizedBox(width: 5,),
+                    SizedBox(width: 5),
                     Text(
                       unitText,
                       style: TextStyle(
@@ -92,7 +101,7 @@ class Gauge extends StatelessWidget {
                       ),
                     ),
                   ],
-                )
+                ),
               ),
               angle: 90,
               positionFactor: positionFactor,
@@ -100,12 +109,13 @@ class Gauge extends StatelessWidget {
           ],
           axisLabelStyle: GaugeTextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
     );
   }
+
   Color? _getRangeColor(double value) {
     for (final range in ranges) {
       if (value >= range.startValue && value <= range.endValue) {
@@ -125,10 +135,14 @@ class Gauge extends StatelessWidget {
     final stops = <double>[];
 
     for (final range in ranges) {
-      final start = ((range.startValue - minimum) / (maximum - minimum))
-          .clamp(0.0, 1.0);
-      final end = ((range.endValue - minimum) / (maximum - minimum))
-          .clamp(0.0, 1.0);
+      final start = ((range.startValue - minimum) / (maximum - minimum)).clamp(
+        0.0,
+        1.0,
+      );
+      final end = ((range.endValue - minimum) / (maximum - minimum)).clamp(
+        0.0,
+        1.0,
+      );
 
       final color = range.color ?? Colors.black;
 
@@ -139,13 +153,6 @@ class Gauge extends StatelessWidget {
       stops.add(end);
     }
 
-    return SweepGradient(
-      colors: colors,
-      stops: stops,
-    );
+    return SweepGradient(colors: colors, stops: stops);
   }
-
-
-
-
 }

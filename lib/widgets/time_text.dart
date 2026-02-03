@@ -42,6 +42,5 @@ class _ClockTextState extends State<ClockText> {
       style: widget.style,
       softWrap: false,
     );
-
   }
 }
