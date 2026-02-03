@@ -22,6 +22,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     super.initState();
     _updateIPInSettings();
   }
+
   void _updateIPInSettings() async {
     var prefs = await SharedPreferences.getInstance();
     String ip = prefs.getString("websocket.ip") ?? "127.0.0.1";
@@ -29,6 +30,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -52,7 +54,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     ),
                     controller: _ipTextController,
                     onChanged: (value) {
-                      if(value.isEmpty) return;
+                      if (value.isEmpty) return;
                       SharedPreferences.getInstance().then((prefs) {
                         prefs.setString("websocket.ip", value);
                       });
@@ -77,8 +79,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     ),
                     controller: _portTextController,
                     onChanged: (value) {
-                      if(value.isEmpty) return;
-                      if(int.tryParse(value) == null) return;
+                      if (value.isEmpty) return;
+                      if (int.tryParse(value) == null) return;
                       SharedPreferences.getInstance().then((prefs) {
                         prefs.setInt("websocket.port", int.parse(value));
                       });
@@ -88,7 +90,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
               ),
             ],
           ),
-          SizedBox(height: 25,),
+          SizedBox(height: 25),
           Center(
             child: FilledButton(
               child: Text("Restart ROSBridge Comms"),
@@ -97,19 +99,27 @@ class _SettingsDialogState extends State<SettingsDialog> {
               },
             ),
           ),
-          SizedBox(height: 5,),
+          SizedBox(height: 5),
           Center(
             child: FilledButton(
               child: Text("Enter Standby Mode"),
               onPressed: () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) {
-                  return StandbyMode(comms: widget.comms,);
-                }));
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return StandbyMode(comms: widget.comms);
+                    },
+                  ),
+                );
               },
             ),
           ),
           SizedBox(height: 10),
-          Center(child: ClockText(style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+          Center(
+            child: ClockText(
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );

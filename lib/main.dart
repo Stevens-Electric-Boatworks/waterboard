@@ -10,7 +10,8 @@ import 'pages/main_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Must add this line.
-  if((Platform.isWindows || Platform.isMacOS || kDebugMode) && !Platform.isLinux ) {
+  if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
+      !Platform.isLinux) {
     await windowManager.ensureInitialized();
     final windowSize = Size(1200, 800);
     WindowOptions windowOptions = WindowOptions(
@@ -43,12 +44,10 @@ class MyApp extends StatelessWidget {
       title: 'Waterboard',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarThemeData(
-          backgroundColor: Colors.grey.shade300
-        ),
+        appBarTheme: AppBarThemeData(backgroundColor: Colors.grey.shade300),
         fontFamily: "inter",
       ),
-      home: MainPage(comms: comms,)
+      home: MainPage(comms: comms),
     );
   }
 }

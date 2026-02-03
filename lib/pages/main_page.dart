@@ -45,6 +45,7 @@ class _MainPageState extends State<MainPage> {
 
     widget.comms.startConnectionRoutine();
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -59,11 +60,11 @@ class _MainPageState extends State<MainPage> {
       }
     });
   }
+
   bool get isOnMainPage {
     final route = ModalRoute.of(context);
     return route != null && route.isCurrent;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -84,10 +85,13 @@ class _MainPageState extends State<MainPage> {
         actions: [
           ValueListenableBuilder(
             valueListenable: widget.comms.connectionState,
-            builder: (context, value, child) =>
-                ROSConnectionStateWidget(value: value, fontSize: 18, iconSize: 18),
+            builder: (context, value, child) => ROSConnectionStateWidget(
+              value: value,
+              fontSize: 18,
+              iconSize: 18,
+            ),
           ),
-          SizedBox(width: 15,),
+          SizedBox(width: 15),
           IconButton(
             onPressed: () => showSettingsDialog(),
             icon: Icon(Icons.settings),
@@ -350,7 +354,7 @@ class _MainPageState extends State<MainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       closeConnectionDialog();
-      if(!isOnMainPage) return;
+      if (!isOnMainPage) return;
       _connectionAlertDialog = DialogRoute(
         context: context,
         barrierDismissible: false,
@@ -365,9 +369,11 @@ class _MainPageState extends State<MainPage> {
             ),
             actions: [
               TextButton(
-                onPressed: () { showSettingsDialog(); },
+                onPressed: () {
+                  showSettingsDialog();
+                },
                 child: Text("Open Settings"),
-              )
+              ),
             ],
           );
         },
@@ -380,7 +386,7 @@ class _MainPageState extends State<MainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       closeConnectionDialog();
-      if(!isOnMainPage) return;
+      if (!isOnMainPage) return;
       _connectionAlertDialog = DialogRoute(
         context: context,
         barrierDismissible: false,
@@ -395,9 +401,11 @@ class _MainPageState extends State<MainPage> {
             ),
             actions: [
               TextButton(
-                onPressed: () { showSettingsDialog(); },
+                onPressed: () {
+                  showSettingsDialog();
+                },
                 child: Text("Open Settings"),
-              )
+              ),
             ],
           );
         },
@@ -419,7 +427,7 @@ class _MainPageState extends State<MainPage> {
       builder: (context) {
         return AlertDialog(
           title: Text("Waterboard Settings"),
-          content: SettingsDialog(comms: widget.comms,),
+          content: SettingsDialog(comms: widget.comms),
         );
       },
     );

@@ -38,7 +38,7 @@ class _StandbyModeState extends State<StandbyMode> {
       _timer.cancel();
       return;
     }
-    if(_paused) return;
+    if (_paused) return;
     setState(() {
       _currentSlide = (_currentSlide + 1) % slides.length;
       _timer = Timer(
@@ -68,8 +68,7 @@ class _StandbyModeState extends State<StandbyMode> {
               },
               icon: Icon(Icons.arrow_back_rounded),
             ),
-            if (_paused)
-              Flexible(child: Icon(Icons.pause))
+            if (_paused) Flexible(child: Icon(Icons.pause)),
           ],
         ),
       ),
@@ -103,17 +102,16 @@ class _StandbyModeState extends State<StandbyMode> {
               );
               return KeyEventResult.handled;
             }
-            if(event.logicalKey == LogicalKeyboardKey.keyP) {
+            if (event.logicalKey == LogicalKeyboardKey.keyP) {
               setState(() {
                 _paused = !_paused;
               });
             }
-
           }
 
           return KeyEventResult.ignored;
         },
-          // child: logoAndTimeSlide()
+        // child: logoAndTimeSlide()
         child: slides[_currentSlide].$1(),
       ),
     );
@@ -169,7 +167,11 @@ class _StandbyModeState extends State<StandbyMode> {
                   ValueListenableBuilder(
                     valueListenable: widget.comms.connectionState,
                     builder: (context, value, child) =>
-                        ROSConnectionStateWidget(value: value, fontSize: 82, iconSize: 82),
+                        ROSConnectionStateWidget(
+                          value: value,
+                          fontSize: 82,
+                          iconSize: 82,
+                        ),
                   ),
                 ],
               ),
@@ -388,7 +390,11 @@ class _StandbyModeState extends State<StandbyMode> {
                   ValueListenableBuilder(
                     valueListenable: widget.comms.connectionState,
                     builder: (context, value, child) =>
-                        ROSConnectionStateWidget(value: value, fontSize: 52, iconSize: 52),
+                        ROSConnectionStateWidget(
+                          value: value,
+                          fontSize: 52,
+                          iconSize: 52,
+                        ),
                   ),
                 ],
               ),
