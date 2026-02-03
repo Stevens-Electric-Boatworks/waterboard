@@ -1,0 +1,137 @@
+# Based on Gold872/Waterboard_Dashboard
+
+name: Waterboard
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  FLUTTER_VERSION: 3.35.6
+
+
+jobs:
+  formatting-analysis:
+    name: "Check Formatting & Analyze"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-path: ${{ runner.tool_cache }}/flutter/linux
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib/* test/*
+
+      - name: Generate mocks
+        run: dart run build_runner build
+
+      - name: Verify import sorting
+        run: dart run import_sorter:main --exit-if-changed
+
+      - name: Analyze project source
+        run: flutter analyze --fatal-infos
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform-name: "Windows"
+            platform: "windows"
+            build-path: "build/windows/x64/runner/Release"
+            artifact-name: Waterboard-Windows
+            artifact-file: Waterboard-Windows.zip
+          - os: macos-latest
+            platform-name: "MacOS"
+            platform: "macos"
+            build-path: "build/macos/Build/Products/Release"
+            artifact-name: Waterboard-macOS
+            artifact-file: Waterboard-macOS.zip
+          - os: ubuntu-22.04
+            platform-name: "Linux"
+            platform: "linux"
+            build-path: "build/linux/x64/release/bundle"
+            artifact-name: Waterboard-Linux
+            artifact-file: Waterboard-Linux.zip
+
+
+    name: "Build - ${{ matrix.platform-name }}"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install flutter build dependencies
+        if: ${{ matrix.platform == 'linux' }}
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libglu1-mesa ninja-build libgtk-3-dev liblzma-dev
+
+      - name: Build for ${{ matrix.platform-name }}
+        uses: ./.github/workflows/Waterboard-build
+        with:
+          flutter_version: ${{ env.FLUTTER_VERSION }}
+          platform: ${{ matrix.platform }}
+
+      - name: Copy runtime files
+        if: ${{ matrix.platform == 'windows' }}
+        run: ./.github/CopyRuntime.ps1 -OutputPath ${{ matrix.build-path }}
+
+      - name: Zip Windows Executable
+        if: ${{ matrix.platform == 'windows' }}
+        working-directory: ${{ matrix.build-path }}
+        run: Compress-Archive -Path * -DestinationPath ${{ github.workspace }}/${{ matrix.artifact-file }}
+
+      - name: Zip Linux Executable
+        if: ${{ matrix.platform == 'linux' }}
+        working-directory: ${{ matrix.build-path }}
+        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} . --symlinks
+
+      - name: Zip MacOS Release
+        if: ${{ matrix.platform == 'macos'}}
+        working-directory: ${{ matrix.build-path }}
+        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} Waterboard_dashboard.app --symlinks
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-file }}
+          if-no-files-found: error
+
+  build-web:
+    name: "Build - Web"
+    runs-on: "ubuntu-22.04"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build for Web
+        uses: ./.github/workflows/Waterboard-build
+        with:
+          flutter_version: ${{ env.FLUTTER_VERSION }}
+          platform: web
+
+      - name: Zip Artifact
+        working-directory: build/web
+        run: zip -r ${{ github.workspace }}/Waterboard-Web.zip . --symlinks
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Waterboard-Web
