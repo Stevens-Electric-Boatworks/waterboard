@@ -1,13 +1,18 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
+
+// Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+// Project imports:
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/gauge.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
-
 import '../widgets/ros_connection_state_widget.dart';
 
 class MainPage extends StatefulWidget {

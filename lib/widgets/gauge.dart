@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class Gauge extends StatelessWidget {
