@@ -1,0 +1,32 @@
+name: "Waterboard Build"
+description: "Builds Waterboard for a specific platform"
+
+inputs:
+  flutter_version:
+    description: "The Flutter version to download"
+    required: true
+  platform:
+    description: "The platform for Flutter to build on"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter_version }}
+        cache: true
+        cache-path: ${{ runner.tool_cache }}/flutter/${{ inputs.platform }}
+
+    - name: Flutter Doctor
+      shell: bash
+      run: flutter doctor -v
+
+    - name: Install dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Build app
+      shell: bash
+      run: flutter build ${{ inputs.platform }}
