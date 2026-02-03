@@ -1,10 +1,15 @@
+// Dart imports:
 import 'dart:io';
 
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:waterboard/services/ros_comms.dart';
+
+// Package imports:
 import 'package:window_manager/window_manager.dart';
 
+// Project imports:
+import 'package:waterboard/services/ros_comms.dart';
 import 'pages/main_page.dart';
 
 void main() async {
