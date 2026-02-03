@@ -122,7 +122,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build for Web
-        uses: ./.github/workflows/Waterboard-build
+        uses: ./.github/workflows/waterboard-build
         with:
           flutter_version: ${{ env.FLUTTER_VERSION }}
           platform: web
