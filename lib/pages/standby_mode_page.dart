@@ -165,7 +165,7 @@ class _StandbyModeState extends State<StandbyMode> {
                     style: TextStyle(
                       color: Color.fromARGB(255, 206, 206, 206),
                       fontWeight: FontWeight.w700,
-                      fontSize: 192,
+                      fontSize: 128,
                     ),
                   ),
                   SizedBox(height: 25),
