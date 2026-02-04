@@ -8,12 +8,14 @@ class ROSListenable extends StatefulWidget {
   final ValueNotifier<Map<String, dynamic>> valueNotifier;
   final Widget Function(BuildContext context, Map<String, dynamic> value)
   builder;
+  final Widget Function(BuildContext context) _noDataBuilder;
 
   const ROSListenable({
     super.key,
     required this.valueNotifier,
     required this.builder,
-  });
+    required Widget Function(BuildContext) noDataBuilder,
+  }) : _noDataBuilder = noDataBuilder;
 
   @override
   State<ROSListenable> createState() => _ROSListenableState();
@@ -51,14 +53,10 @@ class _ROSListenableState extends State<ROSListenable> {
     return ValueListenableBuilder<Map<String, dynamic>>(
       valueListenable: widget.valueNotifier,
       builder: (context, value, _) {
-        if (value.isEmpty) {
-          return const CircularProgressIndicator();
-        }
-
         return Stack(
           alignment: Alignment.center,
           children: [
-            RepaintBoundary(child: widget.builder(context, value)),
+            RepaintBoundary(child: getWidget(value)),
 
             if (_isStale)
               Positioned.fill(
@@ -74,5 +72,12 @@ class _ROSListenableState extends State<ROSListenable> {
         );
       },
     );
+  }
+
+  Widget getWidget(Map<String, dynamic> value) {
+    if (value.isEmpty) {
+      return widget._noDataBuilder(context);
+    }
+    return widget.builder(context, value);
   }
 }
