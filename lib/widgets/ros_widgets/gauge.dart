@@ -1,6 +1,5 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
@@ -16,6 +15,7 @@ class ROSGauge extends StatelessWidget {
   final double positionFactor;
   final String title;
   final int backgroundOpacity;
+
   const ROSGauge({
     super.key,
     required this.valueBuilder,
@@ -44,7 +44,11 @@ class ROSGauge extends StatelessWidget {
     );
   }
 
-  SfRadialGauge _buildGauge(double value, bool enableAnimation, {bool hasData = true}) {
+  SfRadialGauge _buildGauge(
+    double value,
+    bool enableAnimation, {
+    bool hasData = true,
+  }) {
     return SfRadialGauge(
       enableLoadingAnimation: enableAnimation,
       backgroundColor: Colors.transparent,
@@ -97,7 +101,10 @@ class ROSGauge extends StatelessWidget {
                 children: [
                   Text(
                     hasData ? "$value" : "Unknown",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: hasData ? 30 : 24),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: hasData ? 30 : 24,
+                    ),
                   ),
                   SizedBox(width: 5),
                   Text(

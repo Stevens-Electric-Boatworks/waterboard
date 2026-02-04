@@ -5,7 +5,6 @@ import 'dart:io';
 
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
-
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -92,8 +91,7 @@ class ROSComms {
           if (data.isEmpty) return;
           notifier.value = data;
         }
-      } else {
-      }
+      } else {}
     });
   }
 
