@@ -27,7 +27,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
         children: [
           Icon(Icons.wifi, color: Colors.green, size: iconSize),
           Text(
-            " Connected",
+            " ROS Connected",
             style: style.merge(TextStyle(color: Colors.green)),
           ),
         ],
