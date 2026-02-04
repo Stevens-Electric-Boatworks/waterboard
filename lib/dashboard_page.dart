@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterboard/pages/electrics_page.dart';
 
 // Package imports:
 import 'package:waterboard/pages/main_driver_page.dart';
@@ -34,7 +35,7 @@ class _MainPageState extends State<MainPage> {
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  final int _totalPages = 5;
+  final int _totalPages = 6;
 
   @override
   void initState() {
@@ -143,22 +144,27 @@ class _MainPageState extends State<MainPage> {
           controller: _pageController,
           children: [
             KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
+            KeepAlivePage(child: ElectricsPage(comms: widget.comms)),
+            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: Placeholder()),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.sports_motorsports), label: "Primary",),
-            BottomNavigationBarItem(icon: Icon(Icons.electric_bolt), label: "Electric"),
-            BottomNavigationBarItem(icon: Icon(Icons.water_rounded), label: "Motors"),
-            BottomNavigationBarItem(icon: Icon(Icons.connect_without_contact), label: "Connectivity"),
-            BottomNavigationBarItem(icon: Icon(Icons.code), label: "Software"),
-          ],
-          currentIndex: _pageController.hasClients ? _currentPage : 0,
+        bottomNavigationBar: SizedBox(
+          height: 60,
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.sports_motorsports), label: "Primary",),
+              BottomNavigationBarItem(icon: Icon(Icons.electric_bolt), label: "Electric"),
+              BottomNavigationBarItem(icon: Icon(Icons.water_rounded), label: "Motors"),
+              BottomNavigationBarItem(icon: Icon(Icons.connect_without_contact), label: "Connectivity"),
+              BottomNavigationBarItem(icon: Icon(Icons.code), label: "Software"),
+              BottomNavigationBarItem(icon: Icon(Icons.error), label: "Faults"),
+            ],
+            currentIndex: _pageController.hasClients ? _currentPage : 0,
+          ),
         ),
       ),
     );
