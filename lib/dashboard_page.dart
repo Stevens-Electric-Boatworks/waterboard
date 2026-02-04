@@ -15,7 +15,6 @@ import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms.dart';
-import 'package:waterboard/settings/settings_dialog.dart';
 
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
@@ -94,13 +93,12 @@ class _MainPageState extends State<MainPage> {
         }
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            moveToNextPage();
+          moveToNextPage();
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-
-            moveToPreviousPage();
+          moveToPreviousPage();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
@@ -156,11 +154,26 @@ class _MainPageState extends State<MainPage> {
           child: BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
             items: [
-              BottomNavigationBarItem(icon: Icon(Icons.sports_motorsports), label: "Primary",),
-              BottomNavigationBarItem(icon: Icon(Icons.electric_bolt), label: "Electric"),
-              BottomNavigationBarItem(icon: Icon(Icons.water_rounded), label: "Motors"),
-              BottomNavigationBarItem(icon: Icon(Icons.connect_without_contact), label: "Connectivity"),
-              BottomNavigationBarItem(icon: Icon(Icons.code), label: "Software"),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.sports_motorsports),
+                label: "Primary",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.electric_bolt),
+                label: "Electric",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.water_rounded),
+                label: "Motors",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.connect_without_contact),
+                label: "Connectivity",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.code),
+                label: "Software",
+              ),
               BottomNavigationBarItem(icon: Icon(Icons.error), label: "Faults"),
             ],
             currentIndex: _pageController.hasClients ? _currentPage : 0,
@@ -243,7 +256,7 @@ class _MainPageState extends State<MainPage> {
 
   void moveToNextPage() {
     SharedPreferences.getInstance().then((value) {
-      if(!(value.getBool("locked_layout") ?? false)) {
+      if (!(value.getBool("locked_layout") ?? false)) {
         setState(() {
           _currentPage = min(_currentPage + 1, _totalPages - 1);
           _pageController.animateToPage(
@@ -253,12 +266,12 @@ class _MainPageState extends State<MainPage> {
           );
         });
       }
-    },);
+    });
   }
 
   void moveToPreviousPage() {
     SharedPreferences.getInstance().then((value) {
-      if(!(value.getBool("locked_layout") ?? false)) {
+      if (!(value.getBool("locked_layout") ?? false)) {
         setState(() {
           _currentPage = max(0, _currentPage - 1);
           _pageController.animateToPage(
@@ -268,6 +281,6 @@ class _MainPageState extends State<MainPage> {
           );
         });
       }
-    },);
+    });
   }
 }

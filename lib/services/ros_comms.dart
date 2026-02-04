@@ -23,7 +23,7 @@ class ROSComms {
   Timer? _websocketTimer;
   Timer? _rosbridgeTimer;
 
-  int _last_rosbridge_msg = 0;
+  int _lastROSBridgeMsg = 0;
 
   ValueNotifier<ConnectionState> get connectionState => _connectionState;
 
@@ -37,7 +37,6 @@ class ROSComms {
   Future<void> _websocketTimerTick() async {
     try {
       if (_channel?.closeCode != null) {
-        print("Socket Closed");
         _rosbridgeTimer?.cancel();
         _connectionState.value = ConnectionState.noWebsocket;
       }
@@ -51,7 +50,6 @@ class ROSComms {
   }
 
   Future<void> _connect() async {
-    print("Attempting connection to websocket.");
     var prefs = await SharedPreferences.getInstance();
     final wsUrl = Uri.parse(
       'ws://${prefs.getString("websocket.ip") ?? "127.0.0.1"}:${prefs.getInt("websocket.port") ?? 9090}',
@@ -59,34 +57,29 @@ class ROSComms {
     _channel = WebSocketChannel.connect(wsUrl);
     try {
       await _channel!.ready;
-    } on SocketException catch (e) {
+    } on SocketException {
       _connectionState.value = ConnectionState.noWebsocket;
-      print(
-        "Failed to connect to the socket: ${e.message}: ERROR_CODE: ${e.osError}",
-      );
+
       return;
-    } on WebSocketChannelException catch (e) {
+    } on WebSocketChannelException {
       _connectionState.value = ConnectionState.noWebsocket;
-      print("Failed to connect to the websocket channel: ${e.message}}");
       return;
     }
-    print("Connected to the websocket!");
 
     _connectionState.value = ConnectionState.noROSBridge;
 
     _rosbridgeTimer?.cancel();
     _rosbridgeTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
-      if (DateTime.now().millisecondsSinceEpoch - _last_rosbridge_msg >= 1500) {
+      if (DateTime.now().millisecondsSinceEpoch - _lastROSBridgeMsg >= 1500) {
         _connectionState.value = ConnectionState.noROSBridge;
-        _socket_send_subcriptions();
-        print("ROS stale data");
+        _sendAllSubscriptions();
       }
     });
-    _socket_send_subcriptions();
+    _sendAllSubscriptions();
     _channel?.stream.listen((message) {
-      _last_rosbridge_msg = DateTime.now().millisecondsSinceEpoch;
+      _lastROSBridgeMsg = DateTime.now().millisecondsSinceEpoch;
       if (_connectionState.value != ConnectionState.connected) {
-        _socket_send_subcriptions();
+        _sendAllSubscriptions();
       }
       _connectionState.value = ConnectionState.connected;
       // print("STATE: ${_connectionState.value}");
@@ -100,13 +93,11 @@ class ROSComms {
           notifier.value = data;
         }
       } else {
-        print("Found unknown operation: ${msg["op"]}");
       }
     });
   }
 
   void reconnect() async {
-    print("Reconnecting to websocket");
     _rosbridgeTimer?.cancel();
     _websocketTimer?.cancel();
     await _channel?.sink.close();
@@ -124,7 +115,7 @@ class ROSComms {
     return notifier;
   }
 
-  void _socket_send_subcriptions() {
+  void _sendAllSubscriptions() {
     for (var topic in _subscribedTopics) {
       _channel?.sink.add(json.encode({"op": "subscribe", "topic": topic}));
     }

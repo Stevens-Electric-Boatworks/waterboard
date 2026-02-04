@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:waterboard/services/ros_comms.dart';
-import 'package:flutter/material.dart';
 
 import '../settings/settings_dialog.dart';
-class PageUtils {
 
+class PageUtils {
   static void showSettingsDialog(BuildContext context, ROSComms comms) {
     showDialog(
       context: context,
@@ -20,16 +19,14 @@ class PageUtils {
 
 // Source - https://stackoverflow.com/a/63574708
 // Posted by O Thạnh Ldt
-// Retrieved 2026-02-03, License - CC BY-SA 4.0
-
 
 class KeepAlivePage extends StatefulWidget {
-  const KeepAlivePage({super.key, required this.child,});
+  const KeepAlivePage({super.key, required this.child});
 
   final Widget child;
 
   @override
-  _KeepAlivePageState createState() => _KeepAlivePageState();
+  State<KeepAlivePage> createState() => _KeepAlivePageState();
 }
 
 class _KeepAlivePageState extends State<KeepAlivePage>
