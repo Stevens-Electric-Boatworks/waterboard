@@ -22,9 +22,9 @@ class Gauge extends StatelessWidget {
     required this.maximum,
     required this.annotationText,
     required this.ranges,
-    this.thickness = 35,
-    this.positionFactor = 0.69,
-    this.backgroundOpacity = 50,
+    this.thickness = 40,
+    this.positionFactor = 0.65,
+    this.backgroundOpacity = 75,
     required this.title,
     required this.unitText,
   });
@@ -33,14 +33,13 @@ class Gauge extends StatelessWidget {
   Widget build(BuildContext context) {
     return SfRadialGauge(
       enableLoadingAnimation: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       animationDuration: 2000,
       axes: [
         RadialAxis(
           axisLineStyle: AxisLineStyle(
             thickness: thickness,
             color: Colors.white,
-            cornerStyle: CornerStyle.bothCurve,
           ),
           minimum: minimum,
           maximum: maximum,
@@ -63,7 +62,6 @@ class Gauge extends StatelessWidget {
               color: _getRangeColor(value),
               width: thickness,
               value: value,
-
               enableAnimation: true,
             ),
           ],
@@ -79,32 +77,26 @@ class Gauge extends StatelessWidget {
             ),
             //Current Value
             GaugeAnnotation(
-              widget: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.all(Radius.circular(5)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      annotationText,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                      ),
+              widget: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    annotationText,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 30,
                     ),
-                    SizedBox(width: 5),
-                    Text(
-                      unitText,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
+                  ),
+                  SizedBox(width: 5),
+                  Text(
+                    unitText,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               angle: 90,
               positionFactor: positionFactor,
