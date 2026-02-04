@@ -10,7 +10,7 @@ import 'package:window_manager/window_manager.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms.dart';
-import 'pages/main_page.dart';
+import 'dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +39,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final ROSComms comms;
+
   const MyApp(this.comms, {super.key});
 
   // This widget is the root of your application.
@@ -50,6 +51,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarThemeData(backgroundColor: Colors.grey.shade300),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.grey.shade300,
+          unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
+          selectedItemColor: Colors.red.shade800,
+          // selectedLabelStyle: TextStyle(fontSize: 12),
+
+        ),
         fontFamily: "inter",
       ),
       home: MainPage(comms: comms),
