@@ -3,36 +3,50 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
-class Gauge extends StatelessWidget {
+class ROSGauge extends StatelessWidget {
   final double minimum;
   final double maximum;
-  final double value;
-  final String annotationText;
+  final ValueNotifier<Map<String, dynamic>> notifier;
+  final double Function(Map<String, dynamic> json) valueBuilder;
   final String unitText;
   final List<GaugeRange> ranges;
   final double thickness;
   final double positionFactor;
   final String title;
   final int backgroundOpacity;
-  const Gauge({
+  const ROSGauge({
     super.key,
-    required this.value,
+    required this.valueBuilder,
     required this.minimum,
     required this.maximum,
-    required this.annotationText,
     required this.ranges,
     this.thickness = 40,
     this.positionFactor = 0.65,
     this.backgroundOpacity = 75,
     required this.title,
     required this.unitText,
+    required this.notifier,
   });
 
   @override
   Widget build(BuildContext context) {
+    return ROSListenable(
+      valueNotifier: notifier,
+      builder: (BuildContext context, Map<String, dynamic> json) {
+        double value = valueBuilder(json);
+        return _buildGauge(value, true);
+      },
+      noDataBuilder: (BuildContext context) {
+        return _buildGauge(minimum, false);
+      },
+    );
+  }
+
+  SfRadialGauge _buildGauge(double value, bool enableAnimation) {
     return SfRadialGauge(
-      enableLoadingAnimation: true,
+      enableLoadingAnimation: enableAnimation,
       backgroundColor: Colors.transparent,
       animationDuration: 2000,
       axes: [
@@ -50,19 +64,19 @@ class Gauge extends StatelessWidget {
               needleEndWidth: 5,
               knobStyle: KnobStyle(knobRadius: 0.05),
               needleColor: Colors.grey.withAlpha(150),
-              enableAnimation: true,
+              enableAnimation: enableAnimation,
             ),
             RangePointer(
               width: thickness,
               value: maximum,
-              enableAnimation: true,
+              enableAnimation: enableAnimation,
               gradient: _buildGradient(),
             ),
             RangePointer(
               color: _getRangeColor(value),
               width: thickness,
               value: value,
-              enableAnimation: true,
+              enableAnimation: enableAnimation,
             ),
           ],
           annotations: [
@@ -82,19 +96,13 @@ class Gauge extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    annotationText,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 30,
-                    ),
+                    "$value",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                   ),
                   SizedBox(width: 5),
                   Text(
                     unitText,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                 ],
               ),
