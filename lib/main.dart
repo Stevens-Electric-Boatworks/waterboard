@@ -55,8 +55,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.grey.shade300,
           unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
           selectedItemColor: Colors.red.shade800,
-          // selectedLabelStyle: TextStyle(fontSize: 12),
 
+          // selectedLabelStyle: TextStyle(fontSize: 12),
         ),
         fontFamily: "inter",
       ),
