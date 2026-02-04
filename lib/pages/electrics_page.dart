@@ -28,7 +28,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
                 color: Colors.black
               )
             ),
-            margin: EdgeInsets.all(),
+            margin: EdgeInsets.all(4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
