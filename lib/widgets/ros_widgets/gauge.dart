@@ -39,12 +39,12 @@ class ROSGauge extends StatelessWidget {
         return _buildGauge(value, true);
       },
       noDataBuilder: (BuildContext context) {
-        return _buildGauge(minimum, false);
+        return _buildGauge(minimum, false, hasData: false);
       },
     );
   }
 
-  SfRadialGauge _buildGauge(double value, bool enableAnimation) {
+  SfRadialGauge _buildGauge(double value, bool enableAnimation, {bool hasData = true}) {
     return SfRadialGauge(
       enableLoadingAnimation: enableAnimation,
       backgroundColor: Colors.transparent,
@@ -96,8 +96,8 @@ class ROSGauge extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "$value",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                    hasData ? "$value" : "Unknown",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: hasData ? 30 : 24),
                   ),
                   SizedBox(width: 5),
                   Text(
