@@ -1,19 +1,18 @@
 // Dart imports:
 
-// Flutter imports:
+// Dart imports:
 import 'dart:async';
 import 'dart:math';
 
+// Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterboard/pages/electrics_page.dart';
-
 // Package imports:
+import 'package:shared_preferences/shared_preferences.dart';
+// Project imports:
+import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
-
-// Project imports:
 import 'package:waterboard/services/ros_comms.dart';
 
 import 'widgets/ros_connection_state_widget.dart';
@@ -140,6 +139,11 @@ class _MainPageState extends State<MainPage> {
         ),
         body: PageView(
           controller: _pageController,
+          scrollBehavior: ScrollBehavior().copyWith(
+            physics: NeverScrollableScrollPhysics(),
+            scrollbars: false,
+            overscroll: false,
+          ),
           children: [
             KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
             KeepAlivePage(child: ElectricsPage(comms: widget.comms)),

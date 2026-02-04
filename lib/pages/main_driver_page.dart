@@ -1,6 +1,9 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+// Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
+// Project imports:
 import '../services/ros_comms.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
