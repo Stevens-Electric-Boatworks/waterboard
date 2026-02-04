@@ -4,13 +4,12 @@ import 'dart:async';
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-
 // Package imports:
 import 'package:text_gradiate/text_gradiate.dart';
-
 // Project imports:
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/time_text.dart';
+
 import '../widgets/ros_connection_state_widget.dart';
 
 class StandbyMode extends StatefulWidget {
@@ -169,6 +168,7 @@ class _StandbyModeState extends State<StandbyMode> {
                     ),
                   ),
                   SizedBox(height: 25),
+                  Spacer(),
                   ValueListenableBuilder(
                     valueListenable: widget.comms.connectionState,
                     builder: (context, value, child) =>
@@ -178,6 +178,7 @@ class _StandbyModeState extends State<StandbyMode> {
                           iconSize: 82,
                         ),
                   ),
+                  SizedBox(height: 50),
                 ],
               ),
             ],
