@@ -11,6 +11,7 @@ import 'package:waterboard/widgets/time_text.dart';
 
 class SettingsDialog extends StatefulWidget {
   final ROSComms comms;
+
   const SettingsDialog({super.key, required this.comms});
 
   @override
@@ -94,6 +95,27 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ),
               ),
             ],
+          ),
+          SizedBox(height: 5),
+          FutureBuilder(
+            future: SharedPreferences.getInstance(),
+            builder: (context, asyncSnapshot) {
+              return Row(
+                children: [
+                  Text("Lock Layout"),
+                  SizedBox(width: 10),
+                  Switch(
+                    value:
+                        asyncSnapshot.data?.getBool("locked_layout") ?? false,
+                    onChanged: (value) {
+                      setState(() {
+                        asyncSnapshot.data?.setBool("locked_layout", value);
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: 25),
           Center(

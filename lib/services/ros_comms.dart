@@ -79,12 +79,9 @@ class ROSComms {
       if (DateTime.now().millisecondsSinceEpoch - _last_rosbridge_msg >= 1500) {
         _connectionState.value = ConnectionState.noROSBridge;
         _socket_send_subcriptions();
-        print("ROS Bridge is detected as being offline.");
+        print("ROS stale data");
       }
     });
-
-    print("Sending test message.");
-
     _socket_send_subcriptions();
     _channel?.stream.listen((message) {
       _last_rosbridge_msg = DateTime.now().millisecondsSinceEpoch;
@@ -119,7 +116,6 @@ class ROSComms {
   ValueNotifier<Map<String, dynamic>> subscribe(String topic) {
     var notifier = ValueNotifier<Map<String, dynamic>>({});
     if (_subscriptions.containsKey(topic)) {
-      print("sending old value notifier for $topic");
       return _subscriptions[topic]!;
     }
     //subscribe to new topic
