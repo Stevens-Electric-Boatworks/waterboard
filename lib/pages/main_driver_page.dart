@@ -1,12 +1,8 @@
-// Flutter imports:
 import 'dart:async';
 
 import 'package:flutter/material.dart' hide ConnectionState;
-// Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/pages/page_utils.dart';
-
-// Project imports:
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
@@ -28,7 +24,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
         showWebsocketDisconnectedDialog();
       } else if (widget.ros.connectionState.value ==
           ROSConnectionState.staleData) {
-        showROSBridgeDisconnectedDialog();
+        showStaleDataDialog();
       } else if (widget.ros.connectionState.value ==
           ROSConnectionState.connected) {
         //weird race condition fix
@@ -39,20 +35,15 @@ class _MainDriverPageState extends State<MainDriverPage> {
         });
       }
     });
-  }
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (!mounted) return;
-    //   final state = widget.ros.connectionState.value;
-    //   if (state == ConnectionState.noWebsocket) {
-    //     showWebsocketDisconnectedDialog();
-    //   } else if (state == ConnectionState.noROSBridge) {
-    //     showROSBridgeDisconnectedDialog();
-    //   }
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = widget.ros.connectionState.value;
+      if (state == ROSConnectionState.noWebsocket) {
+        showWebsocketDisconnectedDialog();
+      } else if (state == ROSConnectionState.staleData) {
+        showStaleDataDialog();
+      }
+    });
   }
 
   bool get isOnMainPage {
@@ -297,7 +288,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
     });
   }
 
-  void showROSBridgeDisconnectedDialog() {
+  void showStaleDataDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       closeConnectionDialog();

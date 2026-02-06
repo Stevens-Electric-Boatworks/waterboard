@@ -1,7 +1,6 @@
 // Dart imports:
 
 // Dart imports:
-import 'dart:async';
 import 'dart:math';
 
 // Flutter imports:
@@ -43,7 +42,6 @@ class _MainPageState extends State<MainPage> {
     widget.ros.startConnectionLoop();
   }
 
-
   bool get isOnMainPage {
     final route = ModalRoute.of(context);
     return route != null && route.isCurrent;
@@ -52,9 +50,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // print(
-    //   "current page: ${_pageController.hasClients ? _pageController.page!.toInt() : 0}",
-    // );
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {

@@ -65,7 +65,7 @@ class ROSBridge {
     _rosBridgeTimer?.cancel();
     _rosBridgeTimer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       if (DateTime.now().millisecondsSinceEpoch - _lastROSBridgeMsg >= 1500) {
-        Log.instance.warning("[ROS] Stale data from ROSBridge");
+        Log.instance.info("[ROS] Stale data from ROSBridge");
         _connectionState.value = ROSConnectionState.staleData;
         _sendAllSubscriptions();
       }
