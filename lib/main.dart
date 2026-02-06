@@ -4,6 +4,7 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:waterboard/services/log.dart';
 
 // Package imports:
 import 'package:window_manager/window_manager.dart';
@@ -33,6 +34,7 @@ void main() async {
       await windowManager.focus();
     });
   }
+  await Log.instance.initialize();
   ROSComms comms = ROSComms();
   runApp(MyApp(comms));
 }
