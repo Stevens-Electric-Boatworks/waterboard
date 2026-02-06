@@ -23,18 +23,17 @@ class _MainDriverPageState extends State<MainDriverPage> {
   @override
   void initState() {
     super.initState();
-    // TODO: implement initState
-    widget.comms.connectionState.addListener(() {
-      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
+    widget.ros.connectionState.addListener(() {
+      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
         showWebsocketDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.noROSBridge) {
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.staleData) {
         showROSBridgeDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.connected) {
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.connected) {
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if (widget.comms.connectionState.value == ConnectionState.connected) {
+          if (widget.ros.connectionState.value == ROSConnectionState.connected) {
             closeConnectionDialog();
           }
         });
@@ -47,7 +46,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   if (!mounted) return;
-    //   final state = widget.comms.connectionState.value;
+    //   final state = widget.ros.connectionState.value;
     //   if (state == ConnectionState.noWebsocket) {
     //     showWebsocketDisconnectedDialog();
     //   } else if (state == ConnectionState.noROSBridge) {
@@ -277,7 +276,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),
@@ -318,7 +317,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),
