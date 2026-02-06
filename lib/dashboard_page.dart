@@ -13,15 +13,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
-import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
 class MainPage extends StatefulWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const MainPage({super.key, required this.comms});
+  const MainPage({super.key, required this.ros});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -38,23 +38,23 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    widget.comms.connectionState.addListener(() {
-      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
+    widget.ros.connectionState.addListener(() {
+      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
         showWebsocketDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.noROSBridge) {
-        showROSBridgeDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.connected) {
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.staleData) {
+        showStaleDataDialog();
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.connected) {
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if (widget.comms.connectionState.value == ConnectionState.connected) {
+          if (widget.ros.connectionState.value == ROSConnectionState.connected) {
             closeConnectionDialog();
           }
         });
       }
     });
-    widget.comms.startConnectionRoutine();
+    widget.ros.startConnectionLoop();
   }
 
   @override
@@ -63,11 +63,11 @@ class _MainPageState extends State<MainPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final state = widget.comms.connectionState.value;
-      if (state == ConnectionState.noWebsocket) {
+      final state = widget.ros.connectionState.value;
+      if (state == ROSConnectionState.noWebsocket) {
         showWebsocketDisconnectedDialog();
-      } else if (state == ConnectionState.noROSBridge) {
-        showROSBridgeDisconnectedDialog();
+      } else if (state == ROSConnectionState.staleData) {
+        showStaleDataDialog();
       }
     });
   }
@@ -87,7 +87,7 @@ class _MainPageState extends State<MainPage> {
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.keyS) {
-          PageUtils.showSettingsDialog(context, widget.comms);
+          PageUtils.showSettingsDialog(context, widget.ros);
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
@@ -120,7 +120,7 @@ class _MainPageState extends State<MainPage> {
           ),
           actions: [
             ValueListenableBuilder(
-              valueListenable: widget.comms.connectionState,
+              valueListenable: widget.ros.connectionState,
               builder: (context, value, child) => ROSConnectionStateWidget(
                 value: value,
                 fontSize: 18,
@@ -130,7 +130,7 @@ class _MainPageState extends State<MainPage> {
             SizedBox(width: 15),
             IconButton(
               onPressed: () =>
-                  PageUtils.showSettingsDialog(context, widget.comms),
+                  PageUtils.showSettingsDialog(context, widget.ros),
               icon: Icon(Icons.settings),
             ),
           ],
@@ -145,8 +145,8 @@ class _MainPageState extends State<MainPage> {
             overscroll: false,
           ),
           children: [
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: ElectricsPage(comms: widget.comms)),
+            KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
+            KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
@@ -207,7 +207,7 @@ class _MainPageState extends State<MainPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),
@@ -219,7 +219,7 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void showROSBridgeDisconnectedDialog() {
+  void showStaleDataDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       closeConnectionDialog();
@@ -239,7 +239,7 @@ class _MainPageState extends State<MainPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),

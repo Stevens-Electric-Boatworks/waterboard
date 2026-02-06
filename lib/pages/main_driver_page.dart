@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
-import '../services/ros_comms.dart';
+import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
 class MainDriverPage extends StatefulWidget {
-  final ROSComms comms;
-  const MainDriverPage({super.key, required this.comms});
+  final ROS ros;
+  const MainDriverPage({super.key, required this.ros});
 
   @override
   State<MainDriverPage> createState() => _MainDriverPageState();
@@ -27,7 +27,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               //Motor Current
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["current"] as int).toDouble();
                 },
@@ -56,7 +56,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //inlet temp
               ROSGauge(
-                notifier: widget.comms.subscribe("/electrical/temp_sensors/in"),
+                notifier: widget.ros.subscribe("/electrical/temp_sensors/in").value,
                 valueBuilder: (json) {
                   return (json["inlet_temp"] as double).round().toDouble();
                 },
@@ -85,9 +85,9 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //outlet temp
               ROSGauge(
-                notifier: widget.comms.subscribe(
+                notifier: widget.ros.subscribe(
                   "/electrical/temp_sensors/out",
-                ),
+                ).value,
                 valueBuilder: (json) {
                   return (json["outlet_temp"] as double).round().toDouble();
                 },
@@ -124,7 +124,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               // Motor Temp
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["motor_temp"] as int).toDouble();
                 },
@@ -154,7 +154,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Boat Speed
               ROSGauge(
-                notifier: widget.comms.subscribe("/motion/vtg"),
+                notifier: widget.ros.subscribe("/motion/vtg").value,
                 valueBuilder: (json) {
                   return (json["speed"] as double).round().toDouble().abs();
                 },
@@ -179,7 +179,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Motor RPM
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["rpm"] as int).toDouble().abs();
                 },

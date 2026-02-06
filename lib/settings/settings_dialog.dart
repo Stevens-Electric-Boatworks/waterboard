@@ -9,10 +9,12 @@ import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
-class SettingsDialog extends StatefulWidget {
-  final ROSComms comms;
+import '../services/ros_comms/ros.dart';
 
-  const SettingsDialog({super.key, required this.comms});
+class SettingsDialog extends StatefulWidget {
+  final ROS ros;
+
+  const SettingsDialog({super.key, required this.ros});
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -122,7 +124,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
             child: FilledButton(
               child: Text("Restart ROSBridge Comms"),
               onPressed: () {
-                widget.comms.reconnect();
+                widget.ros.reconnect();
               },
             ),
           ),
@@ -134,7 +136,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) {
-                      return StandbyMode(comms: widget.comms);
+                      return StandbyMode(ros: widget.ros);
                     },
                   ),
                 );

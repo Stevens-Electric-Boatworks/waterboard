@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -45,22 +46,26 @@ class ROSBridge {
     final wsUrl = Uri.parse(
       'ws://${prefs.getString("websocket.ip") ?? "127.0.0.1"}:${prefs.getInt("websocket.port") ?? 9090}',
     );
+    Log.instance.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);
     try {
       await _channel!.ready;
     } on SocketException {
+      Log.instance.error("[ROS] Socket error while connecting");
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     } on WebSocketChannelException {
+      Log.instance.error("[ROS] WebsocketChannelException while connecting");
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     }
 
     _connectionState.value = ROSConnectionState.staleData;
-
+    Log.instance.info("[ROS] Connected to Websocket!");
     _rosBridgeTimer?.cancel();
     _rosBridgeTimer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       if (DateTime.now().millisecondsSinceEpoch - _lastROSBridgeMsg >= 1500) {
+        Log.instance.warning("[ROS] Stale data from ROSBridge");
         _connectionState.value = ROSConnectionState.staleData;
         _sendAllSubscriptions();
       }
@@ -72,14 +77,13 @@ class ROSBridge {
         _sendAllSubscriptions();
       }
       _connectionState.value = ROSConnectionState.connected;
-      // print("STATE: ${_connectionState.value}");
 
       var msg = json.decode(message);
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
       }
       else {
-
+        Log.instance.warning("[ROS] Unknown message from ROSBridge: $msg");
       }
     });
   }
