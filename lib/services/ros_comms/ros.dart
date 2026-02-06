@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:logger/logger.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
+
+import '../log.dart';
 
 class ROS {
   late ROSBridge _rosBridge;
@@ -19,6 +22,7 @@ class ROS {
   }
 
   void reconnect() {
+    Log.instance.info("[ROS] Reconnecting...");
     _rosBridge.reconnect();
   }
 
@@ -27,6 +31,7 @@ class ROS {
     if(_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
+    Log.instance.info("Subscribing to $topic");
     var sub = ROSSubscription(topic, _rosBridge);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
