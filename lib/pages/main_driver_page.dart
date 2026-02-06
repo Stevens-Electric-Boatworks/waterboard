@@ -1,7 +1,10 @@
 // Flutter imports:
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart' hide ConnectionState;
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
 import '../services/ros_comms/ros.dart';
@@ -16,6 +19,48 @@ class MainDriverPage extends StatefulWidget {
 }
 
 class _MainDriverPageState extends State<MainDriverPage> {
+  DialogRoute? _connectionAlertDialog;
+  @override
+  void initState() {
+    super.initState();
+    // TODO: implement initState
+    widget.comms.connectionState.addListener(() {
+      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
+        showWebsocketDisconnectedDialog();
+      } else if (widget.comms.connectionState.value ==
+          ConnectionState.noROSBridge) {
+        showROSBridgeDisconnectedDialog();
+      } else if (widget.comms.connectionState.value ==
+          ConnectionState.connected) {
+        //weird race condition fix
+        Timer(Duration(milliseconds: 200), () {
+          if (widget.comms.connectionState.value == ConnectionState.connected) {
+            closeConnectionDialog();
+          }
+        });
+      }
+    });
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (!mounted) return;
+    //   final state = widget.comms.connectionState.value;
+    //   if (state == ConnectionState.noWebsocket) {
+    //     showWebsocketDisconnectedDialog();
+    //   } else if (state == ConnectionState.noROSBridge) {
+    //     showROSBridgeDisconnectedDialog();
+    //   }
+    // });
+  }
+
+  bool get isOnMainPage {
+    final route = ModalRoute.of(context);
+    return route != null && route.isCurrent;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -210,5 +255,94 @@ class _MainDriverPageState extends State<MainDriverPage> {
         ],
       ),
     );
+  }
+
+  void showWebsocketDisconnectedDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      if (!isOnMainPage) return;
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Websocket Disconnected")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  PageUtils.showSettingsDialog(context, widget.comms);
+                },
+                child: Text("Open Settings"),
+              ),
+              TextButton(
+                onPressed: () {
+                  closeConnectionDialog();
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                ),
+                child: Text("Close Dialog", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),),
+              )
+            ],
+          );
+        },
+      );
+      Navigator.of(context).push(_connectionAlertDialog!);
+    });
+  }
+
+  void showROSBridgeDisconnectedDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      if (!isOnMainPage) return;
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Data Stale")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  PageUtils.showSettingsDialog(context, widget.comms);
+                },
+                child: Text("Open Settings"),
+              ),
+              TextButton(
+                onPressed: () {
+                  closeConnectionDialog();
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                ),
+                child: Text("Close Dialog", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),),
+              )
+            ],
+          );
+        },
+      );
+      Navigator.of(context).push(_connectionAlertDialog!);
+    });
+  }
+
+  void closeConnectionDialog() {
+    if (_connectionAlertDialog != null) {
+      Navigator.of(context).removeRoute(_connectionAlertDialog!);
+      _connectionAlertDialog = null;
+    }
   }
 }

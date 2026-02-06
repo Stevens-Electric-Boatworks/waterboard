@@ -7,13 +7,16 @@ import 'dart:math';
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
+
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+
 // Project imports:
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/pages/radios_page.dart';
 
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
@@ -29,7 +32,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   Widget? dialogWidget;
-  DialogRoute? _connectionAlertDialog;
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -76,6 +78,9 @@ class _MainPageState extends State<MainPage> {
     final route = ModalRoute.of(context);
     return route != null && route.isCurrent;
   }
+    widget.comms.startConnectionRoutine();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +153,7 @@ class _MainPageState extends State<MainPage> {
             KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
             KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
-            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: RadiosPage()),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
           ],
@@ -171,8 +176,8 @@ class _MainPageState extends State<MainPage> {
                 label: "Motors",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.connect_without_contact),
-                label: "Connectivity",
+                icon: Icon(Icons.radio),
+                label: "Radios",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.code),
