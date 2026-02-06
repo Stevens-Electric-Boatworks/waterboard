@@ -11,6 +11,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 //https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
 
+@Deprecated("Use lib/services/ros_comms/ros instead")
 class ROSComms {
   final Map<String, ValueNotifier<Map<String, dynamic>>> _subscriptions = {};
   WebSocketChannel? _channel;
