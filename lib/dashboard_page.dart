@@ -40,45 +40,13 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    widget.ros.connectionState.addListener(() {
-      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.connected) {
-        //weird race condition fix
-        Timer(Duration(milliseconds: 200), () {
-          if (widget.ros.connectionState.value == ROSConnectionState.connected) {
-            closeConnectionDialog();
-          }
-        });
-      }
-    });
     widget.ros.startConnectionLoop();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = widget.ros.connectionState.value;
-      if (state == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (state == ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      }
-    });
-  }
 
   bool get isOnMainPage {
     final route = ModalRoute.of(context);
     return route != null && route.isCurrent;
-  }
-    widget.comms.startConnectionRoutine();
   }
 
 
@@ -190,77 +158,6 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
     );
-  }
-
-  void showWebsocketDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Websocket Disconnected")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void showStaleDataDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Data Stale")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void closeConnectionDialog() {
-    if (_connectionAlertDialog != null) {
-      Navigator.of(context).removeRoute(_connectionAlertDialog!);
-      _connectionAlertDialog = null;
-    }
   }
 
   void moveToNextPage() {
