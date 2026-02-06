@@ -10,12 +10,13 @@ import 'package:text_gradiate/text_gradiate.dart';
 import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
+import '../services/ros_comms/ros.dart';
 import '../widgets/ros_connection_state_widget.dart';
 
 class StandbyMode extends StatefulWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const StandbyMode({super.key, required this.comms});
+  const StandbyMode({super.key, required this.ros});
 
   @override
   State<StandbyMode> createState() => _StandbyModeState();
@@ -170,7 +171,7 @@ class _StandbyModeState extends State<StandbyMode> {
                   SizedBox(height: 25),
                   Spacer(),
                   ValueListenableBuilder(
-                    valueListenable: widget.comms.connectionState,
+                    valueListenable: widget.ros.connectionState,
                     builder: (context, value, child) =>
                         ROSConnectionStateWidget(
                           value: value,
@@ -394,7 +395,7 @@ class _StandbyModeState extends State<StandbyMode> {
                   ),
                   SizedBox(height: 25),
                   ValueListenableBuilder(
-                    valueListenable: widget.comms.connectionState,
+                    valueListenable: widget.ros.connectionState,
                     builder: (context, value, child) =>
                         ROSConnectionStateWidget(
                           value: value,

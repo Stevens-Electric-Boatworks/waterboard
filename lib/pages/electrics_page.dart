@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 // Project imports:
 import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 
 import '../widgets/ros_widgets/gauge.dart';
 
 class ElectricsPage extends StatefulWidget {
-  final ROSComms comms;
-  const ElectricsPage({super.key, required this.comms});
+  final ROS ros;
+  const ElectricsPage({super.key, required this.ros});
 
   @override
   State<ElectricsPage> createState() => _ElectricsPageState();
@@ -35,7 +36,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Motor Current
                 ROSGauge(
-                  notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                  notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                   valueBuilder: (json) => (json["current"] as int).toDouble(),
                   minimum: 0,
                   maximum: 200,
@@ -67,7 +68,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Voltage
                 ROSGauge(
-                  notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                  notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                   valueBuilder: (json) => (json["voltage"] as int).toDouble(),
                   minimum: 0,
                   maximum: 90,
@@ -94,7 +95,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Power
                 ROSGauge(
-                  notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                  notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                   valueBuilder: (json) => (json["power"] as num).toDouble(),
                   minimum: 0,
                   maximum: 1200,
@@ -135,9 +136,9 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Inlet Temp
                 ROSGauge(
-                  notifier: widget.comms.subscribe(
+                  notifier: widget.ros.subscribe(
                     "/electrical/temp_sensors/in",
-                  ),
+                  ).value,
                   valueBuilder: (json) =>
                       (json["inlet_temp"] as double).round().toDouble(),
                   minimum: 0,
@@ -170,9 +171,9 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Outlet Temp
                 ROSGauge(
-                  notifier: widget.comms.subscribe(
+                  notifier: widget.ros.subscribe(
                     "/electrical/temp_sensors/out",
-                  ),
+                  ).value,
                   valueBuilder: (json) =>
                       (json["outlet_temp"] as double).round().toDouble(),
                   minimum: 0,

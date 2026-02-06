@@ -4,6 +4,8 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:waterboard/services/log.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 
 // Package imports:
 import 'package:window_manager/window_manager.dart';
@@ -33,14 +35,15 @@ void main() async {
       await windowManager.focus();
     });
   }
-  ROSComms comms = ROSComms();
-  runApp(MyApp(comms));
+  await Log.instance.initialize();
+  ROS ros = ROS();
+  runApp(MyApp(ros));
 }
 
 class MyApp extends StatelessWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const MyApp(this.comms, {super.key});
+  const MyApp(this.ros, {super.key});
 
   // This widget is the root of your application.
   @override
@@ -60,7 +63,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: "inter",
       ),
-      home: MainPage(comms: comms),
+      home: MainPage(ros: ros),
     );
   }
 }

@@ -7,12 +7,12 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
-import '../services/ros_comms.dart';
+import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
 class MainDriverPage extends StatefulWidget {
-  final ROSComms comms;
-  const MainDriverPage({super.key, required this.comms});
+  final ROS ros;
+  const MainDriverPage({super.key, required this.ros});
 
   @override
   State<MainDriverPage> createState() => _MainDriverPageState();
@@ -23,18 +23,17 @@ class _MainDriverPageState extends State<MainDriverPage> {
   @override
   void initState() {
     super.initState();
-    // TODO: implement initState
-    widget.comms.connectionState.addListener(() {
-      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
+    widget.ros.connectionState.addListener(() {
+      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
         showWebsocketDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.noROSBridge) {
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.staleData) {
         showROSBridgeDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.connected) {
+      } else if (widget.ros.connectionState.value ==
+          ROSConnectionState.connected) {
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if (widget.comms.connectionState.value == ConnectionState.connected) {
+          if (widget.ros.connectionState.value == ROSConnectionState.connected) {
             closeConnectionDialog();
           }
         });
@@ -47,7 +46,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   if (!mounted) return;
-    //   final state = widget.comms.connectionState.value;
+    //   final state = widget.ros.connectionState.value;
     //   if (state == ConnectionState.noWebsocket) {
     //     showWebsocketDisconnectedDialog();
     //   } else if (state == ConnectionState.noROSBridge) {
@@ -72,7 +71,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               //Motor Current
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["current"] as int).toDouble();
                 },
@@ -101,7 +100,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //inlet temp
               ROSGauge(
-                notifier: widget.comms.subscribe("/electrical/temp_sensors/in"),
+                notifier: widget.ros.subscribe("/electrical/temp_sensors/in").value,
                 valueBuilder: (json) {
                   return (json["inlet_temp"] as double).round().toDouble();
                 },
@@ -130,9 +129,9 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //outlet temp
               ROSGauge(
-                notifier: widget.comms.subscribe(
+                notifier: widget.ros.subscribe(
                   "/electrical/temp_sensors/out",
-                ),
+                ).value,
                 valueBuilder: (json) {
                   return (json["outlet_temp"] as double).round().toDouble();
                 },
@@ -169,7 +168,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               // Motor Temp
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["motor_temp"] as int).toDouble();
                 },
@@ -199,7 +198,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Boat Speed
               ROSGauge(
-                notifier: widget.comms.subscribe("/motion/vtg"),
+                notifier: widget.ros.subscribe("/motion/vtg").value,
                 valueBuilder: (json) {
                   return (json["speed"] as double).round().toDouble().abs();
                 },
@@ -224,7 +223,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Motor RPM
               ROSGauge(
-                notifier: widget.comms.subscribe("/motors/can_motor_data"),
+                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
                 valueBuilder: (json) {
                   return (json["rpm"] as int).toDouble().abs();
                 },
@@ -277,7 +276,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),
@@ -318,7 +317,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
+                  PageUtils.showSettingsDialog(context, widget.ros);
                 },
                 child: Text("Open Settings"),
               ),

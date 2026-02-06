@@ -15,16 +15,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/pages/radios_page.dart';
-import 'package:waterboard/services/ros_comms.dart';
 
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
 class MainPage extends StatefulWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const MainPage({super.key, required this.comms});
+  const MainPage({super.key, required this.ros});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -40,7 +40,13 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    widget.comms.startConnectionRoutine();
+    widget.ros.startConnectionLoop();
+  }
+
+
+  bool get isOnMainPage {
+    final route = ModalRoute.of(context);
+    return route != null && route.isCurrent;
   }
 
 
@@ -54,7 +60,7 @@ class _MainPageState extends State<MainPage> {
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.keyS) {
-          PageUtils.showSettingsDialog(context, widget.comms);
+          PageUtils.showSettingsDialog(context, widget.ros);
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
@@ -87,7 +93,7 @@ class _MainPageState extends State<MainPage> {
           ),
           actions: [
             ValueListenableBuilder(
-              valueListenable: widget.comms.connectionState,
+              valueListenable: widget.ros.connectionState,
               builder: (context, value, child) => ROSConnectionStateWidget(
                 value: value,
                 fontSize: 18,
@@ -97,7 +103,7 @@ class _MainPageState extends State<MainPage> {
             SizedBox(width: 15),
             IconButton(
               onPressed: () =>
-                  PageUtils.showSettingsDialog(context, widget.comms),
+                  PageUtils.showSettingsDialog(context, widget.ros),
               icon: Icon(Icons.settings),
             ),
           ],
@@ -112,8 +118,8 @@ class _MainPageState extends State<MainPage> {
             overscroll: false,
           ),
           children: [
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: ElectricsPage(comms: widget.comms)),
+            KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
+            KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: RadiosPage()),
             KeepAlivePage(child: Placeholder()),
