@@ -8,7 +8,6 @@ import '../log.dart';
 
 // Package imports:
 
-
 class ROS {
   late ROSBridge _rosBridge;
   final Map<String, ROSSubscription> _subs = {};
