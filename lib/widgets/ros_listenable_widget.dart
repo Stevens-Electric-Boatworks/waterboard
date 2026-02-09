@@ -62,7 +62,7 @@ class _ROSListenableState extends State<ROSListenable> {
               Positioned.fill(
                 child: IgnorePointer(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: CustomPaint(painter: StaleXPainter()),
                   ),
                 ),
@@ -96,7 +96,7 @@ class StaleXPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final scale = size.shortestSide / 200;
-    paint.strokeWidth = strokeWidth * scale.clamp(0.5, 3.0);
+    paint.strokeWidth = strokeWidth * scale.clamp(1, 5.0);
 
     canvas.drawLine(Offset(0, 0), Offset(size.width, size.height), paint);
 

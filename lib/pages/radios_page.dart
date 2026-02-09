@@ -11,10 +11,12 @@ import 'package:network_info_plus/network_info_plus.dart';
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/waterboard_colors.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
 class RadiosPage extends StatefulWidget {
   final ROS ros;
+
   const RadiosPage({super.key, required this.ros});
 
   @override
@@ -60,83 +62,250 @@ class _RadiosPageState extends State<RadiosPage> {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [_buildInternetAndCell(), SizedBox(width: 15), _buildGPS()],
+      ),
+    );
+  }
+
+  Widget _buildInternetAndCell() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
+      decoration: BoxDecoration(
+        color: WaterboardColors.containerBackground,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 20,
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
-            decoration: BoxDecoration(
-              color: WaterboardColors.containerBackground,
-              borderRadius: BorderRadius.circular(16),
+          Text(
+            "Internet and Cellular",
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          ValueListenableBuilder(
+            valueListenable: _ipAddress,
+            builder: (context, value, child) {
+              if (value == null) {
+                return _buildText("Not Connected", "IP Address");
+              }
+              return _buildText(value, "IP Address");
+            },
+          ),
+          StreamBuilder(
+            stream: _subscription,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return _buildText(
+                  "Unreachable",
+                  "Shore Reachable?",
+                  color: Colors.red,
+                );
+              }
+              if (snapshot.data == InternetStatus.connected) {
+                return _buildText(
+                  "Reachable",
+                  "Shore Reachable?",
+                  color: Colors.green,
+                );
+              }
+              return _buildText(
+                "Unreachable",
+                "Shore Reachable?",
+                color: Colors.red,
+              );
+            },
+          ),
+          ValueListenableBuilder(
+            valueListenable: _ssid,
+            builder: (context, value, child) {
+              if (value == null) {
+                return _buildText("Not Connected", "WiFi SSID");
+              }
+              return _buildText(value, "WiFi SSID");
+            },
+          ),
+          //Currently not implemented
+          _buildWidgetBackground(
+            ROSText(
+              notifier: widget.ros.subscribe("/cell/data").value,
+              valueBuilder: (json) {
+                return (json["cell_strength"].toString(), Colors.black);
+              },
+              subtext: "Cell Strength",
             ),
-            child: Column(
+          ),
+          _buildText(
+            "shore.stevenseboat.org",
+            "Shore URL",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGPS() {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
+        decoration: BoxDecoration(
+          color: WaterboardColors.containerBackground,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 20,
+          children: [
+            Text(
+              "GPS and Location",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            //lat and lon
+            Row(
               mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 20,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text(
-                  "Internet and Cellular",
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                ValueListenableBuilder(
-                  valueListenable: _ipAddress,
-                  builder: (context, value, child) {
-                    if (value == null) {
-                      return _buildText("Not Connected", "IP Address");
-                    }
-                    return _buildText(value, "IP Address");
-                  },
-                ),
-                StreamBuilder(
-                  stream: _subscription,
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return _buildText(
-                        "Unreachable",
-                        "Shore Reachable?",
-                        color: Colors.red,
-                      );
-                    }
-                    if (snapshot.data == InternetStatus.connected) {
-                      return _buildText(
-                        "Reachable",
-                        "Shore Reachable?",
-                        color: Colors.green,
-                      );
-                    }
-                    return _buildText(
-                      "Unreachable",
-                      "Shore Reachable?",
-                      color: Colors.red,
-                    );
-                  },
-                ),
-                ValueListenableBuilder(
-                  valueListenable: _ssid,
-                  builder: (context, value, child) {
-                    if (value == null) {
-                      return _buildText("Not Connected", "WiFi SSID");
-                    }
-                    return _buildText(value, "WiFi SSID");
-                  },
-                ),
-                //Currently not implemented
                 _buildWidgetBackground(
                   ROSText(
-                    notifier: widget.ros.subscribe("/cell/data").value,
+                    notifier: widget.ros.subscribe("/motion/gps").value,
                     valueBuilder: (json) {
-                      return (json["cell_strength"].toString(), Colors.black);
+                      return (
+                        (json["lat"] as double).toStringAsPrecision(12),
+                        Colors.black,
+                      );
                     },
-                    subtext: "Cell Strength",
+                    subtext: "Latitude",
                   ),
+                  width: 350,
                 ),
-                _buildText(
-                  "shore.stevenseboat.org",
-                  "Shore URL",
-                  style: Theme.of(context).textTheme.titleLarge,
+                _buildWidgetBackground(
+                  ROSText(
+                    notifier: widget.ros.subscribe("/motion/gps").value,
+                    valueBuilder: (json) {
+                      return (
+                        (json["lon"] as double).toStringAsPrecision(12),
+                        Colors.black,
+                      );
+                    },
+                    subtext: "Longitude",
+                  ),
+                  width: 350,
                 ),
               ],
             ),
-          ),
-        ],
+
+            //sats, speed, alt, climb
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Row(
+                  children: [
+                    _buildWidgetBackground(
+                      //not implemented
+                      ROSText(
+                        notifier: widget.ros
+                            .subscribe("/motion/gps/sats")
+                            .value,
+                        valueBuilder: (json) {
+                          return (
+                            (json["sats"] as double).toStringAsPrecision(7),
+                            Colors.black,
+                          );
+                        },
+                        subtext: "Satellites",
+                      ),
+                      width: 350 / 2 - 5,
+                    ),
+                    SizedBox(width: 10),
+                    _buildWidgetBackground(
+                      ROSText(
+                        notifier: widget.ros.subscribe("/motion/vtg").value,
+                        valueBuilder: (json) {
+                          return (
+                            "${(json["speed"] as double).toStringAsPrecision(2)}",
+                            Colors.black,
+                          );
+                        },
+                        subtext: "Speed (mph)",
+                      ),
+                      width: 350 / 2 - 5,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    _buildWidgetBackground(
+                      //not implemented
+                      ROSText(
+                        notifier: widget.ros.subscribe("/motion/gps/alt").value,
+                        valueBuilder: (json) {
+                          return (
+                            (json["alt"] as double).toStringAsPrecision(7),
+                            Colors.black,
+                          );
+                        },
+                        subtext: "Altitude",
+                      ),
+                      width: 350 / 2 - 5,
+                    ),
+                    SizedBox(width: 10),
+                    _buildWidgetBackground(
+                      ROSText(
+                        notifier: widget.ros
+                            .subscribe("/motion/gps/climb")
+                            .value,
+                        valueBuilder: (json) {
+                          return (
+                            ((json["climb"] as double).toStringAsPrecision(2)),
+                            Colors.black,
+                          );
+                        },
+                        subtext: "Climb",
+                      ),
+                      width: 350 / 2 - 5,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            //compass
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: _buildWidgetBackground(
+                      MarineCompass(
+                        notifier: widget.ros.subscribe("/motion/vtg").value,
+                        valueBuilder: (json) {
+                          return json["true_track"] as double;
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 20,),
+                  Expanded(
+                    child: _buildWidgetBackground(
+                      MarineCompass(
+                        notifier: widget.ros.subscribe("/motion/vtg").value,
+                        valueBuilder: (json) {
+                          return json["true_track"] as double;
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
