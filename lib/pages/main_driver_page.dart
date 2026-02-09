@@ -1,7 +1,13 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
+
+// Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+// Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
@@ -29,7 +35,8 @@ class _MainDriverPageState extends State<MainDriverPage> {
           ROSConnectionState.connected) {
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if (widget.ros.connectionState.value == ROSConnectionState.connected) {
+          if (widget.ros.connectionState.value ==
+              ROSConnectionState.connected) {
             closeConnectionDialog();
           }
         });
@@ -91,7 +98,9 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //inlet temp
               ROSGauge(
-                notifier: widget.ros.subscribe("/electrical/temp_sensors/in").value,
+                notifier: widget.ros
+                    .subscribe("/electrical/temp_sensors/in")
+                    .value,
                 valueBuilder: (json) {
                   return (json["inlet_temp"] as double).round().toDouble();
                 },
@@ -120,9 +129,9 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //outlet temp
               ROSGauge(
-                notifier: widget.ros.subscribe(
-                  "/electrical/temp_sensors/out",
-                ).value,
+                notifier: widget.ros
+                    .subscribe("/electrical/temp_sensors/out")
+                    .value,
                 valueBuilder: (json) {
                   return (json["outlet_temp"] as double).round().toDouble();
                 },
@@ -278,8 +287,14 @@ class _MainDriverPageState extends State<MainDriverPage> {
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.red),
                 ),
-                child: Text("Close Dialog", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),),
-              )
+                child: Text(
+                  "Close Dialog",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -319,8 +334,14 @@ class _MainDriverPageState extends State<MainDriverPage> {
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.red),
                 ),
-                child: Text("Close Dialog", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),),
-              )
+                child: Text(
+                  "Close Dialog",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
             ],
           );
         },

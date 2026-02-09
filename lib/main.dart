@@ -4,14 +4,14 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:waterboard/services/log.dart';
-import 'package:waterboard/services/ros_comms/ros.dart';
 
 // Package imports:
 import 'package:window_manager/window_manager.dart';
 
 // Project imports:
-import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/services/log.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/waterboard_colors.dart';
 import 'dashboard_page.dart';
 
 void main() async {
@@ -53,9 +53,11 @@ class MyApp extends StatelessWidget {
       title: 'Waterboard',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarThemeData(backgroundColor: Colors.grey.shade300),
+        appBarTheme: AppBarThemeData(
+          backgroundColor: WaterboardColors.containerBackground,
+        ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.grey.shade300,
+          backgroundColor: WaterboardColors.containerBackground,
           unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
           selectedItemColor: Colors.red.shade800,
 

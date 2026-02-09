@@ -14,9 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
-import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/pages/radios_page.dart';
-
+import 'package:waterboard/services/ros_comms/ros.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
@@ -46,7 +45,6 @@ class _MainPageState extends State<MainPage> {
     final route = ModalRoute.of(context);
     return route != null && route.isCurrent;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +114,7 @@ class _MainPageState extends State<MainPage> {
             KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
             KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
-            KeepAlivePage(child: RadiosPage()),
+            KeepAlivePage(child: RadiosPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
           ],
@@ -138,10 +136,7 @@ class _MainPageState extends State<MainPage> {
                 icon: Icon(Icons.water_rounded),
                 label: "Motors",
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.radio),
-                label: "Radios",
-              ),
+              BottomNavigationBarItem(icon: Icon(Icons.radio), label: "Radios"),
               BottomNavigationBarItem(
                 icon: Icon(Icons.code),
                 label: "Software",

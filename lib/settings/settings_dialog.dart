@@ -6,9 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
-import 'package:waterboard/services/ros_comms.dart';
 import 'package:waterboard/widgets/time_text.dart';
-
 import '../services/ros_comms/ros.dart';
 
 class SettingsDialog extends StatefulWidget {

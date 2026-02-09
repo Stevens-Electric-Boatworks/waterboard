@@ -61,10 +61,9 @@ class _ROSListenableState extends State<ROSListenable> {
             if (_isStale)
               Positioned.fill(
                 child: IgnorePointer(
-                  child: const Icon(
-                    Icons.close_sharp,
-                    color: Colors.red,
-                    size: 350,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: CustomPaint(painter: StaleXPainter()),
                   ),
                 ),
               ),
@@ -80,4 +79,30 @@ class _ROSListenableState extends State<ROSListenable> {
     }
     return widget.builder(context, value);
   }
+}
+
+class StaleXPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+
+  StaleXPainter({this.color = Colors.red, this.strokeWidth = 8});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final scale = size.shortestSide / 200;
+    paint.strokeWidth = strokeWidth * scale.clamp(0.5, 3.0);
+
+    canvas.drawLine(Offset(0, 0), Offset(size.width, size.height), paint);
+
+    canvas.drawLine(Offset(size.width, 0), Offset(0, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

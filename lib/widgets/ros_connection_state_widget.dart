@@ -1,9 +1,8 @@
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
-import 'package:waterboard/services/ros_comms/ros.dart';
 
 // Project imports:
-import '../services/ros_comms.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 
 class ROSConnectionStateWidget extends StatelessWidget {
   const ROSConnectionStateWidget({

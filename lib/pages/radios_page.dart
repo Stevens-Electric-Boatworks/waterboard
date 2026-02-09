@@ -1,11 +1,21 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
+// Project imports:
+import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/waterboard_colors.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
+
 class RadiosPage extends StatefulWidget {
-  const RadiosPage({super.key});
+  final ROS ros;
+  const RadiosPage({super.key, required this.ros});
 
   @override
   State<RadiosPage> createState() => _RadiosPageState();
@@ -20,19 +30,15 @@ class _RadiosPageState extends State<RadiosPage> {
   final info = NetworkInfo();
   late Stream<InternetStatus> _subscription;
   final ValueNotifier<String?> _ssid = ValueNotifier(null);
+  final ValueNotifier<String?> _ipAddress = ValueNotifier(null);
 
   late final Timer _timer;
-
-
 
   @override
   void initState() {
     super.initState();
     _subscription = internetConnectionChecker.onStatusChange;
-    _timer = Timer.periodic(
-      Duration(seconds: 1),
-          (_) => updateBSSID(),
-    );
+    _timer = Timer.periodic(Duration(seconds: 1), (_) => updateNetworkInfo());
   }
 
   @override
@@ -40,100 +46,127 @@ class _RadiosPageState extends State<RadiosPage> {
     super.dispose();
     _timer.cancel();
     _ssid.dispose();
+    _ipAddress.dispose();
   }
 
-  Future<void> updateBSSID() async {
+  Future<void> updateNetworkInfo() async {
     _ssid.value = await info.getWifiName();
+    _ipAddress.value = await info.getWifiIP();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // PI Connectivity State
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.black),
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
+            decoration: BoxDecoration(
+              color: WaterboardColors.containerBackground,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 20,
+              children: [
+                Text(
+                  "Internet and Cellular",
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Text(
-                      "Internet Connection State",
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    SizedBox(height: 10),
-                    //Internet Reachable?
-                    buildRow(
-                      Icon(Icons.beach_access),
+                ValueListenableBuilder(
+                  valueListenable: _ipAddress,
+                  builder: (context, value, child) {
+                    if (value == null) {
+                      return _buildText("Not Connected", "IP Address");
+                    }
+                    return _buildText(value, "IP Address");
+                  },
+                ),
+                StreamBuilder(
+                  stream: _subscription,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return _buildText(
+                        "Unreachable",
+                        "Shore Reachable?",
+                        color: Colors.red,
+                      );
+                    }
+                    if (snapshot.data == InternetStatus.connected) {
+                      return _buildText(
+                        "Reachable",
+                        "Shore Reachable?",
+                        color: Colors.green,
+                      );
+                    }
+                    return _buildText(
+                      "Unreachable",
                       "Shore Reachable?",
-                      StreamBuilder(
-                        stream: _subscription,
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Text(
-                              "Unknown",
-                              style: TextStyle(color: Colors.grey),
-                            );
-                          }
-                          var state = snapshot.data;
-                          if (state == InternetStatus.connected) {
-                            return Text(
-                              "Reachable",
-                              style: TextStyle(color: Colors.green),
-                            );
-                          }
-                          return Text(
-                            "Cannot Connect",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    //Wifi State
-                    buildRow(
-                      Icon(Icons.network_wifi),
-                      "SSID:",
-                      ValueListenableBuilder<String?>(
-                        valueListenable: _ssid,
-                        builder: (context, value, _) {
-                          return Text(value ?? "No WiFi");
-                        },
-                      ),
-                    ),
-                  ],
+                      color: Colors.red,
+                    );
+                  },
                 ),
-              ),
-            ],
+                ValueListenableBuilder(
+                  valueListenable: _ssid,
+                  builder: (context, value, child) {
+                    if (value == null) {
+                      return _buildText("Not Connected", "WiFi SSID");
+                    }
+                    return _buildText(value, "WiFi SSID");
+                  },
+                ),
+                //Currently not implemented
+                _buildWidgetBackground(
+                  ROSText(
+                    notifier: widget.ros.subscribe("/cell/data").value,
+                    valueBuilder: (json) {
+                      return (json["cell_strength"].toString(), Colors.black);
+                    },
+                    subtext: "Cell Strength",
+                  ),
+                ),
+                _buildText(
+                  "shore.stevenseboat.org",
+                  "Shore URL",
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildRow(Widget icon, String text, Widget result) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        icon,
-        SizedBox(width: 10),
-        Text(text, style: Theme.of(context).textTheme.titleMedium),
-        SizedBox(width: 5),
-        result,
-      ],
+  Widget _buildText(
+    String value,
+    String subtitle, {
+    Color color = Colors.black,
+    TextStyle? style,
+  }) {
+    style ??= Theme.of(context).textTheme.displaySmall;
+    return _buildWidgetBackground(
+      Column(
+        children: [
+          Text(value, style: style?.merge(TextStyle(color: color))),
+          SizedBox(height: 10),
+          Text(subtitle, style: Theme.of(context).textTheme.titleLarge),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWidgetBackground(Widget inside, {double width = 275}) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: WaterboardColors.containerForeground,
+      ),
+      child: SizedBox(width: width, child: inside),
     );
   }
 }

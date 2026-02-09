@@ -1,8 +1,7 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-// Project imports:
-import 'package:waterboard/services/ros_comms.dart';
 
+// Project imports:
 import '../services/ros_comms/ros.dart';
 import '../settings/settings_dialog.dart';
 

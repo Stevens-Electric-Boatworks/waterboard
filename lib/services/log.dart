@@ -2,9 +2,10 @@
 // https://github.com/mjansen4857/pathplanner/blob/main/lib/services/log.dart
 // http://github.com/Gold872/elastic_dashboard/blob/main/lib/services/log.dart
 
-
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 
+// Package imports:
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
@@ -24,9 +25,7 @@ class Log {
         error: PrettyPrinter(methodCount: 5, colors: kDebugMode),
         warning: PrettyPrinter(methodCount: 5, colors: kDebugMode),
       ),
-      output: MultiOutput([
-        ConsoleOutput(),
-      ]),
+      output: MultiOutput([ConsoleOutput()]),
       filter: ProductionFilter(),
     );
   }

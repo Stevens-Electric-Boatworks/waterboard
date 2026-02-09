@@ -1,19 +1,27 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
+
+// Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+// Project imports:
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 //https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
 
 class ROSBridge {
   final ROS _ros;
-  final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(ROSConnectionState.unknown);
+  final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
+    ROSConnectionState.unknown,
+  );
   ROSBridge(this._ros);
   Timer? _websocketTimer;
   Timer? _rosBridgeTimer;
@@ -26,6 +34,7 @@ class ROSBridge {
     _connectionState.value = ROSConnectionState.noWebsocket;
     _websocketTimer = Timer(Duration(seconds: 1), _websocketTimerTick);
   }
+
   Future<void> _websocketTimerTick() async {
     try {
       if (_channel?.closeCode != null) {
@@ -81,8 +90,7 @@ class ROSBridge {
       var msg = json.decode(message);
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
-      }
-      else {
+      } else {
         Log.instance.warning("[ROS] Unknown message from ROSBridge: $msg");
       }
     });
@@ -94,8 +102,6 @@ class ROSBridge {
     await _channel?.sink.close();
     startConnectionLoop();
   }
-
-
 
   ValueNotifier<ROSConnectionState> get connectionState => _connectionState;
 

@@ -1,9 +1,13 @@
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
-import 'package:logger/logger.dart';
+
+// Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
-
 import '../log.dart';
+
+// Package imports:
+
 
 class ROS {
   late ROSBridge _rosBridge;
@@ -12,8 +16,8 @@ class ROS {
     _rosBridge = ROSBridge(this);
   }
 
-  ValueNotifier<ROSConnectionState> get connectionState => _rosBridge.connectionState;
-
+  ValueNotifier<ROSConnectionState> get connectionState =>
+      _rosBridge.connectionState;
 
   Map<String, ROSSubscription> get subs => _subs;
 
@@ -28,7 +32,7 @@ class ROS {
 
   /// Subscribe to a topic
   ROSSubscription subscribe(String topic) {
-    if(_subs.containsKey(topic)) {
+    if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
     Log.instance.info("Subscribing to $topic");
@@ -40,12 +44,9 @@ class ROS {
 
   /// This method should be called whenever you want to propagate data to subscriptions
   void propagateData(String topic, Map<String, dynamic> data) {
-    if(data.isEmpty) return;
+    if (data.isEmpty) return;
     _subs[topic]?.onData(data);
   }
-
 }
 
-enum ROSConnectionState {
-  unknown, noWebsocket, staleData, connected
-}
+enum ROSConnectionState { unknown, noWebsocket, staleData, connected }

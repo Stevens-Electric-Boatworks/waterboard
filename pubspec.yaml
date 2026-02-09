@@ -45,6 +45,7 @@ dependencies:
   internet_connection_checker_plus: ^2.9.1+2
   network_info_plus: ^7.0.0
 
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
