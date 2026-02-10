@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 // Project imports:
-import 'package:waterboard/services/ros_comms.dart';
+import 'package:waterboard/services/log.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/waterboard_colors.dart';
 import 'dashboard_page.dart';
 
 void main() async {
@@ -33,14 +35,15 @@ void main() async {
       await windowManager.focus();
     });
   }
-  ROSComms comms = ROSComms();
-  runApp(MyApp(comms));
+  await Log.instance.initialize();
+  ROS ros = ROS();
+  runApp(MyApp(ros));
 }
 
 class MyApp extends StatelessWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const MyApp(this.comms, {super.key});
+  const MyApp(this.ros, {super.key});
 
   // This widget is the root of your application.
   @override
@@ -50,9 +53,11 @@ class MyApp extends StatelessWidget {
       title: 'Waterboard',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarThemeData(backgroundColor: Colors.grey.shade300),
+        appBarTheme: AppBarThemeData(
+          backgroundColor: WaterboardColors.containerBackground,
+        ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.grey.shade300,
+          backgroundColor: WaterboardColors.containerBackground,
           unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
           selectedItemColor: Colors.red.shade800,
 
@@ -60,7 +65,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: "inter",
       ),
-      home: MainPage(comms: comms),
+      home: MainPage(ros: ros),
     );
   }
 }

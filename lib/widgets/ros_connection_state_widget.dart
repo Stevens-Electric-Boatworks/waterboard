@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart' hide ConnectionState;
 
 // Project imports:
-import '../services/ros_comms.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 
 class ROSConnectionStateWidget extends StatelessWidget {
   const ROSConnectionStateWidget({
@@ -12,7 +12,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
     required this.iconSize,
   });
 
-  final ConnectionState value;
+  final ROSConnectionState value;
   final double fontSize;
   final double iconSize;
 
@@ -22,17 +22,17 @@ class ROSConnectionStateWidget extends StatelessWidget {
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
     );
-    if (value == ConnectionState.connected) {
+    if (value == ROSConnectionState.connected) {
       return Row(
         children: [
           Icon(Icons.wifi, color: Colors.green, size: iconSize),
           Text(
-            " Connected",
+            " ROS Connected",
             style: style.merge(TextStyle(color: Colors.green)),
           ),
         ],
       );
-    } else if (value == ConnectionState.noROSBridge) {
+    } else if (value == ROSConnectionState.staleData) {
       return Row(
         children: [
           Icon(Icons.wifi_off, color: Colors.orange, size: iconSize),
@@ -42,7 +42,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
           ),
         ],
       );
-    } else if (value == ConnectionState.noWebsocket) {
+    } else if (value == ROSConnectionState.noWebsocket) {
       return Row(
         children: [
           Icon(Icons.wifi_off, color: Colors.red, size: iconSize),

@@ -1,27 +1,28 @@
 // Dart imports:
 
 // Dart imports:
-import 'dart:async';
 import 'dart:math';
 
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
+
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+
 // Project imports:
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
-import 'package:waterboard/services/ros_comms.dart';
-
+import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/services/ros_comms/ros.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
 class MainPage extends StatefulWidget {
-  final ROSComms comms;
+  final ROS ros;
 
-  const MainPage({super.key, required this.comms});
+  const MainPage({super.key, required this.ros});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -29,7 +30,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   Widget? dialogWidget;
-  DialogRoute? _connectionAlertDialog;
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -38,38 +38,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    widget.comms.connectionState.addListener(() {
-      if (widget.comms.connectionState.value == ConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.noROSBridge) {
-        showROSBridgeDisconnectedDialog();
-      } else if (widget.comms.connectionState.value ==
-          ConnectionState.connected) {
-        //weird race condition fix
-        Timer(Duration(milliseconds: 200), () {
-          if (widget.comms.connectionState.value == ConnectionState.connected) {
-            closeConnectionDialog();
-          }
-        });
-      }
-    });
-    widget.comms.startConnectionRoutine();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = widget.comms.connectionState.value;
-      if (state == ConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (state == ConnectionState.noROSBridge) {
-        showROSBridgeDisconnectedDialog();
-      }
-    });
+    widget.ros.startConnectionLoop();
   }
 
   bool get isOnMainPage {
@@ -79,15 +48,12 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // print(
-    //   "current page: ${_pageController.hasClients ? _pageController.page!.toInt() : 0}",
-    // );
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.keyS) {
-          PageUtils.showSettingsDialog(context, widget.comms);
+          PageUtils.showSettingsDialog(context, widget.ros);
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
@@ -120,7 +86,7 @@ class _MainPageState extends State<MainPage> {
           ),
           actions: [
             ValueListenableBuilder(
-              valueListenable: widget.comms.connectionState,
+              valueListenable: widget.ros.connectionState,
               builder: (context, value, child) => ROSConnectionStateWidget(
                 value: value,
                 fontSize: 18,
@@ -130,7 +96,7 @@ class _MainPageState extends State<MainPage> {
             SizedBox(width: 15),
             IconButton(
               onPressed: () =>
-                  PageUtils.showSettingsDialog(context, widget.comms),
+                  PageUtils.showSettingsDialog(context, widget.ros),
               icon: Icon(Icons.settings),
             ),
           ],
@@ -145,10 +111,10 @@ class _MainPageState extends State<MainPage> {
             overscroll: false,
           ),
           children: [
-            KeepAlivePage(child: MainDriverPage(comms: widget.comms)),
-            KeepAlivePage(child: ElectricsPage(comms: widget.comms)),
+            KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
+            KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
-            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: RadiosPage(ros: widget.ros)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
           ],
@@ -170,10 +136,7 @@ class _MainPageState extends State<MainPage> {
                 icon: Icon(Icons.water_rounded),
                 label: "Motors",
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.connect_without_contact),
-                label: "Connectivity",
-              ),
+              BottomNavigationBarItem(icon: Icon(Icons.radio), label: "Radios"),
               BottomNavigationBarItem(
                 icon: Icon(Icons.code),
                 label: "Software",
@@ -185,77 +148,6 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
     );
-  }
-
-  void showWebsocketDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Websocket Disconnected")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
-                },
-                child: Text("Open Settings"),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void showROSBridgeDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Data Stale")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.comms);
-                },
-                child: Text("Open Settings"),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void closeConnectionDialog() {
-    if (_connectionAlertDialog != null) {
-      Navigator.of(context).removeRoute(_connectionAlertDialog!);
-      _connectionAlertDialog = null;
-    }
   }
 
   void moveToNextPage() {
