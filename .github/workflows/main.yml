@@ -58,10 +58,10 @@ jobs:
             artifact-file: Waterboard-Windows.zip
           - os: macos-latest
             platform-name: "MacOS"
-            platform: "macOS"
+            platform: "macos"
             build-path: "build/macos/Build/Products/Release"
-            artifact-name: Waterboard-macOS
-            artifact-file: Waterboard-macOS.zip
+            artifact-name: Waterboard-macos
+            artifact-file: Waterboard-macos.zip
           - os: ubuntu-22.04
             platform-name: "Linux"
             platform: "linux"
