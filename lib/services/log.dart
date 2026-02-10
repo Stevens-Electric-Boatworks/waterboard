@@ -1,6 +1,6 @@
 // Primarily Elastic Dashboards logging feature, which comes from 3015 PathPlanner's logging feature
-// https://github.com/mjansen4857/pathplanner/blob/main/lib/services/log.dart
 // http://github.com/Gold872/elastic_dashboard/blob/main/lib/services/log.dart
+// https://github.com/mjansen4857/pathplanner/blob/main/lib/services/log.dart
 
 // Flutter imports:
 import 'package:flutter/foundation.dart';

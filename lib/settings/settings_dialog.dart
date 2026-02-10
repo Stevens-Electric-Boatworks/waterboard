@@ -24,7 +24,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _updateIPInSettings();
   }
