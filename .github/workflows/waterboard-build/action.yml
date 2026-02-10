@@ -29,4 +29,9 @@ runs:
 
     - name: Build app
       shell: bash
-      run: flutter build ${{ inputs.platform }}
+      run: |
+          if [ "${{ inputs.platform }}" = "web" ]; then
+            flutter build web --base-href /waterboard/
+          else
+            flutter build ${{ inputs.platform }}
+          fi
