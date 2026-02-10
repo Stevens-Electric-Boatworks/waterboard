@@ -1,18 +1,18 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-// Project imports:
-import 'package:waterboard/services/ros_comms.dart';
 
+// Project imports:
+import '../services/ros_comms/ros.dart';
 import '../settings/settings_dialog.dart';
 
 class PageUtils {
-  static void showSettingsDialog(BuildContext context, ROSComms comms) {
+  static void showSettingsDialog(BuildContext context, ROS ros) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Waterboard Settings"),
-          content: SettingsDialog(comms: comms),
+          content: SettingsDialog(ros: ros),
         );
       },
     );
