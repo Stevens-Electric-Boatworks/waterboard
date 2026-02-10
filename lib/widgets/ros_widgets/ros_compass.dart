@@ -1,6 +1,10 @@
+// Dart imports:
 import 'dart:math';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 
+// Project imports:
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
 class MarineCompass extends StatelessWidget {
@@ -20,9 +24,10 @@ class MarineCompass extends StatelessWidget {
     return ROSListenable(
       valueNotifier: notifier,
       noDataBuilder: (context) => _buildCompass(0, context),
-      builder: (context, value) => _buildCompass(valueBuilder(value), context)
+      builder: (context, value) => _buildCompass(valueBuilder(value), context),
     );
   }
+
   Widget _buildCompass(double heading, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -30,13 +35,11 @@ class MarineCompass extends StatelessWidget {
         SizedBox(
           width: size,
           height: size,
-          child: CustomPaint(
-            painter: _MarineCompassPainter(heading % 360),
-          ),
+          child: CustomPaint(painter: _MarineCompassPainter(heading % 360)),
         ),
-        SizedBox(height: 5,),
-        Text("$heading°", style: Theme.of(context).textTheme.displayMedium,),
-        Text("Track", style: Theme.of(context).textTheme.titleLarge,)
+        SizedBox(height: 5),
+        Text("$heading°", style: Theme.of(context).textTheme.displayMedium),
+        Text("Track", style: Theme.of(context).textTheme.titleLarge),
       ],
     );
   }
@@ -65,8 +68,20 @@ class _MarineCompassPainter extends CustomPainter {
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     );
-    canvas.drawCircle(center, radius - 2, circlePaint..style = PaintingStyle.fill ..color = Colors.white);
-    canvas.drawCircle(center, radius - 2, circlePaint..style = PaintingStyle.stroke ..color = Colors.black);
+    canvas.drawCircle(
+      center,
+      radius - 2,
+      circlePaint
+        ..style = PaintingStyle.fill
+        ..color = Colors.white,
+    );
+    canvas.drawCircle(
+      center,
+      radius - 2,
+      circlePaint
+        ..style = PaintingStyle.stroke
+        ..color = Colors.black,
+    );
 
     for (int deg = 0; deg < 360; deg += 5) {
       final isMajor = deg % 30 == 0;

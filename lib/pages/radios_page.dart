@@ -1,14 +1,23 @@
 // Dart imports:
 import 'dart:async';
+import 'dart:io';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
+import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
+import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/waterboard_colors.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_compass.dart';
@@ -34,11 +43,29 @@ class _RadiosPageState extends State<RadiosPage> {
   final ValueNotifier<String?> _ssid = ValueNotifier(null);
   final ValueNotifier<String?> _ipAddress = ValueNotifier(null);
 
+  final MapController _mapController = MapController();
+  late final ValueNotifier _gps;
+  double _lat = 0;
+  double _lon = 0;
   late final Timer _timer;
+  bool _mapReady = false;
+  PmTilesVectorTileProvider? _provider;
 
   @override
   void initState() {
     super.initState();
+    _prepareMapProvider();
+    _gps = widget.ros.subscribe("/motion/gps").value;
+    _gps.addListener(() {
+      var val = _gps.value;
+      if (val == null) return;
+      if (!_mapReady) return;
+      _lat = val["lat"] as double;
+      _lon = val["lon"] as double;
+      setState(() {
+        _mapController.move(LatLng(_lat, _lon), _mapController.camera.zoom);
+      });
+    });
     _subscription = internetConnectionChecker.onStatusChange;
     _timer = Timer.periodic(Duration(seconds: 1), (_) => updateNetworkInfo());
   }
@@ -226,7 +253,7 @@ class _RadiosPageState extends State<RadiosPage> {
                         notifier: widget.ros.subscribe("/motion/vtg").value,
                         valueBuilder: (json) {
                           return (
-                            "${(json["speed"] as double).toStringAsPrecision(2)}",
+                            ((json["speed"] as double).toStringAsPrecision(2)),
                             Colors.black,
                           );
                         },
@@ -273,32 +300,45 @@ class _RadiosPageState extends State<RadiosPage> {
               ],
             ),
 
-            //compass
+            //compass and GPS map
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Expanded(
-                    child: _buildWidgetBackground(
-                      MarineCompass(
-                        notifier: widget.ros.subscribe("/motion/vtg").value,
-                        valueBuilder: (json) {
-                          return json["true_track"] as double;
-                        },
-                      ),
+                  _buildWidgetBackground(
+                    MarineCompass(
+                      notifier: widget.ros.subscribe("/motion/vtg").value,
+                      valueBuilder: (json) {
+                        return json["true_track"] as double;
+                      },
                     ),
+                    width: 350,
                   ),
-                  SizedBox(width: 20,),
-                  Expanded(
+                  SizedBox(width: 20),
+                  SizedBox(
+                    height: 370,
                     child: _buildWidgetBackground(
-                      MarineCompass(
-                        notifier: widget.ros.subscribe("/motion/vtg").value,
-                        valueBuilder: (json) {
-                          return json["true_track"] as double;
-                        },
+                      ClipRRect(
+                        borderRadius: BorderRadiusGeometry.circular(12),
+                        child: _provider == null
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  Text(
+                                    "The map is loading...",
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
+                                  ),
+                                ],
+                              )
+                            : _getMap(),
                       ),
+                      width: 350,
+                      verticalPadding: 0,
                     ),
                   ),
                 ],
@@ -307,6 +347,71 @@ class _RadiosPageState extends State<RadiosPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _prepareMapProvider() async {
+    final byteData = await rootBundle.load(
+      'assets/mapdata/hoboken_final.pmtiles',
+    );
+
+    final tempDir = await getTemporaryDirectory();
+    final filePath = p.join(tempDir.path, 'hoboken_final.pmtiles');
+
+    final file = File(filePath);
+    await file.writeAsBytes(byteData.buffer.asUint8List());
+
+    Log.instance.info("Hoboken Offline Map copied to: $filePath");
+    _provider = await PmTilesVectorTileProvider.fromSource(filePath);
+    Log.instance.info("Hoboken Offline Map loaded");
+    setState(() {});
+  }
+
+  Widget _getMap() {
+    _mapReady = true;
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        keepAlive: true,
+        initialCenter: LatLng(40.7507, -74.0272),
+        interactionOptions: InteractionOptions(
+          flags:
+              InteractiveFlag.scrollWheelZoom |
+              InteractiveFlag.pinchZoom |
+              InteractiveFlag.doubleTapZoom |
+              InteractiveFlag.doubleTapDragZoom,
+        ),
+        initialZoom: 15,
+      ),
+      children: [
+        // TileLayer(
+        //   urlTemplate:
+        //       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        //   userAgentPackageName:
+        //       'dev.fleaflet.flutter_map.example',
+        // ),
+        //C:/Users/Ishaan/School Programming Projects/Electric-Boatworks/Waterboard/assets/mapdata/hoboken2.mbtiles
+        VectorTileLayer(
+          // the map theme
+          theme: ProtomapsThemes.lightV4(),
+
+          tileProviders: TileProviders({
+            // the awaited vector tile provider
+            'protomaps': _provider!,
+          }),
+
+          // disable the file cache when you change the PMTiles source
+          fileCacheTtl: Duration.zero,
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: LatLng(_lat, _lon),
+              child: Icon(Icons.location_on, size: 32),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -328,9 +433,13 @@ class _RadiosPageState extends State<RadiosPage> {
     );
   }
 
-  Widget _buildWidgetBackground(Widget inside, {double width = 275}) {
+  Widget _buildWidgetBackground(
+    Widget inside, {
+    double width = 275,
+    double verticalPadding = 8,
+  }) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: verticalPadding),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: WaterboardColors.containerForeground,
