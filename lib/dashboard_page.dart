@@ -4,6 +4,7 @@
 import 'dart:math';
 
 // Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
 
@@ -75,14 +76,19 @@ class _MainPageState extends State<MainPage> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          leading: Container(
-            decoration: BoxDecoration(
-              border: BoxBorder.all(color: Colors.black),
-            ),
-            margin: EdgeInsets.all(4),
-            child: Center(
-              child: ClockText(style: Theme.of(context).textTheme.titleSmall),
-            ),
+          leading: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: BoxBorder.all(color: Colors.black),
+                ),
+                margin: EdgeInsets.all(4),
+                child: Center(
+                  child: ClockText(style: Theme.of(context).textTheme.titleSmall),
+                ),
+              ),
+              kIsWeb ? Text("         WARNING: Web Support is Experimental!", style: Theme.of(context).textTheme.titleSmall?.merge(TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),) : Container()
+            ],
           ),
           actions: [
             ValueListenableBuilder(

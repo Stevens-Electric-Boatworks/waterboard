@@ -16,24 +16,25 @@ import 'dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Must add this line.
-  if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
-      !Platform.isLinux) {
-    await windowManager.ensureInitialized();
-    final windowSize = Size(1200, 820);
-    WindowOptions windowOptions = WindowOptions(
-      minimumSize: windowSize,
-      maximumSize: windowSize,
-      size: windowSize,
-      center: true,
-      backgroundColor: Colors.transparent,
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
+  if(!kIsWeb) {
+    if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
+        !Platform.isLinux) {
+      await windowManager.ensureInitialized();
+      final windowSize = Size(1200, 820);
+      WindowOptions windowOptions = WindowOptions(
+        minimumSize: windowSize,
+        maximumSize: windowSize,
+        size: windowSize,
+        center: true,
+        backgroundColor: Colors.transparent,
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.hidden,
+      );
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    }
   }
   await Log.instance.initialize();
   ROS ros = ROS();

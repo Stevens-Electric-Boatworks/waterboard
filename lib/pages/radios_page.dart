@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 
 // Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -47,14 +48,13 @@ class _RadiosPageState extends State<RadiosPage> {
   late final ValueNotifier _gps;
   double _lat = 0;
   double _lon = 0;
-  late final Timer _timer;
+  Timer? _timer;
   bool _mapReady = false;
   PmTilesVectorTileProvider? _provider;
 
   @override
   void initState() {
     super.initState();
-    _prepareMapProvider();
     _gps = widget.ros.subscribe("/motion/gps").value;
     _gps.addListener(() {
       var val = _gps.value;
@@ -67,13 +67,15 @@ class _RadiosPageState extends State<RadiosPage> {
       });
     });
     _subscription = internetConnectionChecker.onStatusChange;
+    if(kIsWeb) return;
+    _prepareMapProvider();
     _timer = Timer.periodic(Duration(seconds: 1), (_) => updateNetworkInfo());
   }
 
   @override
   void dispose() {
     super.dispose();
-    _timer.cancel();
+    _timer?.cancel();
     _ssid.dispose();
     _ipAddress.dispose();
   }
@@ -115,6 +117,9 @@ class _RadiosPageState extends State<RadiosPage> {
             valueListenable: _ipAddress,
             builder: (context, value, child) {
               if (value == null) {
+                if(kIsWeb) {
+                  return _buildText("Unsupported", "IP Address");
+                }
                 return _buildText("Not Connected", "IP Address");
               }
               return _buildText(value, "IP Address");
@@ -148,6 +153,9 @@ class _RadiosPageState extends State<RadiosPage> {
             valueListenable: _ssid,
             builder: (context, value, child) {
               if (value == null) {
+                if(kIsWeb) {
+                  return _buildText("Unsupported", "WiFi SSID");
+                }
                 return _buildText("Not Connected", "WiFi SSID");
               }
               return _buildText(value, "WiFi SSID");
@@ -322,7 +330,7 @@ class _RadiosPageState extends State<RadiosPage> {
                     child: _buildWidgetBackground(
                       ClipRRect(
                         borderRadius: BorderRadiusGeometry.circular(12),
-                        child: _provider == null
+                        child: (_provider == null) && (!kIsWeb)
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -391,25 +399,8 @@ class _RadiosPageState extends State<RadiosPage> {
         initialZoom: 15,
       ),
       children: [
-        // TileLayer(
-        //   urlTemplate:
-        //       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        //   userAgentPackageName:
-        //       'dev.fleaflet.flutter_map.example',
-        // ),
         //C:/Users/Ishaan/School Programming Projects/Electric-Boatworks/Waterboard/assets/mapdata/hoboken2.mbtiles
-        VectorTileLayer(
-          // the map theme
-          theme: ProtomapsThemes.lightV4(),
-
-          tileProviders: TileProviders({
-            // the awaited vector tile provider
-            'protomaps': _provider!,
-          }),
-
-          // disable the file cache when you change the PMTiles source
-          fileCacheTtl: Duration.zero,
-        ),
+        _getMapTileLayer(),
         MarkerLayer(
           markers: [
             Marker(
@@ -420,6 +411,31 @@ class _RadiosPageState extends State<RadiosPage> {
         ),
       ],
     );
+  }
+
+  Widget _getMapTileLayer() {
+    if(!kIsWeb) {
+      return VectorTileLayer(
+        // the map theme
+        theme: ProtomapsThemes.lightV4(),
+
+        tileProviders: TileProviders({
+          // the awaited vector tile provider
+          'protomaps': _provider!,
+        }),
+
+        // disable the file cache when you change the PMTiles source
+        fileCacheTtl: Duration.zero,
+      );
+    }
+    else {
+      return TileLayer(
+        urlTemplate:
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName:
+        'dev.fleaflet.flutter_map.example',
+      );
+    }
   }
 
   Widget _buildText(
