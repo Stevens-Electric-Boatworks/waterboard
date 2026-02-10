@@ -1,11 +1,16 @@
 # Waterboard
 <img src="waterboard_main_page.png" width="800"> 
 
+[![Waterboard](https://github.com/Stevens-Electric-Boatworks/waterboard/actions/workflows/main.yml/badge.svg)](https://github.com/Stevens-Electric-Boatworks/waterboard/actions/workflows/main.yml)
+
+
 **Waterboard** is the custom-built driver dashboard deployed on the **Manned Boat**, developed using Flutter. 
 The main goal of this Dashboard is to be the primary source of information for the Driver, and everything, from the color scheme, to the layout of components is optimized for high readability.
 
-
 It also contains a "display mode" under Settings to show information about the team and software, in a format optimized for the boat.
+
+> [!TIP]
+> Try out the [experimental web version](https://stevens-electric-boatworks.github.io/waterboard/) of this dashboard, which follows the latest commits made to the `main` branch.
 
 ## Building from Source
 
