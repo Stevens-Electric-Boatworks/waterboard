@@ -242,14 +242,9 @@ class _RadiosPageState extends State<RadiosPage> {
                     _buildWidgetBackground(
                       //not implemented
                       ROSText(
-                        notifier: widget.ros
-                            .subscribe("/motion/gps/sats")
-                            .value,
+                        notifier: widget.ros.subscribe("/motion/sv").value,
                         valueBuilder: (json) {
-                          return (
-                            (json["sats"] as double).toStringAsPrecision(7),
-                            Colors.black,
-                          );
+                          return ("${(json["sats"] as int)}", Colors.black);
                         },
                         subtext: "Satellites",
                       ),
