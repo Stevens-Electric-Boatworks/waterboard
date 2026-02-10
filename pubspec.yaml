@@ -62,9 +62,25 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+flutter_launcher_icons:
+  # Windows specific settings
+  windows:
+    generate: true
+    image_path: "assets/icon.png" # Optional: Override source for Windows
+    icon_size: 256 # Size of the generated .ico file (default: 256)
+  # macOS-specific settings
+  macos:
+    generate: true
+    image_path: "assets/icon.png" # Optional: Override source for macOS
+  # Linux-specific settings
+  linux:
+    generate: true
+    image_path: "assets/icon.png" # Optional: Override source for Linux
+    icon_sizes: [16, 32, 48, 64, 128, 256] # Sizes to generate (default shown)
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -81,8 +97,6 @@ flutter:
      - assets/sponsors/plat/private.png
      - assets/sponsors/gold/sname.png
      - assets/sponsors/silver/dhx.png
-#     - assets/mapdata/new-jersey.mbtiles
-#     - assets/mapdata/hoboken.mbtiles
      - assets/mapdata/hoboken_final.pmtiles
 
 
