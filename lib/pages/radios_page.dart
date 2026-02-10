@@ -333,10 +333,17 @@ class _RadiosPageState extends State<RadiosPage> {
                                       context,
                                     ).textTheme.titleLarge,
                                   ),
+                                  Text(
+                                    "(Did you remember to run git lfs pull?)",
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
                                 ],
                               )
                             : _getMap(),
                       ),
+
                       width: 350,
                       verticalPadding: 0,
                     ),

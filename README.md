@@ -8,6 +8,10 @@ The main goal of this Dashboard is to be the primary source of information for t
 It also contains a "display mode" under Settings to show information about the team and software, in a format optimized for the boat.
 
 ## Building from Source
+
+> [!WARNING]
+> You **_MUST_** run `git lfs pull` to fetch the pmtile from Git LFS due to the large file size. If you do not do this, the offline map WILL NOT WORK!!!
+
 Dependencies:
 * The ROS based [manned boat](https://github.com/Stevens-Electric-Boatworks/manned-boat) software
 * [ROSBridge](https://github.com/RobotWebTools/rosbridge_suite)
