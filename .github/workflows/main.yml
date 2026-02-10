@@ -8,6 +8,11 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: write
+  id-token: write
+  pages: write
+
 env:
   FLUTTER_VERSION: 3.35.6
 
@@ -55,8 +60,8 @@ jobs:
             platform-name: "MacOS"
             platform: "macos"
             build-path: "build/macos/Build/Products/Release"
-            artifact-name: Waterboard-macOS
-            artifact-file: Waterboard-macOS.zip
+            artifact-name: Waterboard-macos
+            artifact-file: Waterboard-macos.zip
           - os: ubuntu-22.04
             platform-name: "Linux"
             platform: "linux"
@@ -101,7 +106,7 @@ jobs:
       - name: Zip MacOS Release
         if: ${{ matrix.platform == 'macos'}}
         working-directory: ${{ matrix.build-path }}
-        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} Waterboard_dashboard.app --symlinks
+        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} waterboard.app --symlinks
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -134,3 +139,26 @@ jobs:
           name: Waterboard-Web
           path: Waterboard-Web.zip
           if-no-files-found: error
+
+  github-pages:
+    name: "Upload to GitHub Pages"
+    runs-on: ubuntu-22.04
+    if: ${{ github.repository == 'Stevens-Electric-Boatworks/Waterboard' && github.ref == 'refs/heads/main' }}
+    needs: [build-web]
+    steps:
+      - name: Download Web Build
+        uses: actions/download-artifact@v4
+        with:
+          name: Waterboard-Web
+
+      - name: Extract Web Build
+        run: unzip Waterboard-Web.zip -d Waterboard-Web
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3.0.0
+        with:
+          path: Waterboard-Web
+          retention-days: 31
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4.0.2
