@@ -84,10 +84,22 @@ class _MainPageState extends State<MainPage> {
                 ),
                 margin: EdgeInsets.all(4),
                 child: Center(
-                  child: ClockText(style: Theme.of(context).textTheme.titleSmall),
+                  child: ClockText(
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                 ),
               ),
-              kIsWeb ? Text("         WARNING: Web Support is Experimental!", style: Theme.of(context).textTheme.titleSmall?.merge(TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),) : Container()
+              kIsWeb
+                  ? Text(
+                      "         WARNING: Web Support is Experimental!",
+                      style: Theme.of(context).textTheme.titleSmall?.merge(
+                        TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : Container(),
             ],
           ),
           actions: [

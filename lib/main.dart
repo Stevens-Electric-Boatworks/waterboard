@@ -16,7 +16,7 @@ import 'dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if(!kIsWeb) {
+  if (!kIsWeb) {
     if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
         !Platform.isLinux) {
       await windowManager.ensureInitialized();

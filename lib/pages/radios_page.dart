@@ -67,7 +67,7 @@ class _RadiosPageState extends State<RadiosPage> {
       });
     });
     _subscription = internetConnectionChecker.onStatusChange;
-    if(kIsWeb) return;
+    if (kIsWeb) return;
     _prepareMapProvider();
     _timer = Timer.periodic(Duration(seconds: 1), (_) => updateNetworkInfo());
   }
@@ -117,7 +117,7 @@ class _RadiosPageState extends State<RadiosPage> {
             valueListenable: _ipAddress,
             builder: (context, value, child) {
               if (value == null) {
-                if(kIsWeb) {
+                if (kIsWeb) {
                   return _buildText("Unsupported", "IP Address");
                 }
                 return _buildText("Not Connected", "IP Address");
@@ -153,7 +153,7 @@ class _RadiosPageState extends State<RadiosPage> {
             valueListenable: _ssid,
             builder: (context, value, child) {
               if (value == null) {
-                if(kIsWeb) {
+                if (kIsWeb) {
                   return _buildText("Unsupported", "WiFi SSID");
                 }
                 return _buildText("Not Connected", "WiFi SSID");
@@ -414,7 +414,7 @@ class _RadiosPageState extends State<RadiosPage> {
   }
 
   Widget _getMapTileLayer() {
-    if(!kIsWeb) {
+    if (!kIsWeb) {
       return VectorTileLayer(
         // the map theme
         theme: ProtomapsThemes.lightV4(),
@@ -427,13 +427,10 @@ class _RadiosPageState extends State<RadiosPage> {
         // disable the file cache when you change the PMTiles source
         fileCacheTtl: Duration.zero,
       );
-    }
-    else {
+    } else {
       return TileLayer(
-        urlTemplate:
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        userAgentPackageName:
-        'dev.fleaflet.flutter_map.example',
+        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName: 'dev.fleaflet.flutter_map.example',
       );
     }
   }

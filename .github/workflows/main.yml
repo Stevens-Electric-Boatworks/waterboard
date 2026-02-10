@@ -12,7 +12,7 @@ permissions:
   contents: write
   id-token: write
   pages: write
-  
+
 env:
   FLUTTER_VERSION: 3.35.6
 
@@ -58,7 +58,7 @@ jobs:
             artifact-file: Waterboard-Windows.zip
           - os: macos-latest
             platform-name: "MacOS"
-            platform: "macos"
+            platform: "macOS"
             build-path: "build/macos/Build/Products/Release"
             artifact-name: Waterboard-macOS
             artifact-file: Waterboard-macOS.zip
