@@ -1,5 +1,4 @@
 // Dart imports:
-import 'dart:async';
 
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
@@ -8,50 +7,44 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
-class MainDriverPage extends StatefulWidget {
+class MainDriverPageViewModel extends ChangeNotifier {
   final ROS ros;
-  const MainDriverPage({super.key, required this.ros});
+  late ValueNotifier<Map<String, dynamic>> motorSub;
+  late ValueNotifier<Map<String, dynamic>> inletTempSub;
+  late ValueNotifier<Map<String, dynamic>> outletTempSub;
+  late ValueNotifier<Map<String, dynamic>> speedSub;
+
+  MainDriverPageViewModel({required this.ros});
+
+  void init() {
+    motorSub = ros.subscribe("/motors/can_motor_data").value;
+    inletTempSub = ros.subscribe("/electrical/temp_sensors/in").value;
+    outletTempSub = ros.subscribe("/electrical/temp_sensors/out").value;
+    speedSub = ros.subscribe("/motion/vtg").value;
+  }
+}
+
+class MainDriverPage extends StatefulWidget {
+  final MainDriverPageViewModel model;
+
+  const MainDriverPage({super.key, required this.model});
 
   @override
   State<MainDriverPage> createState() => _MainDriverPageState();
 }
 
 class _MainDriverPageState extends State<MainDriverPage> {
-  DialogRoute? _connectionAlertDialog;
   @override
   void initState() {
     super.initState();
-    widget.ros.connectionState.addListener(() {
-      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.connected) {
-        //weird race condition fix
-        Timer(Duration(milliseconds: 200), () {
-          if (widget.ros.connectionState.value ==
-              ROSConnectionState.connected) {
-            closeConnectionDialog();
-          }
-        });
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = widget.ros.connectionState.value;
-      if (state == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (state == ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      }
-    });
+    model.init();
+    model.addListener(() => setState(() {}));
   }
+
+  MainDriverPageViewModel get model => widget.model;
 
   bool get isOnMainPage {
     final route = ModalRoute.of(context);
@@ -69,7 +62,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               //Motor Current
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
+                notifier: model.motorSub,
                 valueBuilder: (json) {
                   return (json["current"] as int).toDouble();
                 },
@@ -98,9 +91,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //inlet temp
               ROSGauge(
-                notifier: widget.ros
-                    .subscribe("/electrical/temp_sensors/in")
-                    .value,
+                notifier: model.inletTempSub,
                 valueBuilder: (json) {
                   return (json["inlet_temp"] as double).round().toDouble();
                 },
@@ -129,9 +120,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
               ),
               //outlet temp
               ROSGauge(
-                notifier: widget.ros
-                    .subscribe("/electrical/temp_sensors/out")
-                    .value,
+                notifier: model.outletTempSub,
                 valueBuilder: (json) {
                   return (json["outlet_temp"] as double).round().toDouble();
                 },
@@ -168,7 +157,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
             children: [
               // Motor Temp
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
+                notifier: model.motorSub,
                 valueBuilder: (json) {
                   return (json["motor_temp"] as int).toDouble();
                 },
@@ -198,7 +187,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Boat Speed
               ROSGauge(
-                notifier: widget.ros.subscribe("/motion/vtg").value,
+                notifier: model.speedSub,
                 valueBuilder: (json) {
                   return (json["speed"] as double).round().toDouble().abs();
                 },
@@ -223,7 +212,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
 
               // Motor RPM
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
+                notifier: model.motorSub,
                 valueBuilder: (json) {
                   return (json["rpm"] as int).toDouble().abs();
                 },
@@ -254,106 +243,5 @@ class _MainDriverPageState extends State<MainDriverPage> {
         ],
       ),
     );
-  }
-
-  void showWebsocketDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Websocket Disconnected")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void showStaleDataDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Data Stale")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void closeConnectionDialog() {
-    if (_connectionAlertDialog != null) {
-      Navigator.of(context).removeRoute(_connectionAlertDialog!);
-      _connectionAlertDialog = null;
-    }
   }
 }

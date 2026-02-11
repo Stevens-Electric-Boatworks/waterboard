@@ -1,17 +1,33 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
+
 import '../waterboard_colors.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
-class ElectricsPage extends StatefulWidget {
+class ElectricsPageViewModel extends ChangeNotifier {
   final ROS ros;
-  const ElectricsPage({super.key, required this.ros});
+
+  late ValueNotifier<Map<String, dynamic>> motorSub;
+  late ValueNotifier<Map<String, dynamic>> inletTempSub;
+  late ValueNotifier<Map<String, dynamic>> outletTempSub;
+
+  ElectricsPageViewModel({required this.ros});
+
+  void init() {
+    motorSub = ros.subscribe("/motors/can_motor_data").value;
+    inletTempSub = ros.subscribe("/electrical/temp_sensors/in").value;
+    outletTempSub = ros.subscribe("/electrical/temp_sensors/out").value;
+  }
+}
+
+class ElectricsPage extends StatefulWidget {
+  final ElectricsPageViewModel model;
+
+  const ElectricsPage({super.key, required this.model});
 
   @override
   State<ElectricsPage> createState() => _ElectricsPageState();
@@ -19,11 +35,20 @@ class ElectricsPage extends StatefulWidget {
 
 class _ElectricsPageState extends State<ElectricsPage> {
   @override
+  void initState() {
+    super.initState();
+    model.init();
+    model.addListener(() => setState(() {}));
+  }
+
+  ElectricsPageViewModel get model => widget.model;
+
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         children: [
-          // ROW 1
+          // ROW 1: Motor metrics
           Container(
             margin: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -37,9 +62,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Motor Current
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
+                  notifier: model.motorSub,
                   valueBuilder: (json) => (json["current"] as int).toDouble(),
                   minimum: 0,
                   maximum: 200,
@@ -71,9 +94,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Voltage
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
+                  notifier: model.motorSub,
                   valueBuilder: (json) => (json["voltage"] as int).toDouble(),
                   minimum: 0,
                   maximum: 90,
@@ -100,9 +121,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Power
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
+                  notifier: model.motorSub,
                   valueBuilder: (json) => (json["power"] as num).toDouble(),
                   minimum: 0,
                   maximum: 1200,
@@ -130,7 +149,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
             ),
           ),
 
-          // ROW 2
+          // ROW 2: Temp metrics
           Container(
             decoration: BoxDecoration(
               color: WaterboardColors.containerBackground,
@@ -143,9 +162,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Inlet Temp
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/electrical/temp_sensors/in")
-                      .value,
+                  notifier: model.inletTempSub,
                   valueBuilder: (json) =>
                       (json["inlet_temp"] as double).round().toDouble(),
                   minimum: 0,
@@ -178,9 +195,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Outlet Temp
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/electrical/temp_sensors/out")
-                      .value,
+                  notifier: model.outletTempSub,
                   valueBuilder: (json) =>
                       (json["outlet_temp"] as double).round().toDouble(),
                   minimum: 0,

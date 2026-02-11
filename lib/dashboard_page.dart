@@ -1,6 +1,7 @@
 // Dart imports:
 
 // Dart imports:
+import 'dart:async';
 import 'dart:math';
 
 // Flutter imports:
@@ -16,14 +17,89 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
-class MainPage extends StatefulWidget {
-  final ROS ros;
 
-  const MainPage({super.key, required this.ros});
+enum ConnectionDialogType {
+  noWebsocket,
+  staleData,
+}
+class MainPageViewModel extends ChangeNotifier {
+  int _currentPage = 0;
+  ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(null);
+  final int totalPages = 6;
+  final ROS ros;
+  MainPageViewModel(this.ros);
+
+
+  int get currentPage => _currentPage;
+  Log get log => Log.instance;
+
+  void init() {
+    ros.startConnectionLoop();
+    ros.connectionState.addListener(() {
+      if (ros.connectionState.value == ROSConnectionState.noWebsocket) {
+        showWebsocketDisconnectDialog();
+      } else if (ros.connectionState.value ==
+          ROSConnectionState.staleData) {
+        showStaleDataDialog();
+      } else if (ros.connectionState.value ==
+          ROSConnectionState.connected) {
+        //weird race condition fix
+        Timer(Duration(milliseconds: 200), () {
+          if (ros.connectionState.value ==
+              ROSConnectionState.connected) {
+            closeAllDialogs();
+          }
+        });
+      }
+    });
+  }
+
+  void moveToPage(int index) {
+    if (0 <= index && index < totalPages) {
+      _currentPage = index;
+      notifyListeners();
+    }
+  }
+
+  void moveToNextPage() {
+    SharedPreferences.getInstance().then((value) {
+      if (!(value.getBool("locked_layout") ?? false)) {
+        moveToPage(min(_currentPage + 1, totalPages - 1));
+      }
+    });
+  }
+
+  void moveToPreviousPage() {
+    SharedPreferences.getInstance().then((value) {
+      if (!(value.getBool("locked_layout") ?? false)) {
+        moveToPage(max(0, _currentPage - 1));
+      }
+    });
+  }
+
+  void showWebsocketDisconnectDialog() {
+    connectionDialogType.value = ConnectionDialogType.noWebsocket;
+  }
+
+  void showStaleDataDialog() {
+    connectionDialogType.value = ConnectionDialogType.staleData;
+  }
+
+  void closeAllDialogs() {
+    connectionDialogType.value = null;
+  }
+
+}
+
+class MainPage extends StatefulWidget {
+  final MainPageViewModel model;
+
+  const MainPage({super.key, required this.model});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -31,21 +107,48 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   Widget? dialogWidget;
-
+  DialogRoute? _connectionAlertDialog;
   final PageController _pageController = PageController();
-  int _currentPage = 0;
-  final int _totalPages = 6;
-
+  late final MainDriverPageViewModel _mainDriverPageViewModel;
+  late final ElectricsPageViewModel _electricsPageViewModel;
+  late final RadiosPageViewModel _radiosPageViewModel;
   @override
   void initState() {
     super.initState();
-    widget.ros.startConnectionLoop();
+    _mainDriverPageViewModel = MainDriverPageViewModel(ros: model.ros);
+    _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
+    _radiosPageViewModel = RadiosPageViewModel(ros: model.ros);
+    model.addListener(_onModelChanged);
+    model.connectionDialogType.addListener(() {
+      if(model.connectionDialogType.value == ConnectionDialogType.noWebsocket) {
+        showWebsocketDisconnectedDialog();
+      }
+      else if(model.connectionDialogType.value == ConnectionDialogType.staleData) {
+        showStaleDataDialog();
+      }
+      else {
+        closeConnectionDialog();
+      }
+    },);
+    model.init();
   }
 
-  bool get isOnMainPage {
-    final route = ModalRoute.of(context);
-    return route != null && route.isCurrent;
+  void _onModelChanged() {
+    _pageController.animateToPage(
+      model.currentPage,
+      duration: Duration(milliseconds: 200),
+      curve: Curves.ease,
+    );
   }
+
+  @override
+  void dispose() {
+    model.removeListener(_onModelChanged);
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  MainPageViewModel get model => widget.model;
 
   @override
   Widget build(BuildContext context) {
@@ -54,17 +157,17 @@ class _MainPageState extends State<MainPage> {
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.keyS) {
-          PageUtils.showSettingsDialog(context, widget.ros);
+          PageUtils.showSettingsDialog(context, model.ros);
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.arrowRight) {
-          moveToNextPage();
+          model.moveToNextPage();
           return KeyEventResult.handled;
         }
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-          moveToPreviousPage();
+          model.moveToPreviousPage();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
@@ -91,20 +194,20 @@ class _MainPageState extends State<MainPage> {
               ),
               kIsWeb
                   ? Text(
-                      "         WARNING: Web Support is Experimental!",
-                      style: Theme.of(context).textTheme.titleSmall?.merge(
-                        TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
+                "         WARNING: Web Support is Experimental!",
+                style: Theme.of(context).textTheme.titleSmall?.merge(
+                  TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
                   : Container(),
             ],
           ),
           actions: [
             ValueListenableBuilder(
-              valueListenable: widget.ros.connectionState,
+              valueListenable: model.ros.connectionState,
               builder: (context, value, child) => ROSConnectionStateWidget(
                 value: value,
                 fontSize: 18,
@@ -113,8 +216,7 @@ class _MainPageState extends State<MainPage> {
             ),
             SizedBox(width: 15),
             IconButton(
-              onPressed: () =>
-                  PageUtils.showSettingsDialog(context, widget.ros),
+              onPressed: () => PageUtils.showSettingsDialog(context, model.ros),
               icon: Icon(Icons.settings),
             ),
           ],
@@ -129,72 +231,154 @@ class _MainPageState extends State<MainPage> {
             overscroll: false,
           ),
           children: [
-            KeepAlivePage(child: MainDriverPage(ros: widget.ros)),
-            KeepAlivePage(child: ElectricsPage(ros: widget.ros)),
+            KeepAlivePage(child: MainDriverPage(model: _mainDriverPageViewModel,)),
+            KeepAlivePage(child: ElectricsPage(model: _electricsPageViewModel)),
             KeepAlivePage(child: Placeholder()),
-            KeepAlivePage(child: RadiosPage(ros: widget.ros)),
+            KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: Placeholder()),
           ],
         ),
         bottomNavigationBar: SizedBox(
           height: 60,
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.sports_motorsports),
-                label: "Primary",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.electric_bolt),
-                label: "Electric",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.water_rounded),
-                label: "Motors",
-              ),
-              BottomNavigationBarItem(icon: Icon(Icons.radio), label: "Radios"),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.code),
-                label: "Software",
-              ),
-              BottomNavigationBarItem(icon: Icon(Icons.error), label: "Faults"),
-            ],
-            currentIndex: _pageController.hasClients ? _currentPage : 0,
+          child: ListenableBuilder(
+            listenable: model,
+            builder: (BuildContext context, Widget? child) {
+              return BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.sports_motorsports),
+                    label: "Primary",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.electric_bolt),
+                    label: "Electric",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.water_rounded),
+                    label: "Motors",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.radio),
+                    label: "Radios",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.code),
+                    label: "Software",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.error),
+                    label: "Faults",
+                  ),
+                ],
+                onTap: (value) {
+                  model.moveToPage(value);
+                },
+                currentIndex: model.currentPage,
+              );
+            },
           ),
         ),
-      ),
+      )
     );
   }
-
-  void moveToNextPage() {
-    SharedPreferences.getInstance().then((value) {
-      if (!(value.getBool("locked_layout") ?? false)) {
-        setState(() {
-          _currentPage = min(_currentPage + 1, _totalPages - 1);
-          _pageController.animateToPage(
-            _currentPage,
-            duration: Duration(milliseconds: 200),
-            curve: Curves.ease,
+  void showWebsocketDisconnectedDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Websocket Disconnected")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  PageUtils.showSettingsDialog(context, model.ros);
+                },
+                child: Text("Open Settings"),
+              ),
+              TextButton(
+                onPressed: () {
+                  closeConnectionDialog();
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                ),
+                child: Text(
+                  "Close Dialog",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
           );
-        });
-      }
+        },
+      );
+      Navigator.of(context).push(_connectionAlertDialog!);
     });
   }
 
-  void moveToPreviousPage() {
-    SharedPreferences.getInstance().then((value) {
-      if (!(value.getBool("locked_layout") ?? false)) {
-        setState(() {
-          _currentPage = max(0, _currentPage - 1);
-          _pageController.animateToPage(
-            _currentPage,
-            duration: Duration(milliseconds: 200),
-            curve: Curves.ease,
+  void showStaleDataDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      closeConnectionDialog();
+      _connectionAlertDialog = DialogRoute(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Center(child: Text("ROSBridge Data Stale")),
+            titleTextStyle: Theme.of(context).textTheme.displayLarge,
+            content: Text(
+              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
+              style: Theme.of(context).textTheme.displaySmall,
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  PageUtils.showSettingsDialog(context, model.ros);
+                },
+                child: Text("Open Settings"),
+              ),
+              TextButton(
+                onPressed: () {
+                  closeConnectionDialog();
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                ),
+                child: Text(
+                  "Close Dialog",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
           );
-        });
-      }
+        },
+      );
+      Navigator.of(context).push(_connectionAlertDialog!);
     });
+  }
+
+  void closeConnectionDialog() {
+    if (_connectionAlertDialog != null) {
+      Navigator.of(context).removeRoute(_connectionAlertDialog!);
+      _connectionAlertDialog = null;
+    }
   }
 }

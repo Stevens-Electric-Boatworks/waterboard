@@ -41,11 +41,22 @@ void main() async {
   runApp(MyApp(ros));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final ROS ros;
 
   const MyApp(this.ros, {super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late MainPageViewModel _mainPageViewModel;
+  @override
+  void initState() {
+    super.initState();
+    _mainPageViewModel = MainPageViewModel(widget.ros);
+  }
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -66,7 +77,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: "inter",
       ),
-      home: MainPage(ros: ros),
+      home: MainPage(model: _mainPageViewModel,),
     );
   }
 }
