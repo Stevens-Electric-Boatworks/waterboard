@@ -27,12 +27,12 @@ enum ConnectionDialogType {
   noWebsocket,
   staleData,
 }
-class MainPageViewModel extends ChangeNotifier {
+class DashboardPageViewModel extends ChangeNotifier {
   int _currentPage = 0;
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(null);
   final int totalPages = 6;
   final ROS ros;
-  MainPageViewModel(this.ros);
+  DashboardPageViewModel(this.ros);
 
 
   int get currentPage => _currentPage;
@@ -96,16 +96,16 @@ class MainPageViewModel extends ChangeNotifier {
 
 }
 
-class MainPage extends StatefulWidget {
-  final MainPageViewModel model;
+class DashboardPage extends StatefulWidget {
+  final DashboardPageViewModel model;
 
-  const MainPage({super.key, required this.model});
+  const DashboardPage({super.key, required this.model});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _DashboardPageState extends State<DashboardPage> {
   Widget? dialogWidget;
   DialogRoute? _connectionAlertDialog;
   final PageController _pageController = PageController();
@@ -130,6 +130,15 @@ class _MainPageState extends State<MainPage> {
         closeConnectionDialog();
       }
     },);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = model.ros.connectionState.value;
+      if (state == ROSConnectionState.noWebsocket) {
+        showWebsocketDisconnectedDialog();
+      } else if (state == ROSConnectionState.staleData) {
+        showStaleDataDialog();
+      }
+    });
     model.init();
   }
 
@@ -148,7 +157,7 @@ class _MainPageState extends State<MainPage> {
     super.dispose();
   }
 
-  MainPageViewModel get model => widget.model;
+  DashboardPageViewModel get model => widget.model;
 
   @override
   Widget build(BuildContext context) {

@@ -51,11 +51,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late MainPageViewModel _mainPageViewModel;
+  late DashboardPageViewModel _mainPageViewModel;
   @override
   void initState() {
     super.initState();
-    _mainPageViewModel = MainPageViewModel(widget.ros);
+    _mainPageViewModel = DashboardPageViewModel(widget.ros);
   }
   // This widget is the root of your application.
   @override
@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
         ),
         fontFamily: "inter",
       ),
-      home: MainPage(model: _mainPageViewModel,),
+      home: DashboardPage(model: _mainPageViewModel,),
     );
   }
 }

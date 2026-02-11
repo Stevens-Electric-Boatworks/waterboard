@@ -1,8 +1,5 @@
-// Dart imports:
-
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
-
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
@@ -12,18 +9,50 @@ import '../widgets/ros_widgets/gauge.dart';
 
 class MainDriverPageViewModel extends ChangeNotifier {
   final ROS ros;
-  late ValueNotifier<Map<String, dynamic>> motorSub;
-  late ValueNotifier<Map<String, dynamic>> inletTempSub;
-  late ValueNotifier<Map<String, dynamic>> outletTempSub;
-  late ValueNotifier<Map<String, dynamic>> speedSub;
+
+  late ROSGaugeDataSource motorCurrent;
+  late ROSGaugeDataSource motorTemp;
+  late ROSGaugeDataSource motorRPM;
+  late ROSGaugeDataSource inletTemp;
+  late ROSGaugeDataSource outletTemp;
+  late ROSGaugeDataSource speed;
 
   MainDriverPageViewModel({required this.ros});
 
   void init() {
-    motorSub = ros.subscribe("/motors/can_motor_data").value;
-    inletTempSub = ros.subscribe("/electrical/temp_sensors/in").value;
-    outletTempSub = ros.subscribe("/electrical/temp_sensors/out").value;
-    speedSub = ros.subscribe("/motion/vtg").value;
+    final motorSub = ros.subscribe("/motors/can_motor_data");
+
+    motorCurrent = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["current"] as int).toDouble(),
+    );
+
+    motorTemp = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["motor_temp"] as int).toDouble(),
+    );
+
+    motorRPM = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["rpm"] as int).toDouble().abs(),
+    );
+
+    inletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/in"),
+      valueBuilder: (json) => (json["inlet_temp"] as double).round().toDouble(),
+    );
+
+    outletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/out"),
+      valueBuilder: (json) =>
+          (json["outlet_temp"] as double).round().toDouble(),
+    );
+
+    speed = ROSGaugeDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) =>
+          (json["speed"] as double).round().toDouble().abs(),
+    );
   }
 }
 
@@ -56,16 +85,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
     return Center(
       child: Column(
         children: [
-          //ROW 1
+          // ROW 1
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              //Motor Current
               ROSGauge(
-                notifier: model.motorSub,
-                valueBuilder: (json) {
-                  return (json["current"] as int).toDouble();
-                },
+                dataSource: model.motorCurrent,
                 minimum: 0,
                 maximum: 200,
                 unitText: "A",
@@ -85,16 +110,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 150,
                     endValue: 200,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //inlet temp
               ROSGauge(
-                notifier: model.inletTempSub,
-                valueBuilder: (json) {
-                  return (json["inlet_temp"] as double).round().toDouble();
-                },
+                dataSource: model.inletTemp,
                 minimum: 0,
                 maximum: 100,
                 unitText: "°C",
@@ -114,16 +135,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 90,
                     endValue: 100,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //outlet temp
               ROSGauge(
-                notifier: model.outletTempSub,
-                valueBuilder: (json) {
-                  return (json["outlet_temp"] as double).round().toDouble();
-                },
+                dataSource: model.outletTemp,
                 minimum: 0,
                 maximum: 100,
                 unitText: "°C",
@@ -143,24 +160,19 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 90,
                     endValue: 100,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //Outlet Temp Current
             ],
           ),
-          //ROW 2
+
           // ROW 2
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Motor Temp
               ROSGauge(
-                notifier: model.motorSub,
-                valueBuilder: (json) {
-                  return (json["motor_temp"] as int).toDouble();
-                },
+                dataSource: model.motorTemp,
                 minimum: 0,
                 maximum: 60,
                 unitText: "°C",
@@ -180,17 +192,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 50,
                     endValue: 60,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-
-              // Boat Speed
               ROSGauge(
-                notifier: model.speedSub,
-                valueBuilder: (json) {
-                  return (json["speed"] as double).round().toDouble().abs();
-                },
+                dataSource: model.speed,
                 minimum: 0,
                 maximum: 50,
                 unitText: "kts",
@@ -205,17 +212,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 35,
                     endValue: 50,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-
-              // Motor RPM
               ROSGauge(
-                notifier: model.motorSub,
-                valueBuilder: (json) {
-                  return (json["rpm"] as int).toDouble().abs();
-                },
+                dataSource: model.motorRPM,
                 minimum: 0,
                 maximum: 2500,
                 unitText: "RPM",
@@ -234,7 +236,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 2100,
                     endValue: 2500,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),

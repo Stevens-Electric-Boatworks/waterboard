@@ -7,22 +7,45 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 
 import '../waterboard_colors.dart';
 import '../widgets/ros_widgets/gauge.dart';
-
 class ElectricsPageViewModel extends ChangeNotifier {
   final ROS ros;
 
-  late ValueNotifier<Map<String, dynamic>> motorSub;
-  late ValueNotifier<Map<String, dynamic>> inletTempSub;
-  late ValueNotifier<Map<String, dynamic>> outletTempSub;
+  late ROSGaugeDataSource motorCurrent;
+  late ROSGaugeDataSource motorVoltage;
+  late ROSGaugeDataSource motorPower;
+  late ROSGaugeDataSource inletTemp;
+  late ROSGaugeDataSource outletTemp;
 
   ElectricsPageViewModel({required this.ros});
 
   void init() {
-    motorSub = ros.subscribe("/motors/can_motor_data").value;
-    inletTempSub = ros.subscribe("/electrical/temp_sensors/in").value;
-    outletTempSub = ros.subscribe("/electrical/temp_sensors/out").value;
+    motorCurrent = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["current"] as int).toDouble(),
+    );
+
+    motorVoltage = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["voltage"] as int).toDouble(),
+    );
+
+    motorPower = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["power"] as num).toDouble(),
+    );
+
+    inletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/in"),
+      valueBuilder: (json) => (json["inlet_temp"] as double).round().toDouble(),
+    );
+
+    outletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/out"),
+      valueBuilder: (json) => (json["outlet_temp"] as double).round().toDouble(),
+    );
   }
 }
+
 
 class ElectricsPage extends StatefulWidget {
   final ElectricsPageViewModel model;
@@ -62,8 +85,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Motor Current
                 ROSGauge(
-                  notifier: model.motorSub,
-                  valueBuilder: (json) => (json["current"] as int).toDouble(),
+                  dataSource: model.motorCurrent,
                   minimum: 0,
                   maximum: 200,
                   unitText: "A",
@@ -94,8 +116,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Voltage
                 ROSGauge(
-                  notifier: model.motorSub,
-                  valueBuilder: (json) => (json["voltage"] as int).toDouble(),
+                  dataSource: model.motorVoltage,
                   minimum: 0,
                   maximum: 90,
                   unitText: "V",
@@ -121,8 +142,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Power
                 ROSGauge(
-                  notifier: model.motorSub,
-                  valueBuilder: (json) => (json["power"] as num).toDouble(),
+                  dataSource: model.motorPower,
                   minimum: 0,
                   maximum: 1200,
                   unitText: "W",
@@ -162,9 +182,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Inlet Temp
                 ROSGauge(
-                  notifier: model.inletTempSub,
-                  valueBuilder: (json) =>
-                      (json["inlet_temp"] as double).round().toDouble(),
+                  dataSource: model.inletTemp,
                   minimum: 0,
                   maximum: 100,
                   unitText: "°C",
@@ -195,9 +213,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Outlet Temp
                 ROSGauge(
-                  notifier: model.outletTempSub,
-                  valueBuilder: (json) =>
-                      (json["outlet_temp"] as double).round().toDouble(),
+                  dataSource: model.outletTemp,
                   minimum: 0,
                   maximum: 100,
                   unitText: "°C",

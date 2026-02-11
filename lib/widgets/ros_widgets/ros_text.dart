@@ -1,19 +1,24 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 // Project imports:
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
+class ROSTextDataSource {
+  final ROSSubscription sub;
+  final (String, Color) Function(Map<String, dynamic> json) valueBuilder;
+
+  ROSTextDataSource({required this.sub, required this.valueBuilder});
+}
 class ROSText extends StatefulWidget {
   final String subtext;
-  final ValueNotifier<Map<String, dynamic>> notifier;
-  final (String, Color) Function(Map<String, dynamic> json) valueBuilder;
+  final ROSTextDataSource dataSource;
 
   const ROSText({
     super.key,
     required this.subtext,
-    required this.notifier,
-    required this.valueBuilder,
+    required this.dataSource
   });
 
   @override
@@ -28,9 +33,9 @@ class _ROSTextState extends State<ROSText> {
     valueTextStyle ??= Theme.of(context).textTheme.displaySmall;
     subTextStyle ??= Theme.of(context).textTheme.titleLarge;
     return ROSListenable(
-      valueNotifier: widget.notifier,
+      valueNotifier: widget.dataSource.sub.notifier,
       builder: (BuildContext context, Map<String, dynamic> json) {
-        var val = widget.valueBuilder(json);
+        var val = widget.dataSource.valueBuilder(json);
         return _buildTextWidget(val.$1, val.$2);
       },
       noDataBuilder: (BuildContext context) {

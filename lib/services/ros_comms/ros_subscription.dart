@@ -24,7 +24,7 @@ class ROSSubscription {
     });
   }
 
-  ValueNotifier<Map<String, dynamic>> get value => _valueNotifier;
+  ValueNotifier<Map<String, dynamic>> get notifier => _valueNotifier;
 
   String get topic => _topic;
 

@@ -20,8 +20,9 @@ import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 // Project imports:
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/waterboard_colors.dart';
-import 'package:waterboard/widgets/ros_widgets/ros_compass.dart';
+import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 class RadiosPageViewModel extends ChangeNotifier {
   final ROS ros;
@@ -33,12 +34,16 @@ class RadiosPageViewModel extends ChangeNotifier {
   final ValueNotifier<String?> ipAddress = ValueNotifier(null);
 
   // ROS subscriptions
-  late final ValueNotifier<Map<String, dynamic>> gps;
-  late final ValueNotifier<Map<String, dynamic>> sv;
-  late final ValueNotifier<Map<String, dynamic>> vtg;
-  late final ValueNotifier<Map<String, dynamic>> alt;
-  late final ValueNotifier<Map<String, dynamic>> climb;
-  late final ValueNotifier<Map<String, dynamic>> cell;
+  late final ROSSubscription gpsSub;
+  late final ROSTextDataSource gpsLat;
+  late final ROSTextDataSource gpsLon;
+  late final ROSTextDataSource sv;
+  late final ROSTextDataSource vtg;
+  late final ROSTextDataSource alt;
+  late final ROSTextDataSource climb;
+  late final ROSTextDataSource cell;
+  late final ROSCompassDataSource compass;
+
 
   double lat = 0;
   double lon = 0;
@@ -48,21 +53,46 @@ class RadiosPageViewModel extends ChangeNotifier {
   PmTilesVectorTileProvider? provider;
 
   RadiosPageViewModel({required this.ros}) {
-    // initialize ROS subscriptions
-    gps = ros.subscribe("/motion/gps").value;
-    sv = ros.subscribe("/motion/sv").value;
-    vtg = ros.subscribe("/motion/vtg").value;
-    alt = ros.subscribe("/motion/gps/alt").value;
-    climb = ros.subscribe("/motion/gps/climb").value;
-    cell = ros.subscribe("/cell").value;
+    gpsSub = ros.subscribe("/motion/gps");
+    gpsLat = ROSTextDataSource(
+      sub: gpsSub,
+      valueBuilder: (json) => ((json["lat"] as double).toStringAsPrecision(12), Colors.black),
+    );
+    gpsLon = ROSTextDataSource(
+      sub: gpsSub,
+      valueBuilder: (json) => ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
+    );
+    sv = ROSTextDataSource(
+      sub: ros.subscribe("/motion/sv"),
+      valueBuilder: (json) => ("${json["sats"]}", Colors.black),
+    );
+    vtg = ROSTextDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) => ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
+    );
+    alt = ROSTextDataSource(
+      sub: ros.subscribe("/motion/gps/alt"),
+      valueBuilder: (json) => ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
+    );
+    climb = ROSTextDataSource(
+      sub: ros.subscribe("/motion/gps/climb"),
+      valueBuilder: (json) => ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
+    );
+    cell = ROSTextDataSource(
+      sub: ros.subscribe("/cell"),
+      valueBuilder: (json) => (json["cell_strength"].toString(), Colors.black),
+    );
+    compass = ROSCompassDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) => json["true_track"] as double,
+    );
 
-    gps.addListener(_onGpsUpdate);
+    // Update map coordinates whenever GPS changes
+    gpsSub.notifier.addListener(_onGpsUpdate);
 
-    // initialize network status stream
+    // Network status
     internetStatusStream = InternetConnection.createInstance(
-      customCheckOptions: [
-        InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
-      ],
+      customCheckOptions: [InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org'))],
     ).onStatusChange;
 
     if (!kIsWeb) {
@@ -75,8 +105,8 @@ class RadiosPageViewModel extends ChangeNotifier {
   }
 
   void _onGpsUpdate() {
-    final val = gps.value;
     if (!mapReady) return;
+    final val = gpsSub.notifier.value;
 
     lat = val["lat"] as double;
     lon = val["lon"] as double;
@@ -109,7 +139,7 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    gps.removeListener(_onGpsUpdate);
+    gpsSub.notifier.removeListener(_onGpsUpdate);
     _networkTimer?.cancel();
     ssid.dispose();
     ipAddress.dispose();
@@ -198,8 +228,7 @@ class _RadiosPageState extends State<RadiosPage> {
           ),
           _buildWidgetBackground(
             ROSText(
-              notifier: model.cell,
-              valueBuilder: (json) => (json["cell_strength"].toString(), Colors.black),
+              dataSource: model.cell,
               subtext: "Cell Strength",
             ),
           ),
@@ -227,44 +256,27 @@ class _RadiosPageState extends State<RadiosPage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildWidgetBackground(
-                  ROSText(
-                    notifier: model.gps,
-                    valueBuilder: (json) => ((json["lat"] as double).toStringAsPrecision(12), Colors.black),
-                    subtext: "Latitude",
-                  ),
+                  ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
                   width: 350,
                 ),
                 _buildWidgetBackground(
-                  ROSText(
-                    notifier: model.gps,
-                    valueBuilder: (json) => ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
-                    subtext: "Longitude",
-                  ),
+                  ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
                   width: 350,
                 ),
               ],
             ),
-            // sats, speed, alt, climb
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Row(
                   children: [
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: model.sv,
-                        valueBuilder: (json) => ("${json["sats"]}", Colors.black),
-                        subtext: "Satellites",
-                      ),
+                      ROSText(dataSource: model.sv, subtext: "Satellites"),
                       width: 172.5 - 5,
                     ),
                     const SizedBox(width: 10),
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: model.vtg,
-                        valueBuilder: (json) => ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
-                        subtext: "Speed (mph)",
-                      ),
+                      ROSText(dataSource: model.vtg, subtext: "Speed (mph)"),
                       width: 172.5 - 5,
                     ),
                   ],
@@ -272,20 +284,12 @@ class _RadiosPageState extends State<RadiosPage> {
                 Row(
                   children: [
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: model.alt,
-                        valueBuilder: (json) => ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
-                        subtext: "Altitude",
-                      ),
+                      ROSText(dataSource: model.alt, subtext: "Altitude"),
                       width: 172.5 - 5,
                     ),
                     const SizedBox(width: 10),
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: model.ros.subscribe("/motion/gps/climb").value,
-                        valueBuilder: (json) => ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
-                        subtext: "Climb",
-                      ),
+                      ROSText(dataSource: model.climb, subtext: "Climb"),
                       width: 172.5 - 5,
                     ),
                   ],
@@ -300,8 +304,7 @@ class _RadiosPageState extends State<RadiosPage> {
                 children: [
                   _buildWidgetBackground(
                     MarineCompass(
-                      notifier: model.vtg,
-                      valueBuilder: (json) => json["true_track"] as double,
+                      dataSource: model.compass,
                     ),
                     width: 350,
                   ),

@@ -7,24 +7,30 @@ import 'package:flutter/material.dart';
 // Project imports:
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+
+class ROSCompassDataSource {
+  final ROSSubscription sub;
+  final double Function(Map<String, dynamic> json) valueBuilder;
+
+  ROSCompassDataSource({required this.sub, required this.valueBuilder});
+}
 class MarineCompass extends StatelessWidget {
   final double size;
-  final ValueNotifier<Map<String, dynamic>> notifier;
-  final double Function(Map<String, dynamic> json) valueBuilder;
+  final ROSCompassDataSource dataSource;
 
   const MarineCompass({
     super.key,
     this.size = 270,
-    required this.notifier,
-    required this.valueBuilder,
+    required this.dataSource
   });
 
   @override
   Widget build(BuildContext context) {
     return ROSListenable(
-      valueNotifier: notifier,
+      valueNotifier: dataSource.sub.notifier,
       noDataBuilder: (context) => _buildCompass(0, context),
-      builder: (context, value) => _buildCompass(valueBuilder(value), context),
+      builder: (context, value) => _buildCompass(dataSource.valueBuilder(value), context),
     );
   }
 
