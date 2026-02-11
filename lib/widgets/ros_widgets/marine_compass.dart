@@ -5,9 +5,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
-
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
 class ROSCompassDataSource {
   final ROSSubscription sub;
@@ -15,22 +14,20 @@ class ROSCompassDataSource {
 
   ROSCompassDataSource({required this.sub, required this.valueBuilder});
 }
+
 class MarineCompass extends StatelessWidget {
   final double size;
   final ROSCompassDataSource dataSource;
 
-  const MarineCompass({
-    super.key,
-    this.size = 270,
-    required this.dataSource
-  });
+  const MarineCompass({super.key, this.size = 270, required this.dataSource});
 
   @override
   Widget build(BuildContext context) {
     return ROSListenable(
       valueNotifier: dataSource.sub.notifier,
       noDataBuilder: (context) => _buildCompass(0, context),
-      builder: (context, value) => _buildCompass(dataSource.valueBuilder(value), context),
+      builder: (context, value) =>
+          _buildCompass(dataSource.valueBuilder(value), context),
     );
   }
 

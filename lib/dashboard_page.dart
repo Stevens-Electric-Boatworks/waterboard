@@ -22,18 +22,16 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
+enum ConnectionDialogType { noWebsocket, staleData }
 
-enum ConnectionDialogType {
-  noWebsocket,
-  staleData,
-}
 class DashboardPageViewModel extends ChangeNotifier {
   int _currentPage = 0;
-  ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(null);
+  ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
+    null,
+  );
   final int totalPages = 6;
   final ROS ros;
   DashboardPageViewModel(this.ros);
-
 
   int get currentPage => _currentPage;
   Log get log => Log.instance;
@@ -43,15 +41,12 @@ class DashboardPageViewModel extends ChangeNotifier {
     ros.connectionState.addListener(() {
       if (ros.connectionState.value == ROSConnectionState.noWebsocket) {
         showWebsocketDisconnectDialog();
-      } else if (ros.connectionState.value ==
-          ROSConnectionState.staleData) {
+      } else if (ros.connectionState.value == ROSConnectionState.staleData) {
         showStaleDataDialog();
-      } else if (ros.connectionState.value ==
-          ROSConnectionState.connected) {
+      } else if (ros.connectionState.value == ROSConnectionState.connected) {
         //weird race condition fix
         Timer(Duration(milliseconds: 200), () {
-          if (ros.connectionState.value ==
-              ROSConnectionState.connected) {
+          if (ros.connectionState.value == ROSConnectionState.connected) {
             closeAllDialogs();
           }
         });
@@ -93,7 +88,6 @@ class DashboardPageViewModel extends ChangeNotifier {
   void closeAllDialogs() {
     connectionDialogType.value = null;
   }
-
 }
 
 class DashboardPage extends StatefulWidget {
@@ -120,16 +114,16 @@ class _DashboardPageState extends State<DashboardPage> {
     _radiosPageViewModel = RadiosPageViewModel(ros: model.ros);
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
-      if(model.connectionDialogType.value == ConnectionDialogType.noWebsocket) {
+      if (model.connectionDialogType.value ==
+          ConnectionDialogType.noWebsocket) {
         showWebsocketDisconnectedDialog();
-      }
-      else if(model.connectionDialogType.value == ConnectionDialogType.staleData) {
+      } else if (model.connectionDialogType.value ==
+          ConnectionDialogType.staleData) {
         showStaleDataDialog();
-      }
-      else {
+      } else {
         closeConnectionDialog();
       }
-    },);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = model.ros.connectionState.value;
@@ -203,14 +197,14 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               kIsWeb
                   ? Text(
-                "         WARNING: Web Support is Experimental!",
-                style: Theme.of(context).textTheme.titleSmall?.merge(
-                  TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
+                      "         WARNING: Web Support is Experimental!",
+                      style: Theme.of(context).textTheme.titleSmall?.merge(
+                        TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
                   : Container(),
             ],
           ),
@@ -240,7 +234,9 @@ class _DashboardPageState extends State<DashboardPage> {
             overscroll: false,
           ),
           children: [
-            KeepAlivePage(child: MainDriverPage(model: _mainDriverPageViewModel,)),
+            KeepAlivePage(
+              child: MainDriverPage(model: _mainDriverPageViewModel),
+            ),
             KeepAlivePage(child: ElectricsPage(model: _electricsPageViewModel)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
@@ -289,9 +285,10 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
         ),
-      )
+      ),
     );
   }
+
   void showWebsocketDisconnectedDialog() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

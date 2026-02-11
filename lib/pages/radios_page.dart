@@ -24,6 +24,7 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/waterboard_colors.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
+
 class RadiosPageViewModel extends ChangeNotifier {
   final ROS ros;
   final MapController mapController = MapController();
@@ -44,7 +45,6 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSTextDataSource cell;
   late final ROSCompassDataSource compass;
 
-
   double lat = 0;
   double lon = 0;
 
@@ -56,11 +56,13 @@ class RadiosPageViewModel extends ChangeNotifier {
     gpsSub = ros.subscribe("/motion/gps");
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
-      valueBuilder: (json) => ((json["lat"] as double).toStringAsPrecision(12), Colors.black),
+      valueBuilder: (json) =>
+          ((json["lat"] as double).toStringAsPrecision(12), Colors.black),
     );
     gpsLon = ROSTextDataSource(
       sub: gpsSub,
-      valueBuilder: (json) => ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
+      valueBuilder: (json) =>
+          ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
     );
     sv = ROSTextDataSource(
       sub: ros.subscribe("/motion/sv"),
@@ -68,15 +70,18 @@ class RadiosPageViewModel extends ChangeNotifier {
     );
     vtg = ROSTextDataSource(
       sub: ros.subscribe("/motion/vtg"),
-      valueBuilder: (json) => ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
+      valueBuilder: (json) =>
+          ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
     );
     alt = ROSTextDataSource(
       sub: ros.subscribe("/motion/gps/alt"),
-      valueBuilder: (json) => ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
+      valueBuilder: (json) =>
+          ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
     );
     climb = ROSTextDataSource(
       sub: ros.subscribe("/motion/gps/climb"),
-      valueBuilder: (json) => ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
+      valueBuilder: (json) =>
+          ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
     );
     cell = ROSTextDataSource(
       sub: ros.subscribe("/cell"),
@@ -92,14 +97,16 @@ class RadiosPageViewModel extends ChangeNotifier {
 
     // Network status
     internetStatusStream = InternetConnection.createInstance(
-      customCheckOptions: [InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org'))],
+      customCheckOptions: [
+        InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
+      ],
     ).onStatusChange;
 
     if (!kIsWeb) {
       _prepareMapProvider();
       _networkTimer = Timer.periodic(
         const Duration(seconds: 1),
-            (_) => updateNetworkInfo(),
+        (_) => updateNetworkInfo(),
       );
     }
   }
@@ -121,7 +128,9 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   Future<void> _prepareMapProvider() async {
     try {
-      final byteData = await rootBundle.load('assets/mapdata/hoboken_final.pmtiles');
+      final byteData = await rootBundle.load(
+        'assets/mapdata/hoboken_final.pmtiles',
+      );
       final tempDir = await getTemporaryDirectory();
       final filePath = p.join(tempDir.path, 'hoboken_final.pmtiles');
       final file = File(filePath);
@@ -211,9 +220,17 @@ class _RadiosPageState extends State<RadiosPage> {
             builder: (_, snapshot) {
               final status = snapshot.data;
               if (status == InternetStatus.connected) {
-                return _buildText("Reachable", "Shore Reachable?", color: Colors.green);
+                return _buildText(
+                  "Reachable",
+                  "Shore Reachable?",
+                  color: Colors.green,
+                );
               } else {
-                return _buildText("Unreachable", "Shore Reachable?", color: Colors.red);
+                return _buildText(
+                  "Unreachable",
+                  "Shore Reachable?",
+                  color: Colors.red,
+                );
               }
             },
           ),
@@ -227,12 +244,13 @@ class _RadiosPageState extends State<RadiosPage> {
             },
           ),
           _buildWidgetBackground(
-            ROSText(
-              dataSource: model.cell,
-              subtext: "Cell Strength",
-            ),
+            ROSText(dataSource: model.cell, subtext: "Cell Strength"),
           ),
-          _buildText("shore.stevenseboat.org", "Shore URL", style: Theme.of(context).textTheme.titleLarge),
+          _buildText(
+            "shore.stevenseboat.org",
+            "Shore URL",
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
         ],
       ),
     );
@@ -251,7 +269,10 @@ class _RadiosPageState extends State<RadiosPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           spacing: 20,
           children: [
-            Text("GPS and Location", style: Theme.of(context).textTheme.headlineLarge),
+            Text(
+              "GPS and Location",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -303,9 +324,7 @@ class _RadiosPageState extends State<RadiosPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildWidgetBackground(
-                    MarineCompass(
-                      dataSource: model.compass,
-                    ),
+                    MarineCompass(dataSource: model.compass),
                     width: 350,
                   ),
                   const SizedBox(width: 20),
@@ -316,13 +335,23 @@ class _RadiosPageState extends State<RadiosPage> {
                         borderRadius: BorderRadius.circular(12),
                         child: (!kIsWeb && model.provider == null)
                             ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(),
-                            Text("The map is loading...", style: Theme.of(context).textTheme.titleLarge),
-                            Text("(Did you remember to run git lfs pull?)", style: Theme.of(context).textTheme.titleSmall),
-                          ],
-                        )
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const CircularProgressIndicator(),
+                                  Text(
+                                    "The map is loading...",
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
+                                  ),
+                                  Text(
+                                    "(Did you remember to run git lfs pull?)",
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
+                                ],
+                              )
                             : _getMap(),
                       ),
                       width: 350,
@@ -345,33 +374,44 @@ class _RadiosPageState extends State<RadiosPage> {
         keepAlive: true,
         initialCenter: LatLng(40.7507, -74.0272),
         interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.scrollWheelZoom |
-          InteractiveFlag.pinchZoom |
-          InteractiveFlag.doubleTapZoom |
-          InteractiveFlag.doubleTapDragZoom,
+          flags:
+              InteractiveFlag.scrollWheelZoom |
+              InteractiveFlag.pinchZoom |
+              InteractiveFlag.doubleTapZoom |
+              InteractiveFlag.doubleTapDragZoom,
         ),
         initialZoom: 15,
       ),
       children: [
-        if (!kIsWeb) VectorTileLayer(
-          theme: ProtomapsThemes.lightV4(),
-          tileProviders: TileProviders({'protomaps': model.provider!}),
-          fileCacheTtl: Duration.zero,
-        )
-        else TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-        ),
+        if (!kIsWeb)
+          VectorTileLayer(
+            theme: ProtomapsThemes.lightV4(),
+            tileProviders: TileProviders({'protomaps': model.provider!}),
+            fileCacheTtl: Duration.zero,
+          )
+        else
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+          ),
         MarkerLayer(
           markers: [
-            Marker(point: LatLng(model.lat, model.lon), child: const Icon(Icons.location_on, size: 32)),
+            Marker(
+              point: LatLng(model.lat, model.lon),
+              child: const Icon(Icons.location_on, size: 32),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildText(String value, String subtitle, {Color color = Colors.black, TextStyle? style}) {
+  Widget _buildText(
+    String value,
+    String subtitle, {
+    Color color = Colors.black,
+    TextStyle? style,
+  }) {
     style ??= Theme.of(context).textTheme.displaySmall;
     return _buildWidgetBackground(
       Column(
@@ -384,7 +424,11 @@ class _RadiosPageState extends State<RadiosPage> {
     );
   }
 
-  Widget _buildWidgetBackground(Widget inside, {double width = 275, double verticalPadding = 8}) {
+  Widget _buildWidgetBackground(
+    Widget inside, {
+    double width = 275,
+    double verticalPadding = 8,
+  }) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: verticalPadding),
       decoration: BoxDecoration(

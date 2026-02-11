@@ -57,6 +57,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _mainPageViewModel = DashboardPageViewModel(widget.ros);
   }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -77,7 +78,7 @@ class _MyAppState extends State<MyApp> {
         ),
         fontFamily: "inter",
       ),
-      home: DashboardPage(model: _mainPageViewModel,),
+      home: DashboardPage(model: _mainPageViewModel),
     );
   }
 }

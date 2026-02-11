@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
+
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 

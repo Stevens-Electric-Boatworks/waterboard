@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 // Project imports:
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
 class ROSGaugeDataSource {
@@ -14,6 +14,7 @@ class ROSGaugeDataSource {
 
   ROSGaugeDataSource({required this.sub, required this.valueBuilder});
 }
+
 class ROSGauge extends StatelessWidget {
   final ROSGaugeDataSource dataSource;
   final double minimum;

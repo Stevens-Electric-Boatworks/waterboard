@@ -1,12 +1,14 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
-
 import '../waterboard_colors.dart';
 import '../widgets/ros_widgets/gauge.dart';
+
 class ElectricsPageViewModel extends ChangeNotifier {
   final ROS ros;
 
@@ -41,11 +43,11 @@ class ElectricsPageViewModel extends ChangeNotifier {
 
     outletTemp = ROSGaugeDataSource(
       sub: ros.subscribe("/electrical/temp_sensors/out"),
-      valueBuilder: (json) => (json["outlet_temp"] as double).round().toDouble(),
+      valueBuilder: (json) =>
+          (json["outlet_temp"] as double).round().toDouble(),
     );
   }
 }
-
 
 class ElectricsPage extends StatefulWidget {
   final ElectricsPageViewModel model;

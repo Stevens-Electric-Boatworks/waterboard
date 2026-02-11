@@ -1,8 +1,8 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 // Project imports:
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
 class ROSTextDataSource {
@@ -11,15 +11,12 @@ class ROSTextDataSource {
 
   ROSTextDataSource({required this.sub, required this.valueBuilder});
 }
+
 class ROSText extends StatefulWidget {
   final String subtext;
   final ROSTextDataSource dataSource;
 
-  const ROSText({
-    super.key,
-    required this.subtext,
-    required this.dataSource
-  });
+  const ROSText({super.key, required this.subtext, required this.dataSource});
 
   @override
   State<ROSText> createState() => _ROSTextState();
