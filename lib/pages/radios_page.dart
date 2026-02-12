@@ -20,69 +20,158 @@ import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 // Project imports:
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/waterboard_colors.dart';
-import 'package:waterboard/widgets/ros_widgets/ros_compass.dart';
+import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
-class RadiosPage extends StatefulWidget {
+class RadiosPageViewModel extends ChangeNotifier {
   final ROS ros;
+  final MapController mapController = MapController();
+  final NetworkInfo networkInfo = NetworkInfo();
 
-  const RadiosPage({super.key, required this.ros});
+  late final Stream<InternetStatus> internetStatusStream;
+  final ValueNotifier<String?> ssid = ValueNotifier(null);
+  final ValueNotifier<String?> ipAddress = ValueNotifier(null);
+
+  // ROS subscriptions
+  late final ROSSubscription gpsSub;
+  late final ROSTextDataSource gpsLat;
+  late final ROSTextDataSource gpsLon;
+  late final ROSTextDataSource sv;
+  late final ROSTextDataSource vtg;
+  late final ROSTextDataSource alt;
+  late final ROSTextDataSource climb;
+  late final ROSTextDataSource cell;
+  late final ROSCompassDataSource compass;
+
+  double lat = 0;
+  double lon = 0;
+
+  Timer? _networkTimer;
+  bool mapReady = false;
+  PmTilesVectorTileProvider? provider;
+
+  RadiosPageViewModel({required this.ros}) {
+    gpsSub = ros.subscribe("/motion/gps");
+    gpsLat = ROSTextDataSource(
+      sub: gpsSub,
+      valueBuilder: (json) =>
+          ((json["lat"] as double).toStringAsPrecision(12), Colors.black),
+    );
+    gpsLon = ROSTextDataSource(
+      sub: gpsSub,
+      valueBuilder: (json) =>
+          ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
+    );
+    sv = ROSTextDataSource(
+      sub: ros.subscribe("/motion/sv"),
+      valueBuilder: (json) => ("${json["sats"]}", Colors.black),
+    );
+    vtg = ROSTextDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) =>
+          ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
+    );
+    alt = ROSTextDataSource(
+      sub: ros.subscribe("/motion/gps/alt"),
+      valueBuilder: (json) =>
+          ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
+    );
+    climb = ROSTextDataSource(
+      sub: ros.subscribe("/motion/gps/climb"),
+      valueBuilder: (json) =>
+          ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
+    );
+    cell = ROSTextDataSource(
+      sub: ros.subscribe("/cell"),
+      valueBuilder: (json) => (json["cell_strength"].toString(), Colors.black),
+    );
+    compass = ROSCompassDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) => json["true_track"] as double,
+    );
+
+    // Update map coordinates whenever GPS changes
+    gpsSub.notifier.addListener(_onGpsUpdate);
+
+    // Network status
+    internetStatusStream = InternetConnection.createInstance(
+      customCheckOptions: [
+        InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
+      ],
+    ).onStatusChange;
+
+    if (!kIsWeb) {
+      _prepareMapProvider();
+      _networkTimer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => updateNetworkInfo(),
+      );
+    }
+  }
+
+  void _onGpsUpdate() {
+    if (!mapReady) return;
+    final val = gpsSub.notifier.value;
+
+    lat = val["lat"] as double;
+    lon = val["lon"] as double;
+    mapController.move(LatLng(lat, lon), mapController.camera.zoom);
+    notifyListeners();
+  }
+
+  Future<void> updateNetworkInfo() async {
+    ssid.value = await networkInfo.getWifiName();
+    ipAddress.value = await networkInfo.getWifiIP();
+  }
+
+  Future<void> _prepareMapProvider() async {
+    try {
+      final byteData = await rootBundle.load(
+        'assets/mapdata/hoboken_final.pmtiles',
+      );
+      final tempDir = await getTemporaryDirectory();
+      final filePath = p.join(tempDir.path, 'hoboken_final.pmtiles');
+      final file = File(filePath);
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      Log.instance.info("Hoboken Offline Map copied to: $filePath");
+      provider = await PmTilesVectorTileProvider.fromSource(filePath);
+      Log.instance.info("Hoboken Offline Map loaded");
+      mapReady = true;
+      notifyListeners();
+    } catch (e) {
+      Log.instance.error("Failed to load map: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    gpsSub.notifier.removeListener(_onGpsUpdate);
+    _networkTimer?.cancel();
+    ssid.dispose();
+    ipAddress.dispose();
+    super.dispose();
+  }
+}
+
+class RadiosPage extends StatefulWidget {
+  final RadiosPageViewModel model;
+
+  const RadiosPage({super.key, required this.model});
 
   @override
   State<RadiosPage> createState() => _RadiosPageState();
 }
 
 class _RadiosPageState extends State<RadiosPage> {
-  var internetConnectionChecker = InternetConnection.createInstance(
-    customCheckOptions: [
-      InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
-    ],
-  );
-  final info = NetworkInfo();
-  late Stream<InternetStatus> _subscription;
-  final ValueNotifier<String?> _ssid = ValueNotifier(null);
-  final ValueNotifier<String?> _ipAddress = ValueNotifier(null);
-
-  final MapController _mapController = MapController();
-  late final ValueNotifier _gps;
-  double _lat = 0;
-  double _lon = 0;
-  Timer? _timer;
-  bool _mapReady = false;
-  PmTilesVectorTileProvider? _provider;
+  RadiosPageViewModel get model => widget.model;
 
   @override
   void initState() {
     super.initState();
-    _gps = widget.ros.subscribe("/motion/gps").value;
-    _gps.addListener(() {
-      var val = _gps.value;
-      if (val == null) return;
-      if (!_mapReady) return;
-      _lat = val["lat"] as double;
-      _lon = val["lon"] as double;
-      setState(() {
-        _mapController.move(LatLng(_lat, _lon), _mapController.camera.zoom);
-      });
-    });
-    _subscription = internetConnectionChecker.onStatusChange;
-    if (kIsWeb) return;
-    _prepareMapProvider();
-    _timer = Timer.periodic(Duration(seconds: 1), (_) => updateNetworkInfo());
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _timer?.cancel();
-    _ssid.dispose();
-    _ipAddress.dispose();
-  }
-
-  Future<void> updateNetworkInfo() async {
-    _ssid.value = await info.getWifiName();
-    _ipAddress.value = await info.getWifiIP();
+    model.addListener(() => setState(() {}));
   }
 
   @override
@@ -92,7 +181,11 @@ class _RadiosPageState extends State<RadiosPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
-        children: [_buildInternetAndCell(), SizedBox(width: 15), _buildGPS()],
+        children: [
+          _buildInternetAndCell(),
+          const SizedBox(width: 15),
+          _buildGPS(),
+        ],
       ),
     );
   }
@@ -114,62 +207,44 @@ class _RadiosPageState extends State<RadiosPage> {
             style: Theme.of(context).textTheme.headlineLarge,
           ),
           ValueListenableBuilder(
-            valueListenable: _ipAddress,
-            builder: (context, value, child) {
-              if (value == null) {
-                if (kIsWeb) {
-                  return _buildText("Unsupported", "IP Address");
-                }
-                return _buildText("Not Connected", "IP Address");
-              }
-              return _buildText(value, "IP Address");
+            valueListenable: model.ipAddress,
+            builder: (_, value, __) {
+              return _buildText(
+                value ?? (kIsWeb ? "Unsupported" : "Not Connected"),
+                "IP Address",
+              );
             },
           ),
-          StreamBuilder(
-            stream: _subscription,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+          StreamBuilder<InternetStatus>(
+            stream: model.internetStatusStream,
+            builder: (_, snapshot) {
+              final status = snapshot.data;
+              if (status == InternetStatus.connected) {
+                return _buildText(
+                  "Reachable",
+                  "Shore Reachable?",
+                  color: Colors.green,
+                );
+              } else {
                 return _buildText(
                   "Unreachable",
                   "Shore Reachable?",
                   color: Colors.red,
                 );
               }
-              if (snapshot.data == InternetStatus.connected) {
-                return _buildText(
-                  "Reachable",
-                  "Shore Reachable?",
-                  color: Colors.green,
-                );
-              }
-              return _buildText(
-                "Unreachable",
-                "Shore Reachable?",
-                color: Colors.red,
-              );
             },
           ),
           ValueListenableBuilder(
-            valueListenable: _ssid,
-            builder: (context, value, child) {
-              if (value == null) {
-                if (kIsWeb) {
-                  return _buildText("Unsupported", "WiFi SSID");
-                }
-                return _buildText("Not Connected", "WiFi SSID");
-              }
-              return _buildText(value, "WiFi SSID");
+            valueListenable: model.ssid,
+            builder: (_, value, __) {
+              return _buildText(
+                value ?? (kIsWeb ? "Unsupported" : "Not Connected"),
+                "WiFi SSID",
+              );
             },
           ),
-          //Currently not implemented
           _buildWidgetBackground(
-            ROSText(
-              notifier: widget.ros.subscribe("/cell/data").value,
-              valueBuilder: (json) {
-                return (json["cell_strength"].toString(), Colors.black);
-              },
-              subtext: "Cell Strength",
-            ),
+            ROSText(dataSource: model.cell, subtext: "Cell Strength"),
           ),
           _buildText(
             "shore.stevenseboat.org",
@@ -198,138 +273,71 @@ class _RadiosPageState extends State<RadiosPage> {
               "GPS and Location",
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            //lat and lon
             Row(
-              mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildWidgetBackground(
-                  ROSText(
-                    notifier: widget.ros.subscribe("/motion/gps").value,
-                    valueBuilder: (json) {
-                      return (
-                        (json["lat"] as double).toStringAsPrecision(12),
-                        Colors.black,
-                      );
-                    },
-                    subtext: "Latitude",
-                  ),
+                  ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
                   width: 350,
                 ),
                 _buildWidgetBackground(
-                  ROSText(
-                    notifier: widget.ros.subscribe("/motion/gps").value,
-                    valueBuilder: (json) {
-                      return (
-                        (json["lon"] as double).toStringAsPrecision(12),
-                        Colors.black,
-                      );
-                    },
-                    subtext: "Longitude",
-                  ),
+                  ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
                   width: 350,
                 ),
               ],
             ),
-
-            //sats, speed, alt, climb
             Row(
-              mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Row(
                   children: [
                     _buildWidgetBackground(
-                      //not implemented
-                      ROSText(
-                        notifier: widget.ros.subscribe("/motion/sv").value,
-                        valueBuilder: (json) {
-                          return ("${(json["sats"] as int)}", Colors.black);
-                        },
-                        subtext: "Satellites",
-                      ),
-                      width: 350 / 2 - 5,
+                      ROSText(dataSource: model.sv, subtext: "Satellites"),
+                      width: 172.5 - 5,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: widget.ros.subscribe("/motion/vtg").value,
-                        valueBuilder: (json) {
-                          return (
-                            ((json["speed"] as double).toStringAsPrecision(2)),
-                            Colors.black,
-                          );
-                        },
-                        subtext: "Speed (mph)",
-                      ),
-                      width: 350 / 2 - 5,
+                      ROSText(dataSource: model.vtg, subtext: "Speed (mph)"),
+                      width: 172.5 - 5,
                     ),
                   ],
                 ),
                 Row(
                   children: [
                     _buildWidgetBackground(
-                      //not implemented
-                      ROSText(
-                        notifier: widget.ros.subscribe("/motion/gps/alt").value,
-                        valueBuilder: (json) {
-                          return (
-                            (json["alt"] as double).toStringAsPrecision(7),
-                            Colors.black,
-                          );
-                        },
-                        subtext: "Altitude",
-                      ),
-                      width: 350 / 2 - 5,
+                      ROSText(dataSource: model.alt, subtext: "Altitude"),
+                      width: 172.5 - 5,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     _buildWidgetBackground(
-                      ROSText(
-                        notifier: widget.ros
-                            .subscribe("/motion/gps/climb")
-                            .value,
-                        valueBuilder: (json) {
-                          return (
-                            ((json["climb"] as double).toStringAsPrecision(2)),
-                            Colors.black,
-                          );
-                        },
-                        subtext: "Climb",
-                      ),
-                      width: 350 / 2 - 5,
+                      ROSText(dataSource: model.climb, subtext: "Climb"),
+                      width: 172.5 - 5,
                     ),
                   ],
                 ),
               ],
             ),
-
-            //compass and GPS map
+            // compass and map
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
-                mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildWidgetBackground(
-                    MarineCompass(
-                      notifier: widget.ros.subscribe("/motion/vtg").value,
-                      valueBuilder: (json) {
-                        return json["true_track"] as double;
-                      },
-                    ),
+                    MarineCompass(dataSource: model.compass),
                     width: 350,
                   ),
-                  SizedBox(width: 20),
+                  const SizedBox(width: 20),
                   SizedBox(
                     height: 370,
                     child: _buildWidgetBackground(
                       ClipRRect(
-                        borderRadius: BorderRadiusGeometry.circular(12),
-                        child: (_provider == null) && (!kIsWeb)
+                        borderRadius: BorderRadius.circular(12),
+                        child: (!kIsWeb && model.provider == null)
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircularProgressIndicator(),
+                                  const CircularProgressIndicator(),
                                   Text(
                                     "The map is loading...",
                                     style: Theme.of(
@@ -346,7 +354,6 @@ class _RadiosPageState extends State<RadiosPage> {
                               )
                             : _getMap(),
                       ),
-
                       width: 350,
                       verticalPadding: 0,
                     ),
@@ -360,31 +367,13 @@ class _RadiosPageState extends State<RadiosPage> {
     );
   }
 
-  Future<void> _prepareMapProvider() async {
-    final byteData = await rootBundle.load(
-      'assets/mapdata/hoboken_final.pmtiles',
-    );
-
-    final tempDir = await getTemporaryDirectory();
-    final filePath = p.join(tempDir.path, 'hoboken_final.pmtiles');
-
-    final file = File(filePath);
-    await file.writeAsBytes(byteData.buffer.asUint8List());
-
-    Log.instance.info("Hoboken Offline Map copied to: $filePath");
-    _provider = await PmTilesVectorTileProvider.fromSource(filePath);
-    Log.instance.info("Hoboken Offline Map loaded");
-    setState(() {});
-  }
-
   Widget _getMap() {
-    _mapReady = true;
     return FlutterMap(
-      mapController: _mapController,
+      mapController: model.mapController,
       options: MapOptions(
         keepAlive: true,
         initialCenter: LatLng(40.7507, -74.0272),
-        interactionOptions: InteractionOptions(
+        interactionOptions: const InteractionOptions(
           flags:
               InteractiveFlag.scrollWheelZoom |
               InteractiveFlag.pinchZoom |
@@ -394,40 +383,27 @@ class _RadiosPageState extends State<RadiosPage> {
         initialZoom: 15,
       ),
       children: [
-        //C:/Users/Ishaan/School Programming Projects/Electric-Boatworks/Waterboard/assets/mapdata/hoboken2.mbtiles
-        _getMapTileLayer(),
+        if (!kIsWeb)
+          VectorTileLayer(
+            theme: ProtomapsThemes.lightV4(),
+            tileProviders: TileProviders({'protomaps': model.provider!}),
+            fileCacheTtl: Duration.zero,
+          )
+        else
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+          ),
         MarkerLayer(
           markers: [
             Marker(
-              point: LatLng(_lat, _lon),
-              child: Icon(Icons.location_on, size: 32),
+              point: LatLng(model.lat, model.lon),
+              child: const Icon(Icons.location_on, size: 32),
             ),
           ],
         ),
       ],
     );
-  }
-
-  Widget _getMapTileLayer() {
-    if (!kIsWeb) {
-      return VectorTileLayer(
-        // the map theme
-        theme: ProtomapsThemes.lightV4(),
-
-        tileProviders: TileProviders({
-          // the awaited vector tile provider
-          'protomaps': _provider!,
-        }),
-
-        // disable the file cache when you change the PMTiles source
-        fileCacheTtl: Duration.zero,
-      );
-    } else {
-      return TileLayer(
-        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-      );
-    }
   }
 
   Widget _buildText(
@@ -441,7 +417,7 @@ class _RadiosPageState extends State<RadiosPage> {
       Column(
         children: [
           Text(value, style: style?.merge(TextStyle(color: color))),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(subtitle, style: Theme.of(context).textTheme.titleLarge),
         ],
       ),

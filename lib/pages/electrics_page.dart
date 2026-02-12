@@ -9,9 +9,50 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 import '../waterboard_colors.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
-class ElectricsPage extends StatefulWidget {
+class ElectricsPageViewModel extends ChangeNotifier {
   final ROS ros;
-  const ElectricsPage({super.key, required this.ros});
+
+  late ROSGaugeDataSource motorCurrent;
+  late ROSGaugeDataSource motorVoltage;
+  late ROSGaugeDataSource motorPower;
+  late ROSGaugeDataSource inletTemp;
+  late ROSGaugeDataSource outletTemp;
+
+  ElectricsPageViewModel({required this.ros});
+
+  void init() {
+    motorCurrent = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["current"] as int).toDouble(),
+    );
+
+    motorVoltage = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["voltage"] as int).toDouble(),
+    );
+
+    motorPower = ROSGaugeDataSource(
+      sub: ros.subscribe("/motors/can_motor_data"),
+      valueBuilder: (json) => (json["power"] as num).toDouble(),
+    );
+
+    inletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/in"),
+      valueBuilder: (json) => (json["inlet_temp"] as double).round().toDouble(),
+    );
+
+    outletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/out"),
+      valueBuilder: (json) =>
+          (json["outlet_temp"] as double).round().toDouble(),
+    );
+  }
+}
+
+class ElectricsPage extends StatefulWidget {
+  final ElectricsPageViewModel model;
+
+  const ElectricsPage({super.key, required this.model});
 
   @override
   State<ElectricsPage> createState() => _ElectricsPageState();
@@ -19,11 +60,20 @@ class ElectricsPage extends StatefulWidget {
 
 class _ElectricsPageState extends State<ElectricsPage> {
   @override
+  void initState() {
+    super.initState();
+    model.init();
+    model.addListener(() => setState(() {}));
+  }
+
+  ElectricsPageViewModel get model => widget.model;
+
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         children: [
-          // ROW 1
+          // ROW 1: Motor metrics
           Container(
             margin: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -37,10 +87,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Motor Current
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
-                  valueBuilder: (json) => (json["current"] as int).toDouble(),
+                  dataSource: model.motorCurrent,
                   minimum: 0,
                   maximum: 200,
                   unitText: "A",
@@ -71,10 +118,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Voltage
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
-                  valueBuilder: (json) => (json["voltage"] as int).toDouble(),
+                  dataSource: model.motorVoltage,
                   minimum: 0,
                   maximum: 90,
                   unitText: "V",
@@ -100,10 +144,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Motor Power
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/motors/can_motor_data")
-                      .value,
-                  valueBuilder: (json) => (json["power"] as num).toDouble(),
+                  dataSource: model.motorPower,
                   minimum: 0,
                   maximum: 1200,
                   unitText: "W",
@@ -130,7 +171,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
             ),
           ),
 
-          // ROW 2
+          // ROW 2: Temp metrics
           Container(
             decoration: BoxDecoration(
               color: WaterboardColors.containerBackground,
@@ -143,11 +184,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               children: [
                 // Inlet Temp
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/electrical/temp_sensors/in")
-                      .value,
-                  valueBuilder: (json) =>
-                      (json["inlet_temp"] as double).round().toDouble(),
+                  dataSource: model.inletTemp,
                   minimum: 0,
                   maximum: 100,
                   unitText: "°C",
@@ -178,11 +215,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
                 // Outlet Temp
                 ROSGauge(
-                  notifier: widget.ros
-                      .subscribe("/electrical/temp_sensors/out")
-                      .value,
-                  valueBuilder: (json) =>
-                      (json["outlet_temp"] as double).round().toDouble(),
+                  dataSource: model.outletTemp,
                   minimum: 0,
                   maximum: 100,
                   unitText: "°C",

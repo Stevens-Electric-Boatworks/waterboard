@@ -5,13 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
 
+class ROSGaugeDataSource {
+  final ROSSubscription sub;
+  final double Function(Map<String, dynamic> json) valueBuilder;
+
+  ROSGaugeDataSource({required this.sub, required this.valueBuilder});
+}
+
 class ROSGauge extends StatelessWidget {
+  final ROSGaugeDataSource dataSource;
   final double minimum;
   final double maximum;
-  final ValueNotifier<Map<String, dynamic>> notifier;
-  final double Function(Map<String, dynamic> json) valueBuilder;
   final String unitText;
   final List<GaugeRange> ranges;
   final double thickness;
@@ -21,7 +28,7 @@ class ROSGauge extends StatelessWidget {
 
   const ROSGauge({
     super.key,
-    required this.valueBuilder,
+    required this.dataSource,
     required this.minimum,
     required this.maximum,
     required this.ranges,
@@ -30,15 +37,14 @@ class ROSGauge extends StatelessWidget {
     this.backgroundOpacity = 75,
     required this.title,
     required this.unitText,
-    required this.notifier,
   });
 
   @override
   Widget build(BuildContext context) {
     return ROSListenable(
-      valueNotifier: notifier,
+      valueNotifier: dataSource.sub.notifier,
       builder: (BuildContext context, Map<String, dynamic> json) {
-        double value = valueBuilder(json);
+        double value = dataSource.valueBuilder(json);
         return _buildGauge(value, true);
       },
       noDataBuilder: (BuildContext context) {

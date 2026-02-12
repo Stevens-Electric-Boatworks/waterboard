@@ -1,6 +1,3 @@
-// Dart imports:
-import 'dart:async';
-
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 
@@ -8,50 +5,76 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
-class MainDriverPage extends StatefulWidget {
+class MainDriverPageViewModel extends ChangeNotifier {
   final ROS ros;
-  const MainDriverPage({super.key, required this.ros});
+
+  late ROSGaugeDataSource motorCurrent;
+  late ROSGaugeDataSource motorTemp;
+  late ROSGaugeDataSource motorRPM;
+  late ROSGaugeDataSource inletTemp;
+  late ROSGaugeDataSource outletTemp;
+  late ROSGaugeDataSource speed;
+
+  MainDriverPageViewModel({required this.ros});
+
+  void init() {
+    final motorSub = ros.subscribe("/motors/can_motor_data");
+
+    motorCurrent = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["current"] as int).toDouble(),
+    );
+
+    motorTemp = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["motor_temp"] as int).toDouble(),
+    );
+
+    motorRPM = ROSGaugeDataSource(
+      sub: motorSub,
+      valueBuilder: (json) => (json["rpm"] as int).toDouble().abs(),
+    );
+
+    inletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/in"),
+      valueBuilder: (json) => (json["inlet_temp"] as double).round().toDouble(),
+    );
+
+    outletTemp = ROSGaugeDataSource(
+      sub: ros.subscribe("/electrical/temp_sensors/out"),
+      valueBuilder: (json) =>
+          (json["outlet_temp"] as double).round().toDouble(),
+    );
+
+    speed = ROSGaugeDataSource(
+      sub: ros.subscribe("/motion/vtg"),
+      valueBuilder: (json) =>
+          (json["speed"] as double).round().toDouble().abs(),
+    );
+  }
+}
+
+class MainDriverPage extends StatefulWidget {
+  final MainDriverPageViewModel model;
+
+  const MainDriverPage({super.key, required this.model});
 
   @override
   State<MainDriverPage> createState() => _MainDriverPageState();
 }
 
 class _MainDriverPageState extends State<MainDriverPage> {
-  DialogRoute? _connectionAlertDialog;
   @override
   void initState() {
     super.initState();
-    widget.ros.connectionState.addListener(() {
-      if (widget.ros.connectionState.value == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      } else if (widget.ros.connectionState.value ==
-          ROSConnectionState.connected) {
-        //weird race condition fix
-        Timer(Duration(milliseconds: 200), () {
-          if (widget.ros.connectionState.value ==
-              ROSConnectionState.connected) {
-            closeConnectionDialog();
-          }
-        });
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = widget.ros.connectionState.value;
-      if (state == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (state == ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      }
-    });
+    model.init();
+    model.addListener(() => setState(() {}));
   }
+
+  MainDriverPageViewModel get model => widget.model;
 
   bool get isOnMainPage {
     final route = ModalRoute.of(context);
@@ -63,16 +86,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
     return Center(
       child: Column(
         children: [
-          //ROW 1
+          // ROW 1
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              //Motor Current
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
-                valueBuilder: (json) {
-                  return (json["current"] as int).toDouble();
-                },
+                dataSource: model.motorCurrent,
                 minimum: 0,
                 maximum: 200,
                 unitText: "A",
@@ -92,18 +111,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 150,
                     endValue: 200,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //inlet temp
               ROSGauge(
-                notifier: widget.ros
-                    .subscribe("/electrical/temp_sensors/in")
-                    .value,
-                valueBuilder: (json) {
-                  return (json["inlet_temp"] as double).round().toDouble();
-                },
+                dataSource: model.inletTemp,
                 minimum: 0,
                 maximum: 100,
                 unitText: "°C",
@@ -123,18 +136,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 90,
                     endValue: 100,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //outlet temp
               ROSGauge(
-                notifier: widget.ros
-                    .subscribe("/electrical/temp_sensors/out")
-                    .value,
-                valueBuilder: (json) {
-                  return (json["outlet_temp"] as double).round().toDouble();
-                },
+                dataSource: model.outletTemp,
                 minimum: 0,
                 maximum: 100,
                 unitText: "°C",
@@ -154,24 +161,19 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 90,
                     endValue: 100,
-                    color: Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-              //Outlet Temp Current
             ],
           ),
-          //ROW 2
+
           // ROW 2
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Motor Temp
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
-                valueBuilder: (json) {
-                  return (json["motor_temp"] as int).toDouble();
-                },
+                dataSource: model.motorTemp,
                 minimum: 0,
                 maximum: 60,
                 unitText: "°C",
@@ -191,17 +193,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 50,
                     endValue: 60,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-
-              // Boat Speed
               ROSGauge(
-                notifier: widget.ros.subscribe("/motion/vtg").value,
-                valueBuilder: (json) {
-                  return (json["speed"] as double).round().toDouble().abs();
-                },
+                dataSource: model.speed,
                 minimum: 0,
                 maximum: 50,
                 unitText: "kts",
@@ -216,17 +213,12 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 35,
                     endValue: 50,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
-
-              // Motor RPM
               ROSGauge(
-                notifier: widget.ros.subscribe("/motors/can_motor_data").value,
-                valueBuilder: (json) {
-                  return (json["rpm"] as int).toDouble().abs();
-                },
+                dataSource: model.motorRPM,
                 minimum: 0,
                 maximum: 2500,
                 unitText: "RPM",
@@ -245,7 +237,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   GaugeRange(
                     startValue: 2100,
                     endValue: 2500,
-                    color: const Color.fromRGBO(255, 0, 0, 1.0),
+                    color: const Color.fromRGBO(255, 0, 0, 1),
                   ),
                 ],
               ),
@@ -254,106 +246,5 @@ class _MainDriverPageState extends State<MainDriverPage> {
         ],
       ),
     );
-  }
-
-  void showWebsocketDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Websocket Disconnected")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void showStaleDataDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      if (!isOnMainPage) return;
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text("ROSBridge Data Stale")),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  PageUtils.showSettingsDialog(context, widget.ros);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void closeConnectionDialog() {
-    if (_connectionAlertDialog != null) {
-      Navigator.of(context).removeRoute(_connectionAlertDialog!);
-      _connectionAlertDialog = null;
-    }
   }
 }
