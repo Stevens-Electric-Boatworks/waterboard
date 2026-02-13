@@ -1,8 +1,7 @@
-// Flutter imports:
-import 'dart:math';
+// Dart imports:
 
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_test/flutter_test.dart';
@@ -10,11 +9,8 @@ import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
-import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/standby_mode_page.dart';
-import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
-import 'package:waterboard/widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../test_helpers/test_util.dart';
 import '../test_helpers/test_util.mocks.dart';
@@ -26,11 +22,11 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     instance = await SharedPreferences.getInstance();
-  },);
+  });
   testWidgets('Verify Layout', (widgetTester) async {
     await widgetTester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS()))
+        home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
       ),
     );
     await widgetTester.pumpAndSettle();
@@ -40,14 +36,20 @@ void main() {
     expect(find.text("IP Address: "), findsOneWidget);
     expect(find.text("Port: "), findsOneWidget);
     expect(find.text("Lock Layout"), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, "Restart ROSBridge Comms"), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, "Enter Standby Mode"), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, "Restart ROSBridge Comms"),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(FilledButton, "Enter Standby Mode"),
+      findsOneWidget,
+    );
   });
   group("Enterable Data", () {
     testWidgets('No Initial Data', (widgetTester) async {
       await widgetTester.pumpWidget(
         MaterialApp(
-            home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS()))
+          home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -91,11 +93,11 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'websocket.ip': "127.132.2.3",
         'websocket.port': 2712,
-        'locked_layout': true
+        'locked_layout': true,
       });
       await widgetTester.pumpWidget(
         MaterialApp(
-            home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS()))
+          home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -106,14 +108,13 @@ void main() {
       var lockedLayout = find.byType(Switch);
       expect(widgetTester.widget<Switch>(lockedLayout).value, true);
     });
-
-  },);
+  });
   group("Verify Buttons", () {
     testWidgets('Restart ROSBridge Comms', (widgetTester) async {
       MockROSImpl mock = createMockOfflineROS();
       await widgetTester.pumpWidget(
         MaterialApp(
-            home: Scaffold(body: SettingsDialog(ros: mock ))
+          home: Scaffold(body: SettingsDialog(ros: mock)),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -127,7 +128,7 @@ void main() {
       FlutterError.onError = ignoreOverflowErrors;
       await widgetTester.pumpWidget(
         MaterialApp(
-            home: Scaffold(body: SettingsDialog(ros: mock ))
+          home: Scaffold(body: SettingsDialog(ros: mock)),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -137,6 +138,5 @@ void main() {
       await widgetTester.pumpAndSettle();
       expect(find.byType(StandbyModePage), findsOneWidget);
     });
-  },);
-
+  });
 }
