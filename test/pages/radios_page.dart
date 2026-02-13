@@ -1,29 +1,33 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+
 // Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:mockito/annotations.dart';
+
+// Project imports:
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
-
 import '../test_helpers/fakes/fake_internet_checker.dart';
 import '../test_helpers/test_util.dart';
 import 'radios_page.mocks.dart';
-@GenerateNiceMocks(
-  [
-    MockSpec<InternetCheckerImpl>()
-  ]
-)
-Future<void> pumpPage(WidgetTester widgetTester, ROS ros, InternetChecker checker) async {
+
+@GenerateNiceMocks([MockSpec<InternetCheckerImpl>()])
+Future<void> pumpPage(
+  WidgetTester widgetTester,
+  ROS ros,
+  InternetChecker checker,
+) async {
   FlutterError.onError = ignoreOverflowErrors;
   await widgetTester.pumpWidget(
     MaterialApp(
-      home: RadiosPage(model: RadiosPageViewModel(ros: ros, connection: checker)),
+      home: RadiosPage(
+        model: RadiosPageViewModel(ros: ros, connection: checker),
+      ),
     ),
   );
 }
@@ -51,11 +55,8 @@ void main() {
     expect(find.text("shore.stevenseboat.org"), findsOneWidget);
     expect(find.text("Shore URL"), findsOneWidget);
 
-
     //TODO: add proper map testing
     expect(find.text("The map is loading..."), findsOneWidget);
-
-
   });
   testWidgets('Verify Correct Subscriptions', (widgetTester) async {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
@@ -68,13 +69,16 @@ void main() {
       '/motion/vtg',
       '/motion/gps/alt',
       '/motion/gps/climb',
-      '/cell'
+      '/cell',
     ]);
   });
   testWidgets('Verify Correct JSON Parsing', (widgetTester) async {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
     await pumpPage(widgetTester, ros, createOfflineMockInternetChecker());
-    ros.propagateData("/motion/gps", {'lat': 13.2271727371, 'lon': -72.1726368282});
+    ros.propagateData("/motion/gps", {
+      'lat': 13.2271727371,
+      'lon': -72.1726368282,
+    });
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSText, "13.2271727371"), findsOneWidget);
     expect(find.widgetWithText(ROSText, "-72.1726368282"), findsOneWidget);
@@ -90,25 +94,27 @@ void main() {
 
     //alt, cell, and climb are all unimplemented
     expect(find.widgetWithText(ROSText, "Unknown"), findsNWidgets(3));
-
   });
-  group("Verify Internet State Widgets",() {
+  group("Verify Internet State Widgets", () {
     testWidgets('Offline', (widgetTester) async {
       MockInternetChecker internetChecker = createOfflineMockInternetChecker();
       await pumpPage(
         widgetTester,
         createFakeROS(initialState: ROSConnectionState.connected),
-        internetChecker
+        internetChecker,
       );
       expect(find.text("Not Connected"), findsNWidgets(2));
       expect(find.text("Unreachable"), findsOneWidget);
     });
     testWidgets('Online', (widgetTester) async {
-      MockInternetChecker internetChecker = createOnlineMockInternetChecker("Stevens-Net", "192.158.1.2");
+      MockInternetChecker internetChecker = createOnlineMockInternetChecker(
+        "Stevens-Net",
+        "192.158.1.2",
+      );
       await pumpPage(
-          widgetTester,
-          createFakeROS(initialState: ROSConnectionState.connected),
-          internetChecker
+        widgetTester,
+        createFakeROS(initialState: ROSConnectionState.connected),
+        internetChecker,
       );
       await widgetTester.pumpAndSettle();
       expect(find.text("Stevens-Net"), findsOneWidget);
@@ -118,9 +124,9 @@ void main() {
     testWidgets('Offline to Online to Offline', (widgetTester) async {
       FakeInternetChecker internetChecker = createFakeInternetChecker();
       await pumpPage(
-          widgetTester,
-          createFakeROS(initialState: ROSConnectionState.connected),
-          internetChecker
+        widgetTester,
+        createFakeROS(initialState: ROSConnectionState.connected),
+        internetChecker,
       );
       await widgetTester.pumpAndSettle();
       expect(find.text("Not Connected"), findsNWidgets(2));
@@ -141,7 +147,5 @@ void main() {
       expect(find.text("Not Connected"), findsNWidgets(2));
       expect(find.text("Unreachable"), findsOneWidget);
     });
-
   });
-
 }

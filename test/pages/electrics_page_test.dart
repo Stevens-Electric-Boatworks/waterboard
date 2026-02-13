@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Project imports:
 import 'package:waterboard/pages/electrics_page.dart';
-import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/widgets/ros_widgets/gauge.dart';
 import '../test_helpers/test_util.dart';

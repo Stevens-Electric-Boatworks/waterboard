@@ -1,11 +1,18 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/src/foundation/change_notifier.dart';
+
+// Package imports:
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+
+// Project imports:
 import 'package:waterboard/services/internet_connection.dart';
 
 class FakeInternetChecker extends InternetChecker {
-  final StreamController<InternetStatus> controller = StreamController<InternetStatus>();
+  final StreamController<InternetStatus> controller =
+      StreamController<InternetStatus>();
 
   @override
   late Stream<InternetStatus> internetStatus = controller.stream;

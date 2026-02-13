@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
@@ -32,7 +31,6 @@ class RadiosPageViewModel extends ChangeNotifier {
   final MapController mapController = MapController();
 
   late final Stream<InternetStatus> internetStatusStream;
-
 
   InternetChecker? connection;
 
@@ -112,7 +110,6 @@ class RadiosPageViewModel extends ChangeNotifier {
     mapController.move(LatLng(lat, lon), mapController.camera.zoom);
     notifyListeners();
   }
-
 
   Future<void> _prepareMapProvider() async {
     if (!DebugVariables.loadMap) {

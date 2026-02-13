@@ -1,6 +1,10 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
@@ -10,6 +14,7 @@ abstract class InternetChecker {
   Stream<InternetStatus> get internetStatus;
   void dispose();
 }
+
 class InternetCheckerImpl extends InternetChecker {
   @override
   late Stream<InternetStatus> internetStatus;
@@ -26,7 +31,7 @@ class InternetCheckerImpl extends InternetChecker {
 
     _networkTimer = Timer.periodic(
       const Duration(seconds: 1),
-          (_) => updateNetworkInfo(),
+      (_) => updateNetworkInfo(),
     );
   }
 

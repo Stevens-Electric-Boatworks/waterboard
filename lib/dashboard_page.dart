@@ -109,7 +109,10 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     _mainDriverPageViewModel = MainDriverPageViewModel(ros: model.ros);
     _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
-    _radiosPageViewModel = RadiosPageViewModel(ros: model.ros, connection: InternetCheckerImpl());
+    _radiosPageViewModel = RadiosPageViewModel(
+      ros: model.ros,
+      connection: InternetCheckerImpl(),
+    );
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==

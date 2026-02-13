@@ -36,14 +36,15 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-      - name: Generate mocks
-        run: dart run build_runner build
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed lib/* test/*
 
       - name: Verify import sorting
         run: dart run import_sorter:main --exit-if-changed
+
+      - name: Generate mocks
+        run: dart run build_runner build
 
       - name: Analyze project source
         run: flutter analyze --fatal-infos
