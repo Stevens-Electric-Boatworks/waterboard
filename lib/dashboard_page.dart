@@ -63,9 +63,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   }
 
   void moveToNextPage() {
-    debugPrint("Moving to next page");
     if (!(preferences.getBool("locked_layout") ?? false)) {
-      debugPrint("Layout not locked.");
       moveToPage(min(_currentPage + 1, totalPages - 1));
     }
   }
