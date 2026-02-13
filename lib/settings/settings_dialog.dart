@@ -31,7 +31,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   void _updateIPInSettings() async {
     var prefs = await SharedPreferences.getInstance();
     String ip = prefs.getString("websocket.ip") ?? "127.0.0.1";
-    int? port = prefs.getInt("websocket.port") ?? 8080;
+    int? port = prefs.getInt("websocket.port") ?? 9090;
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }

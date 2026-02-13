@@ -55,7 +55,7 @@ void main() {
       await widgetTester.pumpAndSettle();
       //default values
       expect(find.text("127.0.0.1"), findsOneWidget);
-      expect(find.text("8080"), findsOneWidget);
+      expect(find.text("9090"), findsOneWidget);
 
       expect(find.byType(TextField), findsNWidgets(2));
       expect(instance.getString("websocket.ip"), null);
