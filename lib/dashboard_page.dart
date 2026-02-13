@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterboard/messages.dart';
 
 // Project imports:
 import 'package:waterboard/pages/electrics_page.dart';
@@ -45,11 +46,8 @@ class DashboardPageViewModel extends ChangeNotifier {
         showStaleDataDialog();
       } else if (ros.connectionState.value == ROSConnectionState.connected) {
         //weird race condition fix
-        Timer(Duration(milliseconds: 200), () {
-          if (ros.connectionState.value == ROSConnectionState.connected) {
-            closeAllDialogs();
-          }
-        });
+        closeAllDialogs();
+        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) => {});
       }
     });
   }
@@ -76,6 +74,7 @@ class DashboardPageViewModel extends ChangeNotifier {
       }
     });
   }
+
 
   void showWebsocketDisconnectDialog() {
     connectionDialogType.value = ConnectionDialogType.noWebsocket;
@@ -148,6 +147,10 @@ class _DashboardPageState extends State<DashboardPage> {
   void dispose() {
     model.removeListener(_onModelChanged);
     _pageController.dispose();
+    model.dispose();
+    _radiosPageViewModel.dispose();
+    _electricsPageViewModel.dispose();
+    _mainDriverPageViewModel.dispose();
     super.dispose();
   }
 
@@ -298,10 +301,10 @@ class _DashboardPageState extends State<DashboardPage> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Center(child: Text("ROSBridge Websocket Disconnected")),
+            title: Center(child: Text(ConnectionDialogMessages.websocketDisconnectTitle)),
             titleTextStyle: Theme.of(context).textTheme.displayLarge,
             content: Text(
-              "The websocket was unable to be initialized to connect to ROSBridge, but nothing is known of the state of ROSBridge directly.\nIt is recommended to reboot the Raspberry Pi.",
+              ConnectionDialogMessages.websocketDisconnectBody,
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
@@ -344,10 +347,10 @@ class _DashboardPageState extends State<DashboardPage> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Center(child: Text("ROSBridge Data Stale")),
+            title: Center(child: Text(ConnectionDialogMessages.staleDataTitle)),
             titleTextStyle: Theme.of(context).textTheme.displayLarge,
             content: Text(
-              "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.",
+              ConnectionDialogMessages.staleDataBody,
               style: Theme.of(context).textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),

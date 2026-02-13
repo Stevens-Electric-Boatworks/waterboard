@@ -16,6 +16,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
+import 'package:waterboard/debug_vars.dart';
 
 // Project imports:
 import 'package:waterboard/services/log.dart';
@@ -101,7 +102,6 @@ class RadiosPageViewModel extends ChangeNotifier {
         InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
       ],
     ).onStatusChange;
-
     if (!kIsWeb) {
       _prepareMapProvider();
       _networkTimer = Timer.periodic(
@@ -127,6 +127,9 @@ class RadiosPageViewModel extends ChangeNotifier {
   }
 
   Future<void> _prepareMapProvider() async {
+    if(!DebugVariables.loadMap) {
+      return;
+    }
     try {
       final byteData = await rootBundle.load(
         'assets/mapdata/hoboken_final.pmtiles',
@@ -172,6 +175,12 @@ class _RadiosPageState extends State<RadiosPage> {
   void initState() {
     super.initState();
     model.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    model.dispose();
+    super.dispose();
   }
 
   @override
@@ -337,7 +346,6 @@ class _RadiosPageState extends State<RadiosPage> {
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const CircularProgressIndicator(),
                                   Text(
                                     "The map is loading...",
                                     style: Theme.of(
@@ -383,7 +391,7 @@ class _RadiosPageState extends State<RadiosPage> {
         initialZoom: 15,
       ),
       children: [
-        if (!kIsWeb)
+        if (!kIsWeb && DebugVariables.loadMap)
           VectorTileLayer(
             theme: ProtomapsThemes.lightV4(),
             tileProviders: TileProviders({'protomaps': model.provider!}),
