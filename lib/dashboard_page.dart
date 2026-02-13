@@ -37,7 +37,10 @@ class DashboardPageViewModel extends ChangeNotifier {
   int get currentPage => _currentPage;
   Log get log => Log.instance;
 
-  void init() {
+  late SharedPreferences preferences;
+
+  void init() async {
+    preferences = await SharedPreferences.getInstance();
     ros.startConnectionLoop();
     ros.connectionState.addListener(() {
       if (ros.connectionState.value == ROSConnectionState.noWebsocket) {
@@ -60,19 +63,17 @@ class DashboardPageViewModel extends ChangeNotifier {
   }
 
   void moveToNextPage() {
-    SharedPreferences.getInstance().then((value) {
-      if (!(value.getBool("locked_layout") ?? false)) {
-        moveToPage(min(_currentPage + 1, totalPages - 1));
-      }
-    });
+    debugPrint("Moving to next page");
+    if (!(preferences.getBool("locked_layout") ?? false)) {
+      debugPrint("Layout not locked.");
+      moveToPage(min(_currentPage + 1, totalPages - 1));
+    }
   }
 
   void moveToPreviousPage() {
-    SharedPreferences.getInstance().then((value) {
-      if (!(value.getBool("locked_layout") ?? false)) {
-        moveToPage(max(0, _currentPage - 1));
-      }
-    });
+    if (!(preferences.getBool("locked_layout") ?? false)) {
+      moveToPage(max(0, _currentPage - 1));
+    }
   }
 
   void showWebsocketDisconnectDialog() {

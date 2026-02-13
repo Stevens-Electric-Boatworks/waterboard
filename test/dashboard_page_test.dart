@@ -144,6 +144,32 @@ void main() {
         await widgetTester.pumpAndSettle();
         expect(find.byType(SettingsDialog), findsNothing);
       });
+      testWidgets('Locked Layout', (widgetTester) async {
+        SharedPreferences.setMockInitialValues({'locked_layout': true});
+        preferences = await SharedPreferences.getInstance();
+
+        var model = await pumpDashboardPage(
+          widgetTester,
+          FakeROS(initialState: ROSConnectionState.connected),
+          preferences,
+        );
+        Future<void> moveRight() async {
+          await widgetTester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+          await widgetTester.pumpAndSettle();
+        }
+
+        //on page 0, verify that moving right does nothing,
+        await moveRight();
+        expect(model.currentPage, 0);
+        expect(find.byType(MainDriverPage), findsOneWidget);
+        expect(find.byType(ElectricsPage), findsNothing);
+
+        preferences.setBool("locked_layout", false);
+        await moveRight();
+        expect(model.currentPage, 1);
+        expect(find.byType(MainDriverPage), findsNothing);
+        expect(find.byType(ElectricsPage), findsOneWidget);
+      });
     });
   });
   group("Connection Dialogs", () {
