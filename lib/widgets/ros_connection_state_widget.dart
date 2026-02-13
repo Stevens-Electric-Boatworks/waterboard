@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart' hide ConnectionState;
 
 // Project imports:
+import 'package:waterboard/messages.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 
 class ROSConnectionStateWidget extends StatelessWidget {
@@ -27,7 +28,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
         children: [
           Icon(Icons.wifi, color: Colors.green, size: iconSize),
           Text(
-            " ROS Connected",
+            ROSConnectionStateMessages.rosConnected,
             style: style.merge(TextStyle(color: Colors.green)),
           ),
         ],
@@ -37,7 +38,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
         children: [
           Icon(Icons.wifi_off, color: Colors.orange, size: iconSize),
           Text(
-            " Stale Data",
+            ROSConnectionStateMessages.staleData,
             style: style.merge(TextStyle(color: Colors.orange)),
           ),
         ],
@@ -47,7 +48,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
         children: [
           Icon(Icons.wifi_off, color: Colors.red, size: iconSize),
           Text(
-            " No ROSBridge Connection",
+            ROSConnectionStateMessages.noWebsocket,
             style: style.merge(TextStyle(color: Colors.red)),
           ),
         ],

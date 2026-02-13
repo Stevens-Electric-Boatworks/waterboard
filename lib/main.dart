@@ -37,7 +37,7 @@ void main() async {
     }
   }
   await Log.instance.initialize();
-  ROS ros = ROS();
+  ROS ros = ROSImpl();
   runApp(MyApp(ros));
 }
 

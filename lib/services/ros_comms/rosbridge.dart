@@ -20,7 +20,7 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 class ROSBridge {
   final ROS _ros;
   final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
-    ROSConnectionState.unknown,
+    ROSConnectionState.noWebsocket,
   );
   ROSBridge(this._ros);
   Timer? _websocketTimer;
@@ -41,8 +41,7 @@ class ROSBridge {
         _rosBridgeTimer?.cancel();
         _connectionState.value = ROSConnectionState.noWebsocket;
       }
-      if (_connectionState.value == ROSConnectionState.noWebsocket ||
-          connectionState.value == ROSConnectionState.unknown) {
+      if (_connectionState.value == ROSConnectionState.noWebsocket) {
         await _attemptConnect();
       }
     } finally {

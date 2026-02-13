@@ -1,4 +1,5 @@
-# Based on Gold872/Waterboard_Dashboard
+# Based heavily on Gold872/Waterboard_Dashboard
+# https://github.com/Gold872/elastic_dashboard/blob/main/.github/workflows/elastic-ci.yml
 
 name: Waterboard
 
@@ -42,10 +43,39 @@ jobs:
       - name: Verify import sorting
         run: dart run import_sorter:main --exit-if-changed
 
+      - name: Generate mocks
+        run: dart run build_runner build
+
       - name: Analyze project source
         run: flutter analyze --fatal-infos
 
+  test:
+    name: "Run Tests"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-path: ${{ runner.tool_cache }}/flutter/linux
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate mocks
+        run: dart run build_runner build
+
+      - name: Run tests
+        run: flutter test --coverage --file-reporter json:reports/test-report.json
+
   build:
+    needs:
+      - test
     strategy:
       fail-fast: false
       matrix:
@@ -120,6 +150,8 @@ jobs:
   build-web:
     name: "Build - Web"
     runs-on: "ubuntu-22.04"
+    needs:
+      - test
 
     steps:
       - name: Checkout repo

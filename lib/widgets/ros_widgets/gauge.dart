@@ -136,6 +136,9 @@ class ROSGauge extends StatelessWidget {
   }
 
   Color? _getRangeColor(double value) {
+    if (ranges.isEmpty) {
+      return Colors.black;
+    }
     for (final range in ranges) {
       if (value >= range.startValue && value <= range.endValue) {
         return range.color ?? Colors.black;
