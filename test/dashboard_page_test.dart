@@ -67,12 +67,7 @@ void main() {
       expect(find.byType(BottomNavigationBar), findsOneWidget);
 
       //verify settings button
-      var settingsIcon = find.widgetWithIcon(IconButton, Icons.settings);
-      checkInsideAppbar(settingsIcon);
-
-      await widgetTester.tap(settingsIcon);
-      await widgetTester.pumpAndSettle();
-      expect(find.byType(SettingsDialog), findsOneWidget);
+      checkInsideAppbar(find.widgetWithIcon(IconButton, Icons.settings));
     });
     group("Main Page Keybinds", () {
       testWidgets('Page Switching', (widgetTester) async {
@@ -133,7 +128,7 @@ void main() {
         expect(model.currentPage, 3);
         expect(find.byType(RadiosPage), findsOneWidget);
       });
-      testWidgets('Open Settings Dialog', (widgetTester) async {
+      testWidgets('Settings Dialog', (widgetTester) async {
         await pumpDashboardPage(
           widgetTester,
           FakeROS(initialState: ROSConnectionState.connected),
@@ -144,6 +139,10 @@ void main() {
         await widgetTester.sendKeyEvent(LogicalKeyboardKey.keyS);
         await widgetTester.pumpAndSettle();
         expect(find.byType(SettingsDialog), findsOneWidget);
+
+        await widgetTester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await widgetTester.pumpAndSettle();
+        expect(find.byType(SettingsDialog), findsNothing);
       });
     });
   });

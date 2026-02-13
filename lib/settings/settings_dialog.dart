@@ -31,7 +31,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   void _updateIPInSettings() async {
     var prefs = await SharedPreferences.getInstance();
     String ip = prefs.getString("websocket.ip") ?? "127.0.0.1";
-    int? port = prefs.getInt("websocket.port") ?? 9090;
+    int? port = prefs.getInt("websocket.port") ?? 8080;
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }
@@ -53,6 +53,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
+                    key: Key("ip_address"),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'e.g 127.0.0.1',
@@ -78,6 +79,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
+                    key: Key("port"),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'e.g 9090',
@@ -133,7 +135,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) {
-                      return StandbyMode(ros: widget.ros);
+                      return StandbyModePage(ros: widget.ros);
                     },
                   ),
                 );

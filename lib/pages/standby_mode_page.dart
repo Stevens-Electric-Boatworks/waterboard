@@ -13,16 +13,16 @@ import 'package:waterboard/widgets/time_text.dart';
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_connection_state_widget.dart';
 
-class StandbyMode extends StatefulWidget {
+class StandbyModePage extends StatefulWidget {
   final ROS ros;
 
-  const StandbyMode({super.key, required this.ros});
+  const StandbyModePage({super.key, required this.ros});
 
   @override
-  State<StandbyMode> createState() => _StandbyModeState();
+  State<StandbyModePage> createState() => _StandbyModePageState();
 }
 
-class _StandbyModeState extends State<StandbyMode> {
+class _StandbyModePageState extends State<StandbyModePage> {
   late final List<(Widget Function(), int)> slides = [
     (() => logoAndTimeSlide(), 20),
     (() => sponsorsSlide(), 10),
