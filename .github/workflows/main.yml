@@ -147,6 +147,8 @@ jobs:
   build-web:
     name: "Build - Web"
     runs-on: "ubuntu-22.04"
+    needs:
+      - test
 
     steps:
       - name: Checkout repo
