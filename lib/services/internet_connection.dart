@@ -23,7 +23,7 @@ class InternetCheckerImpl extends InternetChecker {
   final ValueNotifier<String?> _ipAddress = ValueNotifier(null);
   final NetworkInfo networkInfo = NetworkInfo();
   InternetCheckerImpl() {
-    InternetConnection.createInstance(
+    internetStatus = InternetConnection.createInstance(
       customCheckOptions: [
         InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
       ],
