@@ -19,6 +19,7 @@ import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
 import 'package:waterboard/debug_vars.dart';
+import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -29,11 +30,11 @@ import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 class RadiosPageViewModel extends ChangeNotifier {
   final ROS ros;
   final MapController mapController = MapController();
-  final NetworkInfo networkInfo = NetworkInfo();
 
   late final Stream<InternetStatus> internetStatusStream;
-  final ValueNotifier<String?> ssid = ValueNotifier(null);
-  final ValueNotifier<String?> ipAddress = ValueNotifier(null);
+
+
+  InternetChecker? connection;
 
   // ROS subscriptions
   late final ROSSubscription gpsSub;
@@ -49,11 +50,10 @@ class RadiosPageViewModel extends ChangeNotifier {
   double lat = 0;
   double lon = 0;
 
-  Timer? _networkTimer;
   bool mapReady = false;
   PmTilesVectorTileProvider? provider;
 
-  RadiosPageViewModel({required this.ros}) {
+  RadiosPageViewModel({required this.ros, required this.connection}) {
     gpsSub = ros.subscribe("/motion/gps");
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
@@ -97,17 +97,9 @@ class RadiosPageViewModel extends ChangeNotifier {
     gpsSub.notifier.addListener(_onGpsUpdate);
 
     // Network status
-    internetStatusStream = InternetConnection.createInstance(
-      customCheckOptions: [
-        InternetCheckOption(uri: Uri.parse('shore.stevenseboat.org')),
-      ],
-    ).onStatusChange;
+    internetStatusStream = connection!.internetStatus;
     if (!kIsWeb) {
       _prepareMapProvider();
-      _networkTimer = Timer.periodic(
-        const Duration(seconds: 1),
-        (_) => updateNetworkInfo(),
-      );
     }
   }
 
@@ -121,10 +113,6 @@ class RadiosPageViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateNetworkInfo() async {
-    ssid.value = await networkInfo.getWifiName();
-    ipAddress.value = await networkInfo.getWifiIP();
-  }
 
   Future<void> _prepareMapProvider() async {
     if (!DebugVariables.loadMap) {
@@ -152,9 +140,7 @@ class RadiosPageViewModel extends ChangeNotifier {
   @override
   void dispose() {
     gpsSub.notifier.removeListener(_onGpsUpdate);
-    _networkTimer?.cancel();
-    ssid.dispose();
-    ipAddress.dispose();
+    connection?.dispose();
     super.dispose();
   }
 }
@@ -216,7 +202,7 @@ class _RadiosPageState extends State<RadiosPage> {
             style: Theme.of(context).textTheme.headlineLarge,
           ),
           ValueListenableBuilder(
-            valueListenable: model.ipAddress,
+            valueListenable: model.connection!.ipAddress,
             builder: (_, value, __) {
               return _buildText(
                 value ?? (kIsWeb ? "Unsupported" : "Not Connected"),
@@ -244,7 +230,7 @@ class _RadiosPageState extends State<RadiosPage> {
             },
           ),
           ValueListenableBuilder(
-            valueListenable: model.ssid,
+            valueListenable: model.connection!.ssid,
             builder: (_, value, __) {
               return _buildText(
                 value ?? (kIsWeb ? "Unsupported" : "Not Connected"),

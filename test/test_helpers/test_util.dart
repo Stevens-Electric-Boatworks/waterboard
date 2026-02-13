@@ -1,6 +1,7 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 // Package imports:
 import 'package:mockito/annotations.dart';
@@ -9,6 +10,8 @@ import 'package:mockito/mockito.dart';
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import '../pages/radios_page.mocks.dart';
+import 'fakes/fake_internet_checker.dart';
 import 'fakes/fake_ros.dart';
 import 'test_util.mocks.dart';
 
@@ -38,6 +41,24 @@ FakeROS createFakeROS({
 }) {
   final fakeROS = FakeROS(initialState: initialState);
   return fakeROS;
+}
+
+MockInternetChecker createOfflineMockInternetChecker()  {
+  MockInternetChecker checker = MockInternetChecker();
+  when(checker.ssid).thenAnswer((realInvocation) => ValueNotifier(null));
+  when(checker.ipAddress).thenAnswer((realInvocation) => ValueNotifier(null));
+  when(checker.internetStatus).thenAnswer((realInvocation) => Stream.value(InternetStatus.disconnected));
+  return checker;
+}
+MockInternetChecker createOnlineMockInternetChecker(String ssid, String ip)  {
+  MockInternetChecker checker = MockInternetChecker();
+  when(checker.ssid).thenAnswer((realInvocation) => ValueNotifier(ssid));
+  when(checker.ipAddress).thenAnswer((realInvocation) => ValueNotifier(ip));
+  when(checker.internetStatus).thenAnswer((realInvocation) => Stream.value(InternetStatus.connected));
+  return checker;
+}
+FakeInternetChecker createFakeInternetChecker() {
+  return FakeInternetChecker();
 }
 
 void ignoreOverflowErrors(

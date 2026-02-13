@@ -17,6 +17,7 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'widgets/ros_connection_state_widget.dart';
@@ -108,7 +109,7 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     _mainDriverPageViewModel = MainDriverPageViewModel(ros: model.ros);
     _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
-    _radiosPageViewModel = RadiosPageViewModel(ros: model.ros);
+    _radiosPageViewModel = RadiosPageViewModel(ros: model.ros, connection: InternetCheckerImpl());
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
