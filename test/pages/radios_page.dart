@@ -16,7 +16,7 @@ import '../test_helpers/fakes/fake_internet_checker.dart';
 import '../test_helpers/test_util.dart';
 import 'radios_page.mocks.dart';
 
-@GenerateNiceMocks([MockSpec<InternetCheckerImpl>()])
+@GenerateNiceMocks([MockSpec<InternetChecker>()])
 Future<void> pumpPage(
   WidgetTester widgetTester,
   ROS ros,
