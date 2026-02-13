@@ -1,9 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/widgets/ros_connection_state_widget.dart';
-
 import '../test_helpers/test_util.dart';
 
 void main() {
@@ -12,24 +16,36 @@ void main() {
   testWidgets('Connected', (widgetTester) async {
     await widgetTester.pumpWidget(
       MaterialApp(
-        home: ROSConnectionStateWidget(value: ROSConnectionState.connected, fontSize: 12, iconSize: 8),
-      )
+        home: ROSConnectionStateWidget(
+          value: ROSConnectionState.connected,
+          fontSize: 12,
+          iconSize: 8,
+        ),
+      ),
     );
     expect(find.text(ROSConnectionStateMessages.rosConnected), findsOneWidget);
   });
   testWidgets('Stale Data', (widgetTester) async {
     await widgetTester.pumpWidget(
-        MaterialApp(
-          home: ROSConnectionStateWidget(value: ROSConnectionState.staleData, fontSize: 12, iconSize: 8),
-        )
+      MaterialApp(
+        home: ROSConnectionStateWidget(
+          value: ROSConnectionState.staleData,
+          fontSize: 12,
+          iconSize: 8,
+        ),
+      ),
     );
     expect(find.text(ROSConnectionStateMessages.staleData), findsOneWidget);
   });
   testWidgets('No Websocket', (widgetTester) async {
     await widgetTester.pumpWidget(
-        MaterialApp(
-          home: ROSConnectionStateWidget(value: ROSConnectionState.noWebsocket, fontSize: 12, iconSize: 8),
-        )
+      MaterialApp(
+        home: ROSConnectionStateWidget(
+          value: ROSConnectionState.noWebsocket,
+          fontSize: 12,
+          iconSize: 8,
+        ),
+      ),
     );
     expect(find.text(ROSConnectionStateMessages.noWebsocket), findsOneWidget);
   });

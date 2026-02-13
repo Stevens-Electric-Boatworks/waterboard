@@ -4,6 +4,9 @@ import 'dart:async';
 // Flutter imports:
 import 'package:flutter/material.dart';
 
+// Package imports:
+import 'package:clock/clock.dart';
+
 class ROSListenable extends StatefulWidget {
   final ValueNotifier<Map<String, dynamic>> valueNotifier;
   final Widget Function(BuildContext context, Map<String, dynamic> value)
@@ -36,7 +39,9 @@ class _ROSListenableState extends State<ROSListenable> {
     });
 
     _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -46,7 +51,7 @@ class _ROSListenableState extends State<ROSListenable> {
     super.dispose();
   }
 
-  bool get _isStale => DateTime.now().difference(_lastUpdate) > staleAfter;
+  bool get _isStale => clock.now().difference(_lastUpdate) > staleAfter;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +62,6 @@ class _ROSListenableState extends State<ROSListenable> {
           alignment: Alignment.center,
           children: [
             RepaintBoundary(child: getWidget(value)),
-
             if (_isStale)
               Positioned.fill(
                 child: IgnorePointer(
@@ -74,7 +78,7 @@ class _ROSListenableState extends State<ROSListenable> {
   }
 
   Widget getWidget(Map<String, dynamic> value) {
-    if (value.isEmpty) {
+    if (value.isEmpty || value == {}) {
       return widget._noDataBuilder(context);
     }
     return widget.builder(context, value);

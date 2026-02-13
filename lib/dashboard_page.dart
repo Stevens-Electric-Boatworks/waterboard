@@ -1,7 +1,6 @@
 // Dart imports:
 
 // Dart imports:
-import 'dart:async';
 import 'dart:math';
 
 // Flutter imports:
@@ -11,9 +10,9 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterboard/messages.dart';
 
 // Project imports:
+import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
@@ -74,7 +73,6 @@ class DashboardPageViewModel extends ChangeNotifier {
       }
     });
   }
-
 
   void showWebsocketDisconnectDialog() {
     connectionDialogType.value = ConnectionDialogType.noWebsocket;
@@ -301,7 +299,9 @@ class _DashboardPageState extends State<DashboardPage> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Center(child: Text(ConnectionDialogMessages.websocketDisconnectTitle)),
+            title: Center(
+              child: Text(ConnectionDialogMessages.websocketDisconnectTitle),
+            ),
             titleTextStyle: Theme.of(context).textTheme.displayLarge,
             content: Text(
               ConnectionDialogMessages.websocketDisconnectBody,

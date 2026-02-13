@@ -3,9 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
+// Flutter imports:
 import 'package:flutter/cupertino.dart' as _i2;
+
+// Package imports:
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i5;
+
+// Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart' as _i4;
 import 'package:waterboard/services/ros_comms/ros_subscription.dart' as _i3;
 

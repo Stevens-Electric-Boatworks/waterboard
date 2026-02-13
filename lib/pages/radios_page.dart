@@ -16,9 +16,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
-import 'package:waterboard/debug_vars.dart';
 
 // Project imports:
+import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -127,7 +127,7 @@ class RadiosPageViewModel extends ChangeNotifier {
   }
 
   Future<void> _prepareMapProvider() async {
-    if(!DebugVariables.loadMap) {
+    if (!DebugVariables.loadMap) {
       return;
     }
     try {

@@ -8,9 +8,9 @@ class ConnectionDialogMessages {
   static const String staleDataBody =
       "The websocket is initialized, but there is stale data from ROSBridge. \nThis means that the ROS Control System is likely down.";
 }
+
 class ROSConnectionStateMessages {
   static const String rosConnected = " ROS Connected";
   static const String staleData = " Stale Data";
   static const String noWebsocket = " No ROSBridge Connection";
-
 }

@@ -1,7 +1,9 @@
+// Flutter imports:
 import 'package:flutter/src/foundation/change_notifier.dart' show ValueNotifier;
+
+// Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-
 import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {
@@ -24,19 +26,20 @@ class FakeROS extends ROS {
   }
 
   @override
-  ROSSubscription subscribe(String topic) {
-    if(subs.containsKey(topic)) return subs[topic]!;
-    var sub = FakeROSSubscription(topic: topic);
+  ROSSubscription subscribe(
+    String topic, {
+    Map<String, dynamic> initialData = const {},
+  }) {
+    if (subs.containsKey(topic)) return subs[topic]!;
+    var sub = FakeROSSubscription(topic: topic, initialData: initialData);
     subs[topic] = sub;
     return sub;
   }
 
   @override
   void propagateData(String topic, Map<String, dynamic> data) {
-    if(subs.containsKey(topic)) {
+    if (subs.containsKey(topic)) {
       subs[topic]?.onData(data);
     }
   }
-
-
 }

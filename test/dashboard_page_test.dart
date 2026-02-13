@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
 import 'package:waterboard/dashboard_page.dart';
 import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/messages.dart';
@@ -12,7 +17,6 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
-
 import 'test_helpers/fakes/fake_ros.dart';
 import 'test_helpers/test_util.dart';
 
@@ -29,9 +33,7 @@ Future<DashboardPageViewModel> pumpDashboardPage(
   }
 
   var model = DashboardPageViewModel(ros);
-  await widgetTester.pumpWidget(
-    MaterialApp(home: DashboardPage(model: model)),
-  );
+  await widgetTester.pumpWidget(MaterialApp(home: DashboardPage(model: model)));
   return model;
 }
 
@@ -46,13 +48,14 @@ void main() {
   });
   group("Main Page", () {
     testWidgets('Main Page Layout', (widgetTester) async {
-      await pumpDashboardPage(widgetTester, createMockOfflineROS(), preferences);
+      await pumpDashboardPage(
+        widgetTester,
+        createMockOfflineROS(),
+        preferences,
+      );
       void checkInsideAppbar(Finder finder) {
         expect(
-          find.descendant(
-            of: find.byType(AppBar),
-            matching: finder,
-          ),
+          find.descendant(of: find.byType(AppBar), matching: finder),
           findsOneWidget,
         );
       }
@@ -70,16 +73,19 @@ void main() {
       await widgetTester.tap(settingsIcon);
       await widgetTester.pumpAndSettle();
       expect(find.byType(SettingsDialog), findsOneWidget);
-
     });
     group("Main Page Keybinds", () {
       testWidgets('Page Switching', (widgetTester) async {
-
-        var model = await pumpDashboardPage(widgetTester, FakeROS(initialState: ROSConnectionState.connected), preferences);
+        var model = await pumpDashboardPage(
+          widgetTester,
+          FakeROS(initialState: ROSConnectionState.connected),
+          preferences,
+        );
         Future<void> moveRight() async {
           await widgetTester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
           await widgetTester.pumpAndSettle();
         }
+
         Future<void> moveLeft() async {
           await widgetTester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
           await widgetTester.pumpAndSettle();
@@ -128,19 +134,26 @@ void main() {
         expect(find.byType(RadiosPage), findsOneWidget);
       });
       testWidgets('Open Settings Dialog', (widgetTester) async {
-        await pumpDashboardPage(widgetTester, FakeROS(initialState: ROSConnectionState.connected), preferences);
+        await pumpDashboardPage(
+          widgetTester,
+          FakeROS(initialState: ROSConnectionState.connected),
+          preferences,
+        );
         expect(find.byType(SettingsDialog), findsNothing);
 
         await widgetTester.sendKeyEvent(LogicalKeyboardKey.keyS);
         await widgetTester.pumpAndSettle();
         expect(find.byType(SettingsDialog), findsOneWidget);
       });
-
     });
   });
   group("Connection Dialogs", () {
     testWidgets('Websocket Disconnected', (widgetTester) async {
-      await pumpDashboardPage(widgetTester, createMockOfflineROS(), preferences);
+      await pumpDashboardPage(
+        widgetTester,
+        createMockOfflineROS(),
+        preferences,
+      );
       await widgetTester.pumpAndSettle();
       expect(find.byType(Dialog), findsOneWidget);
       expect(
@@ -161,7 +174,11 @@ void main() {
       _testDialogButtons(widgetTester);
     });
     testWidgets('ROS Stale Data', (widgetTester) async {
-      await pumpDashboardPage(widgetTester, createMockOfflineROS(initialState: ROSConnectionState.staleData), preferences);
+      await pumpDashboardPage(
+        widgetTester,
+        createMockOfflineROS(initialState: ROSConnectionState.staleData),
+        preferences,
+      );
       await widgetTester.pumpAndSettle();
       expect(find.byType(Dialog), findsOneWidget);
       //find expected messages
