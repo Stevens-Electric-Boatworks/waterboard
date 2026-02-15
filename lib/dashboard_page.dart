@@ -188,14 +188,18 @@ class _DashboardPageState extends State<DashboardPage> {
           centerTitle: true,
           leading: Row(
             children: [
+              SizedBox(width: 4),
               Container(
                 decoration: BoxDecoration(
                   border: BoxBorder.all(color: Colors.black),
                 ),
-                margin: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
+                margin: EdgeInsets.symmetric(vertical: 4),
                 child: Center(
-                  child: ClockText(
-                    style: Theme.of(context).textTheme.titleSmall,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ClockText(
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                   ),
                 ),
               ),
