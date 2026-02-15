@@ -22,13 +22,13 @@ void main() async {
       await windowManager.ensureInitialized();
       final windowSize = Size(1200, 820 + 15);
       WindowOptions windowOptions = WindowOptions(
-        // minimumSize: windowSize,
-        // maximumSize: windowSize,
+        minimumSize: windowSize,
+        maximumSize: windowSize,
         size: windowSize,
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        // titleBarStyle: TitleBarStyle.hidden,
+        titleBarStyle: TitleBarStyle.hidden,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         await windowManager.show();
