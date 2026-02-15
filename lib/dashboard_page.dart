@@ -192,7 +192,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 decoration: BoxDecoration(
                   border: BoxBorder.all(color: Colors.black),
                 ),
-                margin: EdgeInsets.all(4),
+                margin: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
                 child: Center(
                   child: ClockText(
                     style: Theme.of(context).textTheme.titleSmall,

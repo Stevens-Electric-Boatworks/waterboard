@@ -170,14 +170,13 @@ class _RadiosPageState extends State<RadiosPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Flex(
-        direction: Axis.horizontal,
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
-          Expanded(flex: 3, child: _buildInternetAndCell()),
+          _buildInternetAndCell(),
           const SizedBox(width: 15),
-          Expanded(flex: 6, child: _buildGPS()),
+          _buildGPS(),
         ],
       ),
     );
