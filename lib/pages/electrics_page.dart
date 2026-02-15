@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
+import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
-import '../waterboard_colors.dart';
+import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
 import '../widgets/ros_widgets/gauge.dart';
 
 class ElectricsPageViewModel extends ChangeNotifier {
@@ -70,184 +71,133 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          // ROW 1: Motor metrics
-          Container(
-            margin: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: WaterboardColors.containerBackground,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.black),
+    return ResponsiveGaugeGrid(
+      gauges: [
+        // Motor Current
+        ROSGaugeConfig(
+          dataSource: model.motorCurrent,
+          minimum: 0,
+          maximum: 200,
+          unitText: "A",
+          title: "Motor Current",
+          ranges: [
+            GaugeRange(startValue: 0, endValue: 80, color: Colors.green),
+            GaugeRange(
+              startValue: 80,
+              endValue: 120,
+              color: Colors.yellow.shade600,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Motor Current
-                ROSGauge(
-                  dataSource: model.motorCurrent,
-                  minimum: 0,
-                  maximum: 200,
-                  unitText: "A",
-                  title: "Motor Current",
-                  ranges: [
-                    GaugeRange(
-                      startValue: 0,
-                      endValue: 80,
-                      color: Colors.green,
-                    ),
-                    GaugeRange(
-                      startValue: 80,
-                      endValue: 120,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 120,
-                      endValue: 150,
-                      color: Colors.red.shade400,
-                    ),
-                    GaugeRange(
-                      startValue: 150,
-                      endValue: 200,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ),
-
-                // Motor Voltage
-                ROSGauge(
-                  dataSource: model.motorVoltage,
-                  minimum: 0,
-                  maximum: 90,
-                  unitText: "V",
-                  title: "Motor Voltage",
-                  ranges: [
-                    GaugeRange(
-                      startValue: 0,
-                      endValue: 30,
-                      color: Colors.green,
-                    ),
-                    GaugeRange(
-                      startValue: 50,
-                      endValue: 70,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 70,
-                      endValue: 90,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ),
-
-                // Motor Power
-                ROSGauge(
-                  dataSource: model.motorPower,
-                  minimum: 0,
-                  maximum: 1200,
-                  unitText: "W",
-                  title: "Motor Power",
-                  ranges: [
-                    GaugeRange(
-                      startValue: 0,
-                      endValue: 500,
-                      color: Colors.green,
-                    ),
-                    GaugeRange(
-                      startValue: 500,
-                      endValue: 1000,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 1000,
-                      endValue: 1200,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ),
-              ],
+            GaugeRange(
+              startValue: 120,
+              endValue: 150,
+              color: Colors.red.shade400,
             ),
-          ),
-
-          // ROW 2: Temp metrics
-          Container(
-            decoration: BoxDecoration(
-              color: WaterboardColors.containerBackground,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.black),
+            GaugeRange(
+              startValue: 150,
+              endValue: 200,
+              color: const Color.fromRGBO(255, 0, 0, 1),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Inlet Temp
-                ROSGauge(
-                  dataSource: model.inletTemp,
-                  minimum: 0,
-                  maximum: 100,
-                  unitText: "°C",
-                  title: "Inlet Temp",
-                  ranges: [
-                    GaugeRange(
-                      startValue: 0,
-                      endValue: 50,
-                      color: Colors.green,
-                    ),
-                    GaugeRange(
-                      startValue: 50,
-                      endValue: 70,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 70,
-                      endValue: 90,
-                      color: Colors.red.shade500,
-                    ),
-                    GaugeRange(
-                      startValue: 90,
-                      endValue: 100,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ),
+          ],
+        ),
 
-                // Outlet Temp
-                ROSGauge(
-                  dataSource: model.outletTemp,
-                  minimum: 0,
-                  maximum: 100,
-                  unitText: "°C",
-                  title: "Outlet Temp",
-                  ranges: [
-                    GaugeRange(
-                      startValue: 0,
-                      endValue: 50,
-                      color: Colors.green,
-                    ),
-                    GaugeRange(
-                      startValue: 50,
-                      endValue: 70,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 70,
-                      endValue: 90,
-                      color: Colors.red.shade500,
-                    ),
-                    GaugeRange(
-                      startValue: 90,
-                      endValue: 100,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ),
-              ],
+        // Motor Voltage
+        ROSGaugeConfig(
+          dataSource: model.motorVoltage,
+          minimum: 0,
+          maximum: 90,
+          unitText: "V",
+          title: "Motor Voltage",
+          ranges: [
+            GaugeRange(startValue: 0, endValue: 30, color: Colors.green),
+            GaugeRange(
+              startValue: 50,
+              endValue: 70,
+              color: Colors.yellow.shade600,
             ),
-          ),
-        ],
-      ),
+            GaugeRange(
+              startValue: 70,
+              endValue: 90,
+              color: const Color.fromRGBO(255, 0, 0, 1),
+            ),
+          ],
+        ),
+
+        // Motor Power
+        ROSGaugeConfig(
+          dataSource: model.motorPower,
+          minimum: 0,
+          maximum: 1200,
+          unitText: "W",
+          title: "Motor Power",
+          ranges: [
+            GaugeRange(startValue: 0, endValue: 500, color: Colors.green),
+            GaugeRange(
+              startValue: 500,
+              endValue: 1000,
+              color: Colors.yellow.shade600,
+            ),
+            GaugeRange(
+              startValue: 1000,
+              endValue: 1200,
+              color: const Color.fromRGBO(255, 0, 0, 1),
+            ),
+          ],
+        ),
+
+        // Inlet Temp
+        ROSGaugeConfig(
+          dataSource: model.inletTemp,
+          minimum: 0,
+          maximum: 100,
+          unitText: "°C",
+          title: "Inlet Temp",
+          ranges: [
+            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
+            GaugeRange(
+              startValue: 50,
+              endValue: 70,
+              color: Colors.yellow.shade600,
+            ),
+            GaugeRange(
+              startValue: 70,
+              endValue: 90,
+              color: Colors.red.shade500,
+            ),
+            GaugeRange(
+              startValue: 90,
+              endValue: 100,
+              color: const Color.fromRGBO(255, 0, 0, 1),
+            ),
+          ],
+        ),
+
+        // Outlet Temp
+        ROSGaugeConfig(
+          dataSource: model.outletTemp,
+          minimum: 0,
+          maximum: 100,
+          unitText: "°C",
+          title: "Outlet Temp",
+          ranges: [
+            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
+            GaugeRange(
+              startValue: 50,
+              endValue: 70,
+              color: Colors.yellow.shade600,
+            ),
+            GaugeRange(
+              startValue: 70,
+              endValue: 90,
+              color: Colors.red.shade500,
+            ),
+            GaugeRange(
+              startValue: 90,
+              endValue: 100,
+              color: const Color.fromRGBO(255, 0, 0, 1),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

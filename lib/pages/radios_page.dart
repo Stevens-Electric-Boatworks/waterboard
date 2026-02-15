@@ -170,13 +170,14 @@ class _RadiosPageState extends State<RadiosPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
+      child: Flex(
+        direction: Axis.horizontal,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
-          _buildInternetAndCell(),
+          Expanded(flex: 3, child: _buildInternetAndCell()),
           const SizedBox(width: 15),
-          _buildGPS(),
+          Expanded(flex: 6, child: _buildGPS()),
         ],
       ),
     );
@@ -310,47 +311,39 @@ class _RadiosPageState extends State<RadiosPage> {
               ],
             ),
             // compass and map
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildWidgetBackground(
-                    MarineCompass(dataSource: model.compass),
-                    width: 350,
-                  ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    height: 370,
-                    child: _buildWidgetBackground(
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: (!kIsWeb && model.provider == null)
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "The map is loading...",
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
-                                  ),
-                                  Text(
-                                    "(Did you remember to run git lfs pull?)",
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall,
-                                  ),
-                                ],
-                              )
-                            : _getMap(),
-                      ),
-                      width: 350,
-                      verticalPadding: 0,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildWidgetBackground(
+                  MarineCompass(dataSource: model.compass),
+                  width: 350,
+                ),
+                SizedBox(
+                  height: 370,
+                  child: _buildWidgetBackground(
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: (!kIsWeb && model.provider == null)
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "The map is loading...",
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                Text(
+                                  "(Did you remember to run git lfs pull?)",
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ],
+                            )
+                          : _getMap(),
                     ),
+                    width: 350,
+                    verticalPadding: 0,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

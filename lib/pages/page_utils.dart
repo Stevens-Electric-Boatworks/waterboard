@@ -2,8 +2,73 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
 import '../services/ros_comms/ros.dart';
 import '../settings/settings_dialog.dart';
+
+class ResponsiveGaugeGrid extends StatelessWidget {
+  final List<ROSGaugeConfig> gauges;
+  final int columns;
+
+  const ResponsiveGaugeGrid({
+    super.key,
+    required this.gauges,
+    this.columns = 3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final rows = (gauges.length / columns).ceil();
+        final rowHeight = constraints.maxHeight / rows;
+
+        final maxWidthBased = constraints.maxWidth / columns;
+        final gaugeSize = rowHeight < maxWidthBased
+            ? rowHeight * 0.95
+            : maxWidthBased * 0.95;
+
+        final thickness = (gaugeSize * 0.14).clamp(8.0, 40.0);
+
+        List<Widget> buildRows() {
+          List<Widget> result = [];
+
+          for (int row = 0; row < rows; row++) {
+            final start = row * columns;
+            final end = (start + columns).clamp(0, gauges.length);
+
+            final rowGauges = gauges.sublist(start, end);
+
+            result.add(
+              SizedBox(
+                height: rowHeight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: rowGauges
+                      .map(
+                        (config) => SizedBox(
+                          width: gaugeSize,
+                          height: gaugeSize,
+                          child: ResponsiveROSGauge(
+                            config: config,
+                            thickness: thickness,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            );
+          }
+
+          return result;
+        }
+
+        return Column(children: buildRows());
+      },
+    );
+  }
+}
 
 class PageUtils {
   static void showSettingsDialog(BuildContext context, ROS ros) {

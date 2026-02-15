@@ -53,7 +53,7 @@ class ROSGauge extends StatelessWidget {
     );
   }
 
-  SfRadialGauge _buildGauge(
+  Widget _buildGauge(
     double value,
     bool enableAnimation, {
     bool hasData = true,
