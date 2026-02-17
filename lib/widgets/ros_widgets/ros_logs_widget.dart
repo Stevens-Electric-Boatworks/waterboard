@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 class ROSLogMessage {
@@ -57,7 +56,6 @@ class LogsWidgetViewModel extends ChangeNotifier {
     int line = newData['line'] as int;
     int level = newData['level'] as int;
     _messages.add(ROSLogMessage(msg, file, function, line, level));
-    Log.instance.info(_messages.last);
     notifyListeners();
   }
 
@@ -88,7 +86,6 @@ class _ROSLogsWidgetState extends State<ROSLogsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle style = TextStyle(fontWeight: FontWeight.bold);
     return Container(
       decoration: BoxDecoration(
         border: BoxBorder.all(color: Colors.black),
@@ -96,46 +93,50 @@ class _ROSLogsWidgetState extends State<ROSLogsWidget> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: SingleChildScrollView(
-          child: Table(
-            columnWidths: {
-              0: FlexColumnWidth(1),
-              1: FlexColumnWidth(7),
-              2: FlexColumnWidth(3),
-              3: FlexColumnWidth(1),
-              4: FlexColumnWidth(1),
-            },
-            children: [
-              TableRow(
-                decoration: BoxDecoration(color: Colors.grey.shade500),
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(width: 2),
-                      Text("Level", style: style),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text("Message", style: style),
-                  ),
-                  Text("File", style: style),
-                  Text("Func.", style: style),
-                  Text("Line", style: style),
-                ],
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Table(
+                columnWidths: _getColumnWidths(),
+                children: [getTopRow(), ..._getRows()],
               ),
-              ..._getRows(),
-            ],
-            // columns: [
-            //   DataColumn(label: Text("Message")),
-            //   DataColumn(label: Text("Line")),
-            //   DataColumn(label: Text("File")),
-            //   DataColumn(label: Text("Function")),
-            // ],
-            // rows: _getRows(),
-          ),
+            ),
+            Table(columnWidths: _getColumnWidths(), children: [getTopRow()]),
+          ],
         ),
       ),
+    );
+  }
+
+  Map<int, FlexColumnWidth> _getColumnWidths() {
+    return {
+      0: FlexColumnWidth(1),
+      1: FlexColumnWidth(7),
+      2: FlexColumnWidth(3),
+      3: FlexColumnWidth(1),
+      4: FlexColumnWidth(1),
+    };
+  }
+
+  TableRow getTopRow() {
+    const TextStyle style = TextStyle(fontWeight: FontWeight.bold);
+    return TableRow(
+      decoration: BoxDecoration(color: Colors.grey.shade500),
+      children: [
+        Row(
+          children: [
+            SizedBox(width: 2),
+            Text("Level", style: style),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text("Message", style: style),
+        ),
+        Text("File", style: style),
+        Text("Func.", style: style),
+        Text("Line", style: style),
+      ],
     );
   }
 

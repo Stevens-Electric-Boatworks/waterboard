@@ -34,7 +34,6 @@ class _WaterboardLogsWidgetState extends State<WaterboardLogsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle style = TextStyle(fontWeight: FontWeight.bold);
     return Container(
       decoration: BoxDecoration(
         border: BoxBorder.all(color: Colors.black),
@@ -42,32 +41,46 @@ class _WaterboardLogsWidgetState extends State<WaterboardLogsWidget> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: SingleChildScrollView(
-          child: Table(
-            columnWidths: {
-              0: FlexColumnWidth(1),
-              1: FlexColumnWidth(6),
-              2: FlexColumnWidth(2),
-            },
-            children: [
-              TableRow(
-                decoration: BoxDecoration(color: Colors.grey.shade500),
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(width: 2),
-                      Text("Level", style: style),
-                    ],
-                  ),
-                  Text("Message", style: style),
-                  Text("Timestamp", style: style),
-                ],
+        child: Stack(
+          children: [
+            Scrollbar(
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                child: Table(
+                  columnWidths: _getColumnWidths(),
+                  children: [_getTopRow(), ..._getRows()],
+                ),
               ),
-              ..._getRows(),
-            ],
-          ),
+            ),
+            Table(columnWidths: _getColumnWidths(), children: [_getTopRow()]),
+          ],
         ),
       ),
+    );
+  }
+
+  Map<int, FlexColumnWidth> _getColumnWidths() {
+    return {
+      0: FlexColumnWidth(1),
+      1: FlexColumnWidth(6),
+      2: FlexColumnWidth(2),
+    };
+  }
+
+  TableRow _getTopRow() {
+    const TextStyle style = TextStyle(fontWeight: FontWeight.bold);
+    return TableRow(
+      decoration: BoxDecoration(color: Colors.grey.shade500),
+      children: [
+        Row(
+          children: [
+            SizedBox(width: 2),
+            Text("Level", style: style),
+          ],
+        ),
+        Text("Message", style: style),
+        Text("Timestamp", style: style),
+      ],
     );
   }
 

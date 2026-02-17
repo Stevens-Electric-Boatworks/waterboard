@@ -696,6 +696,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  scroll_table:
+    dependency: "direct main"
+    description:
+      name: scroll_table
+      sha256: f6f9d9ca163943504ad2254df6a6418c7385e44f0e231de5debee56c4f0acc7d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   shared_preferences:
     dependency: "direct main"
     description:
