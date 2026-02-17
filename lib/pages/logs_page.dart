@@ -126,15 +126,27 @@ class _LogsPageState extends State<LogsPage> {
               decoration: BoxDecoration(
                 border: BoxBorder.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(4),
-              ),
+         `     ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: Stack(
                   children: [
-                    SingleChildScrollView(
-                      child: Table(
-                        columnWidths: _getColumnWidths(),
-                        children: [getTopRow(), ..._getRows()],
+                    Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        child: Table(
+                          columnWidths: _getColumnWidths(),
+                          children: [
+                            TableRow(
+                              children: List.generate(
+                                7,
+                                //empty row thats hidden
+                                (index) => Text(" "),
+                              ),
+                            ),
+                            ..._getRows(),
+                          ],
+                        ),
                       ),
                     ),
                     Table(
@@ -150,14 +162,16 @@ class _LogsPageState extends State<LogsPage> {
       ),
     );
   }
+
   Map<int, FlexColumnWidth> _getColumnWidths() {
     return {
-      0: FlexColumnWidth(1),
-      1: FlexColumnWidth(1.4),
-      2: FlexColumnWidth(6),
-      3: FlexColumnWidth(3),
-      4: FlexColumnWidth(1),
+      0: FlexColumnWidth(0.7),
+      1: FlexColumnWidth(1.2),
+      2: FlexColumnWidth(1.4),
+      3: FlexColumnWidth(6),
+      4: FlexColumnWidth(3),
       5: FlexColumnWidth(1),
+      6: FlexColumnWidth(1),
     };
   }
 
@@ -166,17 +180,13 @@ class _LogsPageState extends State<LogsPage> {
     return TableRow(
       decoration: BoxDecoration(color: Colors.grey.shade500),
       children: [
-        Row(
-          children: [
-            SizedBox(width: 2),
-            Text("Level", style: style),
-          ],
-        ),
+        _withPadding(Text("Level", style: style)),
+        _withPadding(Text("Timestamp", style: style)),
         _withPadding(Text("Emitter", style: style)),
-    _withPadding(Text("Message", style: style)),
-    _withPadding(Text("File", style: style)),
-    _withPadding(Text("Func.", style: style)),
-    _withPadding(Text("Line", style: style)),
+        _withPadding(Text("Message", style: style)),
+        _withPadding(Text("File", style: style)),
+        _withPadding(Text("Func.", style: style)),
+        _withPadding(Text("Line", style: style)),
       ],
     );
   }
@@ -191,31 +201,70 @@ class _LogsPageState extends State<LogsPage> {
   List<TableRow> _getRows() {
     List<TableRow> rows = [];
     int i = 0;
-    Color levelColor(String level) {
-      if(level == "ERROR") return Colors.red;
-      else if (level == "INFO") return Colors.black;
-      else if (level == "WARN") return Colors.orange;
-      else return Colors.black;
+    Color backgroundLevelColor(String level, Color normalColor) {
+      if (level == "ERROR") {
+        return Colors.red.shade100;
+      } else if (level == "INFO") {
+        return normalColor;
+      } else if (level == "WARN") {
+        return Colors.orange.shade100;
+      } else {
+        return normalColor;
+      }
     }
+
     for (LogMessage msg in model.logMessages) {
-      // Log.instance.info("building row");
-      final Color color = i % 2 == 0 ? Colors.white : Colors.grey.shade300;
+      Color color = backgroundLevelColor(
+        msg.level,
+        i % 2 == 0 ? Colors.white : Colors.grey.shade300,
+      );
       rows.insert(
         0,
         TableRow(
-          decoration: BoxDecoration(color: color),
+          decoration: BoxDecoration(
+            color: color,
+            border: BoxBorder.fromLTRB(bottom: BorderSide(color: Colors.black)),
+          ),
           children: [
-            Row(children: [SizedBox(width: 2), Text(msg.level, style: TextStyle(color: levelColor(msg.level)),)]),
-    _withPadding(Text(msg.emitter.name.toUpperCase(), style: TextStyle(color: msg.emitter == Emitter.waterboard ? Colors.blue : Colors.black),)),
-    _withPadding(Text(msg.message, style: TextStyle(fontStyle: FontStyle.italic))),
-    _withPadding(Text(msg.file ?? "")),
-    _withPadding(Text(msg.function ?? "", style: TextStyle(fontStyle: FontStyle.italic))),
-    _withPadding(Text("${msg.lineNumber ?? ""}")),
+            _withPadding(
+              Text(msg.level, style: TextStyle(color: Colors.black)),
+            ),
+            _withPadding(Text(_getTimeText(msg.timestamp))),
+            _withPadding(
+              Text(
+                msg.emitter.name.toUpperCase(),
+                style: TextStyle(
+                  color: msg.emitter == Emitter.waterboard
+                      ? Colors.blue
+                      : Colors.black,
+                ),
+              ),
+            ),
+            _withPadding(
+              Text(msg.message, style: TextStyle(fontStyle: FontStyle.italic)),
+            ),
+            _withPadding(Text(msg.file ?? "")),
+            _withPadding(
+              Text(
+                msg.function ?? "",
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ),
+            _withPadding(Text("${msg.lineNumber ?? ""}")),
           ],
         ),
       );
       i++;
     }
     return rows;
+  }
+
+  String _getTimeText(DateTime now) {
+    int hour = now.hour % 12;
+    if (hour == 0) hour = 12;
+
+    String two(int n) => n.toString().padLeft(2, '0');
+    String amPm = now.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:${two(now.minute)}:${two(now.second)} $amPm';
   }
 }
