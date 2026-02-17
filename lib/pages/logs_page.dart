@@ -26,12 +26,14 @@ class LogMessage {
   });
 }
 
-enum Emitter { ros, waterboard }
+enum Emitter { ros, waterboard, none }
 
 class LogsPageViewModel extends ChangeNotifier {
   final ROS ros;
   final List<LogMessage> logMessages = [];
   late ROSSubscription subscription;
+
+  Emitter selectedFilter = Emitter.none;
 
   LogsPageViewModel({required this.ros});
 
@@ -116,17 +118,54 @@ class _LogsPageState extends State<LogsPage> {
     return Padding(
       padding: EdgeInsetsGeometry.all(8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "Control System Logs",
-            style: Theme.of(context).textTheme.headlineMedium,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Spacer(),
+              Center(
+                child: Text(
+                  "Control System Logs",
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              Spacer(),
+              SegmentedButton<Emitter>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: Emitter.none,
+                    label: Text("All"),
+                    icon: Icon(Icons.remove_red_eye),
+                  ),
+                  ButtonSegment(
+                    value: Emitter.ros,
+                    label: Text("ROS"),
+                    icon: Icon(Icons.computer),
+                  ),
+                  ButtonSegment(
+                    value: Emitter.waterboard,
+                    label: Text("Waterboard"),
+                    icon: Icon(Icons.water_drop),
+                  ),
+                ],
+                selected: {model.selectedFilter},
+                onSelectionChanged: (Set<Emitter> newSelection) {
+                  setState(() {
+                    model.selectedFilter = newSelection.first;
+                  });
+                },
+              ),
+            ],
           ),
+          SizedBox(height: 5,),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 border: BoxBorder.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(4),
-         `     ),
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: Stack(
@@ -214,6 +253,13 @@ class _LogsPageState extends State<LogsPage> {
     }
 
     for (LogMessage msg in model.logMessages) {
+      if(model.selectedFilter == Emitter.ros && msg.emitter == Emitter.waterboard) {
+        continue;
+      }
+      if(model.selectedFilter == Emitter.waterboard && msg.emitter == Emitter.ros) {
+        continue;
+      }
+
       Color color = backgroundLevelColor(
         msg.level,
         i % 2 == 0 ? Colors.white : Colors.grey.shade300,
@@ -223,7 +269,9 @@ class _LogsPageState extends State<LogsPage> {
         TableRow(
           decoration: BoxDecoration(
             color: color,
-            border: BoxBorder.fromLTRB(bottom: BorderSide(color: Colors.black)),
+            border: BoxBorder.fromLTRB(
+              bottom: BorderSide(color: Colors.black12),
+            ),
           ),
           children: [
             _withPadding(
