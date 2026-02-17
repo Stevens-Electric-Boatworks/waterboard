@@ -5,30 +5,45 @@ import 'package:flutter/material.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
-class LogMessage {
+class ROSLogMessage {
   String msg;
   String file;
   String function;
   int line;
+  int level;
 
-  LogMessage(this.msg, this.file, this.function, this.line);
+  ROSLogMessage(this.msg, this.file, this.function, this.line, this.level);
+
+  String get levelString {
+    switch (level) {
+      case 10:
+        return "DEBUG";
+      case 20:
+        return "INFO";
+      case 30:
+        return "WARN";
+      case 40:
+        return "ERROR";
+    }
+    return "UNKNOWN";
+  }
 
   @override
   String toString() {
-    return 'LogMessage{msg: $msg, file: $file, function: $function, line: $line}';
+    return 'LogMessage{msg: $msg, file: $file, function: $function, line: $line, level: $level}';
   }
 }
 
 class LogsWidgetViewModel extends ChangeNotifier {
   final ROSSubscription _sub;
   late final ValueNotifier<Map<String, dynamic>> _data;
-  final List<LogMessage> _messages = [];
+  final List<ROSLogMessage> _messages = [];
 
   LogsWidgetViewModel(this._sub) {
     _data = _sub.notifier;
   }
 
-  List<LogMessage> get messages => _messages;
+  List<ROSLogMessage> get messages => _messages;
 
   void init() {
     _data.addListener(onDataReceive);
@@ -40,7 +55,8 @@ class LogsWidgetViewModel extends ChangeNotifier {
     String file = newData['file'] as String;
     String function = newData['function'] as String;
     int line = newData['line'] as int;
-    _messages.add(LogMessage(msg, file, function, line));
+    int level = newData['level'] as int;
+    _messages.add(ROSLogMessage(msg, file, function, line, level));
     Log.instance.info(_messages.last);
     notifyListeners();
   }
@@ -52,52 +68,96 @@ class LogsWidgetViewModel extends ChangeNotifier {
   }
 }
 
-class LogsWidget extends StatefulWidget {
+class ROSLogsWidget extends StatefulWidget {
   final LogsWidgetViewModel model;
 
-  const LogsWidget({super.key, required this.model});
+  const ROSLogsWidget({super.key, required this.model});
 
   @override
-  State<LogsWidget> createState() => _LogsWidgetState();
+  State<ROSLogsWidget> createState() => _ROSLogsWidgetState();
 }
 
-class _LogsWidgetState extends State<LogsWidget> {
+class _ROSLogsWidgetState extends State<ROSLogsWidget> {
   LogsWidgetViewModel get model => widget.model;
 
   @override
   void initState() {
     super.initState();
-    model.init();
     model.addListener(() => setState(() {}));
   }
 
   @override
   Widget build(BuildContext context) {
-    return DataTable(
-      clipBehavior: Clip.none,
-      columns: [
-        DataColumn(label: Text("Message")),
-        DataColumn(label: Text("Line")),
-        DataColumn(label: Text("File")),
-        DataColumn(label: Text("Function")),
-      ],
-      rows: _getRows(),
+    const TextStyle style = TextStyle(fontWeight: FontWeight.bold);
+    return Container(
+      decoration: BoxDecoration(
+        border: BoxBorder.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: SingleChildScrollView(
+          child: Table(
+            columnWidths: {
+              0: FlexColumnWidth(1),
+              1: FlexColumnWidth(7),
+              2: FlexColumnWidth(3),
+              3: FlexColumnWidth(1),
+              4: FlexColumnWidth(1),
+            },
+            children: [
+              TableRow(
+                decoration: BoxDecoration(color: Colors.grey.shade500),
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(width: 2),
+                      Text("Level", style: style),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text("Message", style: style),
+                  ),
+                  Text("File", style: style),
+                  Text("Func.", style: style),
+                  Text("Line", style: style),
+                ],
+              ),
+              ..._getRows(),
+            ],
+            // columns: [
+            //   DataColumn(label: Text("Message")),
+            //   DataColumn(label: Text("Line")),
+            //   DataColumn(label: Text("File")),
+            //   DataColumn(label: Text("Function")),
+            // ],
+            // rows: _getRows(),
+          ),
+        ),
+      ),
     );
   }
 
-  List<DataRow> _getRows() {
-    List<DataRow> rows = [];
-    for (LogMessage msg in model.messages) {
-      rows.add(
-        DataRow(
-          cells: [
-            DataCell(Text(msg.msg)),
-            DataCell(Text(msg.file)),
-            DataCell(Text(msg.function)),
-            DataCell(Text("${msg.line}")),
+  List<TableRow> _getRows() {
+    List<TableRow> rows = [];
+    int i = 0;
+    for (ROSLogMessage msg in model.messages) {
+      final Color color = i % 2 == 0 ? Colors.white : Colors.grey.shade300;
+      rows.insert(
+        0,
+        TableRow(
+          decoration: BoxDecoration(color: color),
+          children: [
+            Row(children: [SizedBox(width: 2), Text(msg.levelString)]),
+            Text(msg.msg, style: TextStyle(fontStyle: FontStyle.italic)),
+            Text(msg.file),
+            Text(msg.function, style: TextStyle(fontStyle: FontStyle.italic)),
+            Text("${msg.line}"),
           ],
         ),
       );
+      i++;
     }
     return rows;
   }

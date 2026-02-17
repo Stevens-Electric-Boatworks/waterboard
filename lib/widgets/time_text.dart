@@ -28,7 +28,7 @@ class _ClockTextState extends State<ClockText> {
 
   @override
   void dispose() {
-    _timer.cancel(); // DO NOT forget this or you’ll leak timers
+    _timer.cancel();
     super.dispose();
   }
 

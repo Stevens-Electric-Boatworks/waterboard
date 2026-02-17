@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
-class Log {
+class Log extends ChangeNotifier {
   static final DateFormat _dateFormat = DateFormat('HH:mm:ss.S');
 
   static Log instance = Log._internal();
@@ -17,6 +17,7 @@ class Log {
   Log._internal();
 
   Logger? _logger;
+  List<WaterboardLogMessage> msgs = [];
 
   Future<void> initialize() async {
     _logger = Logger(
@@ -41,27 +42,75 @@ class Log {
       error: error,
       stackTrace: trace,
     );
+    notifyListeners();
   }
 
   void info(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    msgs.add(
+      WaterboardLogMessage(
+        msg: message,
+        level: Level.info,
+        time: DateTime.now(),
+      ),
+    );
     log(Level.info, message, error, stackTrace);
   }
 
   void error(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    msgs.add(
+      WaterboardLogMessage(
+        msg: message,
+        level: Level.error,
+        time: DateTime.now(),
+      ),
+    );
     log(Level.error, message, error, stackTrace);
   }
 
   void warning(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    msgs.add(
+      WaterboardLogMessage(
+        msg: message,
+        level: Level.warning,
+        time: DateTime.now(),
+      ),
+    );
     log(Level.warning, message, error, stackTrace);
   }
 
   void debug(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    msgs.add(
+      WaterboardLogMessage(
+        msg: message,
+        level: Level.debug,
+        time: DateTime.now(),
+      ),
+    );
     log(Level.debug, message, error, stackTrace);
   }
 
   void trace(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    msgs.add(
+      WaterboardLogMessage(
+        msg: message,
+        level: Level.trace,
+        time: DateTime.now(),
+      ),
+    );
     log(Level.trace, message, error, stackTrace);
   }
+}
+
+class WaterboardLogMessage {
+  final String msg;
+  final Level level;
+  final DateTime time;
+
+  WaterboardLogMessage({
+    required this.msg,
+    required this.level,
+    required this.time,
+  });
 }
 
 Log get logger => Log.instance;
