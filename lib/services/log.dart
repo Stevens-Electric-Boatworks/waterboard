@@ -18,6 +18,7 @@ class Log extends ChangeNotifier {
 
   Logger? _logger;
   List<WaterboardLogMessage> msgs = [];
+  final ValueNotifier<WaterboardLogMessage?> onMessage = ValueNotifier(null);
 
   Future<void> initialize() async {
     _logger = Logger(
@@ -35,68 +36,41 @@ class Log extends ChangeNotifier {
     if (Logger.level.value > level.value) {
       return;
     }
-
+    var msg = WaterboardLogMessage(
+      msg: message,
+      level: level,
+      time: DateTime.now(),
+    );
+    msgs.add(
+        msg
+    );
     _logger?.log(
       level,
       '[${_dateFormat.format(DateTime.now())}]:  $message',
       error: error,
       stackTrace: trace,
     );
+    onMessage.value = msg;
     notifyListeners();
   }
 
   void info(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    msgs.add(
-      WaterboardLogMessage(
-        msg: message,
-        level: Level.info,
-        time: DateTime.now(),
-      ),
-    );
     log(Level.info, message, error, stackTrace);
   }
 
   void error(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    msgs.add(
-      WaterboardLogMessage(
-        msg: message,
-        level: Level.error,
-        time: DateTime.now(),
-      ),
-    );
     log(Level.error, message, error, stackTrace);
   }
 
   void warning(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    msgs.add(
-      WaterboardLogMessage(
-        msg: message,
-        level: Level.warning,
-        time: DateTime.now(),
-      ),
-    );
     log(Level.warning, message, error, stackTrace);
   }
 
   void debug(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    msgs.add(
-      WaterboardLogMessage(
-        msg: message,
-        level: Level.debug,
-        time: DateTime.now(),
-      ),
-    );
     log(Level.debug, message, error, stackTrace);
   }
 
   void trace(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    msgs.add(
-      WaterboardLogMessage(
-        msg: message,
-        level: Level.trace,
-        time: DateTime.now(),
-      ),
-    );
     log(Level.trace, message, error, stackTrace);
   }
 }
