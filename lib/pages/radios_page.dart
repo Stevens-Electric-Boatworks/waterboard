@@ -127,7 +127,6 @@ class RadiosPageViewModel extends ChangeNotifier {
       Log.instance.info("Hoboken Offline Map copied to: $filePath");
       provider = await PmTilesVectorTileProvider.fromSource(filePath);
       Log.instance.info("Hoboken Offline Map loaded");
-      mapReady = true;
       notifyListeners();
     } catch (e) {
       Log.instance.error("Failed to load map: $e");
@@ -351,6 +350,7 @@ class _RadiosPageState extends State<RadiosPage> {
   }
 
   Widget _getMap() {
+    model.mapReady = true;
     return FlutterMap(
       mapController: model.mapController,
       options: MapOptions(
