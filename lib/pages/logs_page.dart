@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 import '../services/log.dart';
@@ -26,7 +27,7 @@ class LogMessage {
   });
 }
 
-enum Emitter { ros, waterboard, none }
+enum Emitter { ros, dash, none }
 
 class LogsPageViewModel extends ChangeNotifier {
   final ROS ros;
@@ -38,51 +39,38 @@ class LogsPageViewModel extends ChangeNotifier {
   LogsPageViewModel({required this.ros});
 
   void init() {
-    subscription = ros.subscribe("/rosout");
-    subscription.notifier.addListener(_onROSLogMsg);
+    ros.rosLogs.onLogMessage.addListener(_onROSLogMsg);
     Log.instance.onMessage.addListener(_onWaterboardLogMsg);
+    //go through all previous logs
+    for (var element in ros.rosLogs.logs) {
+      _addROSLogToList(element);
+    }
   }
 
   void _onROSLogMsg() {
-    var newData = subscription.notifier.value;
-    String toString(int level) {
-      switch (level) {
-        case 10:
-          return "DEBUG";
-        case 20:
-          return "INFO";
-        case 30:
-          return "WARN";
-        case 40:
-          return "ERROR";
-      }
-      return "UNKNOWN";
-    }
-
-    String msg = newData['msg'] as String;
-    String file = newData['file'] as String;
-    String function = newData['function'] as String;
-    int line = newData['line'] as int;
-    int level = newData['level'] as int;
-    //todo fix datetime
+    var log = ros.rosLogs.onLogMessage.value;
+    if(log == null) return;
+    _addROSLogToList(log);
+    notifyListeners();
+  }
+  void _addROSLogToList(ROSLog log) {
     var logMsg = LogMessage(
       emitter: Emitter.ros,
-      message: msg,
-      level: toString(level),
-      timestamp: DateTime.now(),
-      file: file,
-      function: function,
-      lineNumber: line,
+      message: log.msg,
+      level: log.level,
+      timestamp: log.time,
+      file: log.file,
+      function: log.function,
+      lineNumber: log.line,
     );
     logMessages.add(logMsg);
-    notifyListeners();
   }
 
   void _onWaterboardLogMsg() {
     var msg = Log.instance.onMessage.value;
     if (msg == null) return;
     var logMsg = LogMessage(
-      emitter: Emitter.waterboard,
+      emitter: Emitter.dash,
       message: msg.msg,
       level: msg.level.name.toUpperCase(),
       timestamp: msg.time,
@@ -145,7 +133,7 @@ class _LogsPageState extends State<LogsPage> {
                     icon: Icon(Icons.computer),
                   ),
                   ButtonSegment(
-                    value: Emitter.waterboard,
+                    value: Emitter.dash,
                     label: Text("Waterboard"),
                     icon: Icon(Icons.water_drop),
                   ),
@@ -170,22 +158,19 @@ class _LogsPageState extends State<LogsPage> {
                 borderRadius: BorderRadius.circular(4),
                 child: Stack(
                   children: [
-                    Scrollbar(
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        child: Table(
-                          columnWidths: _getColumnWidths(),
-                          children: [
-                            TableRow(
-                              children: List.generate(
-                                7,
-                                //empty row thats hidden
-                                (index) => Text(" "),
-                              ),
+                    SingleChildScrollView(
+                      child: Table(
+                        columnWidths: _getColumnWidths(),
+                        children: [
+                          TableRow(
+                            children: List.generate(
+                              7,
+                              //empty row thats hidden
+                              (index) => Text(" "),
                             ),
-                            ..._getRows(),
-                          ],
-                        ),
+                          ),
+                          ..._getRows(),
+                        ],
                       ),
                     ),
                     Table(
@@ -204,11 +189,11 @@ class _LogsPageState extends State<LogsPage> {
 
   Map<int, FlexColumnWidth> _getColumnWidths() {
     return {
-      0: FlexColumnWidth(0.7),
+      0: FlexColumnWidth(0.8),
       1: FlexColumnWidth(1.2),
-      2: FlexColumnWidth(1.4),
-      3: FlexColumnWidth(6),
-      4: FlexColumnWidth(3),
+      2: FlexColumnWidth(0.8),
+      3: FlexColumnWidth(7),
+      4: FlexColumnWidth(4),
       5: FlexColumnWidth(1),
       6: FlexColumnWidth(1),
     };
@@ -221,11 +206,11 @@ class _LogsPageState extends State<LogsPage> {
       children: [
         _withPadding(Text("Level", style: style)),
         _withPadding(Text("Timestamp", style: style)),
-        _withPadding(Text("Emitter", style: style)),
+        _withPadding(Text("Source", style: style)),
         _withPadding(Text("Message", style: style)),
         _withPadding(Text("File", style: style)),
-        _withPadding(Text("Func.", style: style)),
-        _withPadding(Text("Line", style: style)),
+        _withPadding(Text("Function", style: style)),
+        _withPadding(Text("Line #", style: style)),
       ],
     );
   }
@@ -253,10 +238,10 @@ class _LogsPageState extends State<LogsPage> {
     }
 
     for (LogMessage msg in model.logMessages) {
-      if(model.selectedFilter == Emitter.ros && msg.emitter == Emitter.waterboard) {
+      if(model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
         continue;
       }
-      if(model.selectedFilter == Emitter.waterboard && msg.emitter == Emitter.ros) {
+      if(model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
         continue;
       }
 
@@ -275,14 +260,14 @@ class _LogsPageState extends State<LogsPage> {
           ),
           children: [
             _withPadding(
-              Text(msg.level, style: TextStyle(color: Colors.black)),
+              Text(msg.level, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
             _withPadding(Text(_getTimeText(msg.timestamp))),
             _withPadding(
               Text(
                 msg.emitter.name.toUpperCase(),
                 style: TextStyle(
-                  color: msg.emitter == Emitter.waterboard
+                  color: msg.emitter == Emitter.dash
                       ? Colors.blue
                       : Colors.black,
                 ),

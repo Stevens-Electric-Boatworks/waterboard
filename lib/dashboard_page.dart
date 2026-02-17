@@ -116,7 +116,6 @@ class _DashboardPageState extends State<DashboardPage> {
       connection: InternetCheckerImpl(),
     );
     _logsPageViewModel = LogsPageViewModel(ros: model.ros);
-    _logsPageViewModel.init();
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
