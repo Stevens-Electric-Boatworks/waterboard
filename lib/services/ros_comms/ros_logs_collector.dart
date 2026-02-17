@@ -1,6 +1,7 @@
-import 'dart:math';
-
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
+
+// Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 class ROSLog {
@@ -11,8 +12,16 @@ class ROSLog {
   final String level;
   final DateTime time;
 
-  ROSLog({required this.msg, required this.file, required this.function, required this.line, required this.level, required this.time});
+  ROSLog({
+    required this.msg,
+    required this.file,
+    required this.function,
+    required this.line,
+    required this.level,
+    required this.time,
+  });
 }
+
 class ROSLogsCollector {
   final ROSSubscription subscription;
   final List<ROSLog> logs = [];
@@ -22,6 +31,7 @@ class ROSLogsCollector {
   void init() {
     subscription.notifier.addListener(_onDataReceive);
   }
+
   void _onDataReceive() {
     var newData = subscription.notifier.value;
     String toString(int level) {
@@ -43,7 +53,18 @@ class ROSLogsCollector {
     String function = newData['function'] as String;
     int line = newData['line'] as int;
     int level = newData['level'] as int;
-    int msSinceEpoch = (newData['stamp']['sec'] as int) * 1000;
-    logs.add(ROSLog(msg: msg, file: file, function: function, line: line, level: toString(level), time: DateTime.fromMillisecondsSinceEpoch(msSinceEpoch)));
+    int msSinceEpoch =
+        (newData['stamp']['sec'] as int) * 1000 +
+        ((newData['stamp']['nanosec'] as int) / 1e6).toInt();
+    logs.add(
+      ROSLog(
+        msg: msg,
+        file: file,
+        function: function,
+        line: line,
+        level: toString(level),
+        time: DateTime.fromMillisecondsSinceEpoch(msSinceEpoch),
+      ),
+    );
   }
 }

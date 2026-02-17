@@ -1,8 +1,8 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
-import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 
 // Project imports:
+import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
 import '../log.dart';

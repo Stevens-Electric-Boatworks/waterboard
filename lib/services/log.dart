@@ -41,9 +41,7 @@ class Log extends ChangeNotifier {
       level: level,
       time: DateTime.now(),
     );
-    msgs.add(
-        msg
-    );
+    msgs.add(msg);
     _logger?.log(
       level,
       '[${_dateFormat.format(DateTime.now())}]:  $message',

@@ -9,11 +9,14 @@ import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {
   @override
-  late ValueNotifier<ROSConnectionState> connectionState;
+  late final ValueNotifier<ROSConnectionState> connectionState;
   @override
   Map<String, FakeROSSubscription> subs = {};
+  @override
+  late final ROSLogsCollector rosLogs;
   FakeROS({ROSConnectionState initialState = ROSConnectionState.noWebsocket}) {
     connectionState = ValueNotifier(initialState);
+    rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
   }
 
   @override
@@ -43,8 +46,4 @@ class FakeROS extends ROS {
       subs[topic]?.onData(data);
     }
   }
-
-  @override
-  // TODO: implement rosLogs
-  ROSLogsCollector get rosLogs => throw UnimplementedError();
 }

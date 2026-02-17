@@ -1,10 +1,10 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-
 import '../services/log.dart';
 
 class LogMessage {
@@ -45,14 +45,22 @@ class LogsPageViewModel extends ChangeNotifier {
     for (var element in ros.rosLogs.logs) {
       _addROSLogToList(element);
     }
+    for (var element in Log.instance.msgs) {
+      _addWaterboardLogToList(element);
+    }
+    //sort by time
+    logMessages.sort((a, b) {
+      return a.timestamp.compareTo(b.timestamp);
+    });
   }
 
   void _onROSLogMsg() {
     var log = ros.rosLogs.onLogMessage.value;
-    if(log == null) return;
+    if (log == null) return;
     _addROSLogToList(log);
     notifyListeners();
   }
+
   void _addROSLogToList(ROSLog log) {
     var logMsg = LogMessage(
       emitter: Emitter.ros,
@@ -69,17 +77,21 @@ class LogsPageViewModel extends ChangeNotifier {
   void _onWaterboardLogMsg() {
     var msg = Log.instance.onMessage.value;
     if (msg == null) return;
+    _addWaterboardLogToList(msg);
+    notifyListeners();
+  }
+
+  void _addWaterboardLogToList(WaterboardLogMessage log) {
     var logMsg = LogMessage(
       emitter: Emitter.dash,
-      message: msg.msg,
-      level: msg.level.name.toUpperCase(),
-      timestamp: msg.time,
+      message: log.msg,
+      level: log.level.name.toUpperCase(),
+      timestamp: log.time,
       file: null,
       function: null,
       lineNumber: null,
     );
     logMessages.add(logMsg);
-    notifyListeners();
   }
 }
 
@@ -147,7 +159,7 @@ class _LogsPageState extends State<LogsPage> {
               ),
             ],
           ),
-          SizedBox(height: 5,),
+          SizedBox(height: 5),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -238,10 +250,10 @@ class _LogsPageState extends State<LogsPage> {
     }
 
     for (LogMessage msg in model.logMessages) {
-      if(model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
+      if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
         continue;
       }
-      if(model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
+      if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
         continue;
       }
 
@@ -260,7 +272,13 @@ class _LogsPageState extends State<LogsPage> {
           ),
           children: [
             _withPadding(
-              Text(msg.level, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              Text(
+                msg.level,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             _withPadding(Text(_getTimeText(msg.timestamp))),
             _withPadding(
