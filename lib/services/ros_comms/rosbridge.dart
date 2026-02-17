@@ -80,13 +80,15 @@ class ROSBridge {
     });
     _sendAllSubscriptions();
     _channel?.stream.listen((message) {
-      _lastROSBridgeMsg = DateTime.now().millisecondsSinceEpoch;
-      if (_connectionState.value != ROSConnectionState.connected) {
-        _sendAllSubscriptions();
-      }
-      _connectionState.value = ROSConnectionState.connected;
-
       var msg = json.decode(message);
+      if (msg["topic"] != '/rosout') {
+        //ignore /rosout since it doesn't tell us any data about the state of ros, since rosbridge can send /rosout logs
+        _lastROSBridgeMsg = DateTime.now().millisecondsSinceEpoch;
+        if (_connectionState.value != ROSConnectionState.connected) {
+          _sendAllSubscriptions();
+        }
+        _connectionState.value = ROSConnectionState.connected;
+      }
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
       } else {

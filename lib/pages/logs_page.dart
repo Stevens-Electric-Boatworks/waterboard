@@ -110,6 +110,7 @@ class _LogsPageState extends State<LogsPage> {
   @override
   void initState() {
     super.initState();
+    model.addListener(() => setState(() {}));
     model.init();
   }
 

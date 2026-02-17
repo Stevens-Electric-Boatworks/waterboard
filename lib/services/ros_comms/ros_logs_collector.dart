@@ -56,15 +56,15 @@ class ROSLogsCollector {
     int msSinceEpoch =
         (newData['stamp']['sec'] as int) * 1000 +
         ((newData['stamp']['nanosec'] as int) / 1e6).toInt();
-    logs.add(
-      ROSLog(
-        msg: msg,
-        file: file,
-        function: function,
-        line: line,
-        level: toString(level),
-        time: DateTime.fromMillisecondsSinceEpoch(msSinceEpoch),
-      ),
+    var log = ROSLog(
+      msg: msg,
+      file: file,
+      function: function,
+      line: line,
+      level: toString(level),
+      time: DateTime.fromMillisecondsSinceEpoch(msSinceEpoch),
     );
+    logs.add(log);
+    onLogMessage.value = log;
   }
 }
