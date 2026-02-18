@@ -38,8 +38,9 @@ void main() {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
     await pumpPage(widgetTester, ros);
     var subs = ros.subs;
-    expect(subs.length, 3); // 2 repeated subscriptions for motor data
+    expect(subs.length, 4); // 2 repeated subscriptions for motor data
     expect(subs.keys, [
+      '/rosout',
       '/motors/can_motor_data',
       '/electrical/temp_sensors/in',
       '/electrical/temp_sensors/out',

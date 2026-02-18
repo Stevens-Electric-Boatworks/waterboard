@@ -11,6 +11,7 @@ import 'package:waterboard/dashboard_page.dart';
 import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
+import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
@@ -108,7 +109,7 @@ void main() {
 
         await moveRight();
         expect(model.currentPage, 4);
-        expect(find.byType(Placeholder), findsOneWidget);
+        expect(find.byType(LogsPage), findsOneWidget);
 
         await moveRight();
         expect(model.currentPage, 5);
@@ -122,7 +123,7 @@ void main() {
         //verify that we can move back
         await moveLeft();
         expect(model.currentPage, 4);
-        expect(find.byType(Placeholder), findsOneWidget);
+        expect(find.byType(LogsPage), findsOneWidget);
 
         await moveLeft();
         expect(model.currentPage, 3);

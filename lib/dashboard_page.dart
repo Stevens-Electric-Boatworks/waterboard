@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
+import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
@@ -103,6 +104,8 @@ class _DashboardPageState extends State<DashboardPage> {
   late final MainDriverPageViewModel _mainDriverPageViewModel;
   late final ElectricsPageViewModel _electricsPageViewModel;
   late final RadiosPageViewModel _radiosPageViewModel;
+  late final LogsPageViewModel _logsPageViewModel;
+
   @override
   void initState() {
     super.initState();
@@ -112,6 +115,7 @@ class _DashboardPageState extends State<DashboardPage> {
       ros: model.ros,
       connection: InternetCheckerImpl(),
     );
+    _logsPageViewModel = LogsPageViewModel(ros: model.ros);
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
@@ -248,7 +252,7 @@ class _DashboardPageState extends State<DashboardPage> {
             KeepAlivePage(child: ElectricsPage(model: _electricsPageViewModel)),
             KeepAlivePage(child: Placeholder()),
             KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
-            KeepAlivePage(child: Placeholder()),
+            KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
             KeepAlivePage(child: Placeholder()),
           ],
         ),
@@ -277,8 +281,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     label: "Radios",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.code),
-                    label: "Software",
+                    icon: Icon(Icons.notes),
+                    label: "Logs",
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.error),

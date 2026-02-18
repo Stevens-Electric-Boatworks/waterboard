@@ -9,7 +9,11 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
-class Log {
+// Project imports:
+import 'package:waterboard/debug_vars.dart';
+import 'package:waterboard/services/time.dart';
+
+class Log extends ChangeNotifier {
   static final DateFormat _dateFormat = DateFormat('HH:mm:ss.S');
 
   static Log instance = Log._internal();
@@ -17,6 +21,8 @@ class Log {
   Log._internal();
 
   Logger? _logger;
+  List<WaterboardLogMessage> msgs = [];
+  final ValueNotifier<WaterboardLogMessage?> onMessage = ValueNotifier(null);
 
   Future<void> initialize() async {
     _logger = Logger(
@@ -34,13 +40,23 @@ class Log {
     if (Logger.level.value > level.value) {
       return;
     }
-
+    if (!DebugVariables.waterboardLogging) {
+      return;
+    }
+    var msg = WaterboardLogMessage(
+      msg: message,
+      level: level,
+      time: Time.instance.clock.now(),
+    );
+    msgs.add(msg);
     _logger?.log(
       level,
       '[${_dateFormat.format(DateTime.now())}]:  $message',
       error: error,
       stackTrace: trace,
     );
+    onMessage.value = msg;
+    notifyListeners();
   }
 
   void info(dynamic message, [dynamic error, StackTrace? stackTrace]) {
@@ -62,6 +78,18 @@ class Log {
   void trace(dynamic message, [dynamic error, StackTrace? stackTrace]) {
     log(Level.trace, message, error, stackTrace);
   }
+}
+
+class WaterboardLogMessage {
+  final String msg;
+  final Level level;
+  final DateTime time;
+
+  WaterboardLogMessage({
+    required this.msg,
+    required this.level,
+    required this.time,
+  });
 }
 
 Log get logger => Log.instance;

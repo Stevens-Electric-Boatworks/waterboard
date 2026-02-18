@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 
 // Project imports:
+import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
 import '../log.dart';
@@ -10,7 +11,7 @@ import '../log.dart';
 
 abstract class ROS {
   ValueNotifier<ROSConnectionState> get connectionState;
-
+  ROSLogsCollector get rosLogs;
   Map<String, ROSSubscription> get subs;
   ROSSubscription subscribe(String topic);
   void startConnectionLoop();
@@ -21,8 +22,12 @@ abstract class ROS {
 class ROSImpl extends ROS {
   late ROSBridge _rosBridge;
   final Map<String, ROSSubscription> _subs = {};
+  @override
+  late final ROSLogsCollector rosLogs;
   ROSImpl() {
     _rosBridge = ROSBridge(this);
+    rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
+    rosLogs.init();
   }
 
   @override
@@ -49,7 +54,7 @@ class ROSImpl extends ROS {
     if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
-    Log.instance.info("Subscribing to $topic");
+    Log.instance.info("[ROS] Subscribing to $topic");
     var sub = ROSSubscriptionImpl(topic, _rosBridge);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;

@@ -3,16 +3,20 @@ import 'package:flutter/src/foundation/change_notifier.dart' show ValueNotifier;
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {
   @override
-  late ValueNotifier<ROSConnectionState> connectionState;
+  late final ValueNotifier<ROSConnectionState> connectionState;
   @override
   Map<String, FakeROSSubscription> subs = {};
+  @override
+  late final ROSLogsCollector rosLogs;
   FakeROS({ROSConnectionState initialState = ROSConnectionState.noWebsocket}) {
     connectionState = ValueNotifier(initialState);
+    rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
   }
 
   @override
