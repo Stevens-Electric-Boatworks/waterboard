@@ -9,6 +9,10 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
+// Project imports:
+import 'package:waterboard/debug_vars.dart';
+import 'package:waterboard/services/time.dart';
+
 class Log extends ChangeNotifier {
   static final DateFormat _dateFormat = DateFormat('HH:mm:ss.S');
 
@@ -36,10 +40,13 @@ class Log extends ChangeNotifier {
     if (Logger.level.value > level.value) {
       return;
     }
+    if (!DebugVariables.waterboardLogging) {
+      return;
+    }
     var msg = WaterboardLogMessage(
       msg: message,
       level: level,
-      time: DateTime.now(),
+      time: Time.instance.clock.now(),
     );
     msgs.add(msg);
     _logger?.log(

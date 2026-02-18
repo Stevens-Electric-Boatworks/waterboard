@@ -54,6 +54,13 @@ class LogsPageViewModel extends ChangeNotifier {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    ros.rosLogs.onLogMessage.removeListener(_onROSLogMsg);
+    Log.instance.onMessage.removeListener(_onWaterboardLogMsg);
+  }
+
   void _onROSLogMsg() {
     var log = ros.rosLogs.onLogMessage.value;
     if (log == null) return;
@@ -112,6 +119,12 @@ class _LogsPageState extends State<LogsPage> {
     super.initState();
     model.addListener(() => setState(() {}));
     model.init();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    model.dispose();
   }
 
   @override
