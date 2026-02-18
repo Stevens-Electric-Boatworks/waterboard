@@ -186,6 +186,21 @@ jobs:
         with:
           lfs: true
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+          cache-path: ${{ runner.tool_cache }}/flutter/${{ inputs.platform }}
+
+      - name: Flutter Doctor
+        shell: bash
+        run: flutter doctor -v
+
+      - name: Install dependencies
+        shell: bash
+        run: flutter pub get
+
       - name: Download FlutterPi
         run: flutter pub global activate flutterpi_tool
 
