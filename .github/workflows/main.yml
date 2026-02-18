@@ -175,10 +175,10 @@ jobs:
           if-no-files-found: error
 
   build-pi:
-    name: "Build - Raspberry Pi4B"
+    name: "Build - Raspberry Pi 4B"
     runs-on: "ubuntu-24.04"
-#    needs:
-#      - test
+    needs:
+      - test
 
     steps:
       - name: Checkout repo
