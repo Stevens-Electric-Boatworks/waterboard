@@ -176,9 +176,9 @@ jobs:
 
   build-pi:
     name: "Build - Raspberry Pi4B"
-    runs-on: "ubuntu-22.04"
-    needs:
-      - test
+    runs-on: "ubuntu-24.04"
+#    needs:
+#      - test
 
     steps:
       - name: Checkout repo
