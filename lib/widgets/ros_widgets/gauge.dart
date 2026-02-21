@@ -1,7 +1,9 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
@@ -95,7 +97,7 @@ class ROSGauge extends StatelessWidget {
             GaugeAnnotation(
               widget: Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge?.merge(
+                style: Theme.of(context).textTheme.titleMedium?.merge(
                   TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),

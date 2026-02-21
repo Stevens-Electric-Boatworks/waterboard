@@ -36,14 +36,21 @@ class MarineCompass extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return SizedBox(
-              width: constraints.maxWidth * 0.7,
-              height: constraints.maxWidth * 0.7,
-              child: CustomPaint(painter: _MarineCompassPainter(heading % 360, context)),
-            );
-          },
+        Expanded(
+          child: Padding(
+            padding: EdgeInsetsGeometry.all(8),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return SizedBox(
+                  height: constraints.maxHeight,
+                  width: constraints.maxHeight,
+                  child: CustomPaint(
+                    painter: _MarineCompassPainter(heading % 360, context),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
         SizedBox(height: 5),
         Text("$heading°", style: Theme.of(context).textTheme.displayMedium),
@@ -70,7 +77,7 @@ class _MarineCompassPainter extends CustomPainter {
       ..strokeWidth = radius / 50;
 
     final tickPaint = Paint()
-    ..color = Colors.black
+      ..color = Colors.black
       ..strokeCap = StrokeCap.round;
 
     final textPainter = TextPainter(
@@ -121,7 +128,9 @@ class _MarineCompassPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: label,
-        style: Theme.of(context).textTheme.titleLarge?.merge(TextStyle(fontWeight: FontWeight.bold))
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.merge(TextStyle(fontWeight: FontWeight.bold)),
       );
       textPainter.layout();
       textPainter.paint(

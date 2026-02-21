@@ -228,7 +228,9 @@ class _LogsPageState extends State<LogsPage> {
   }
 
   TableRow getTopRow(BuildContext context) {
-    TextStyle style = Theme.of(context).textTheme.bodyMedium!.merge(TextStyle(fontWeight: FontWeight.bold));
+    TextStyle style = Theme.of(
+      context,
+    ).textTheme.bodyMedium!.merge(TextStyle(fontWeight: FontWeight.bold));
     return TableRow(
       decoration: BoxDecoration(color: Colors.grey.shade500),
       children: [
@@ -292,34 +294,43 @@ class _LogsPageState extends State<LogsPage> {
             _withPadding(
               Text(
                 msg.level,
-                style: style.merge(TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                )),
+                style: style.merge(
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-            _withPadding(Text(_getTimeText(msg.timestamp), style: style,)),
+            _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
             _withPadding(
               Text(
                 msg.emitter.name.toUpperCase(),
-                style: style.merge(TextStyle(
-                  color: msg.emitter == Emitter.dash
-                      ? Colors.blue
-                      : Colors.black,
-                ))
+                style: style.merge(
+                  TextStyle(
+                    color: msg.emitter == Emitter.dash
+                        ? Colors.blue
+                        : Colors.black,
+                  ),
+                ),
               ),
             ),
             _withPadding(
-              Text(msg.message, style: style.merge(TextStyle(fontStyle: FontStyle.italic))),
+              Text(
+                msg.message,
+                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
+              ),
             ),
-            _withPadding(Text(msg.file ?? "", style: style,)),
+            _withPadding(Text(msg.file ?? "", style: style)),
             _withPadding(
               Text(
                 msg.function ?? "",
                 style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
               ),
             ),
-            _withPadding(Text("${msg.lineNumber ?? ""}", style: style.merge(TextStyle(fontStyle: FontStyle.italic)),)),
+            _withPadding(
+              Text(
+                "${msg.lineNumber ?? ""}",
+                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
+              ),
+            ),
           ],
         ),
       );

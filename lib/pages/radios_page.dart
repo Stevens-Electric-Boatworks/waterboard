@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 // Package imports:
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -14,6 +15,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
+
 // Project imports:
 import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/services/internet_connection.dart';
@@ -249,7 +251,11 @@ class _RadiosPageState extends State<RadiosPage> {
                   _internetBox(
                     ROSText(dataSource: model.cell, subtext: "Cell Strength"),
                   ),
-                  _buildText("shore.stevenseboat.org", "Shore URL", style: Theme.of(context).textTheme.headlineSmall)
+                  _buildText(
+                    "shore.stevenseboat.org",
+                    "Shore URL",
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ],
               ),
             ),

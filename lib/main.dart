@@ -4,12 +4,13 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// Project imports:
-import 'package:waterboard/services/services.dart';
-import 'package:waterboard/waterboard_colors.dart';
+
 // Package imports:
 import 'package:window_manager/window_manager.dart';
 
+// Project imports:
+import 'package:waterboard/services/services.dart';
+import 'package:waterboard/waterboard_colors.dart';
 import 'dashboard_page.dart';
 
 void main() async {
@@ -18,7 +19,7 @@ void main() async {
     if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
         !Platform.isLinux) {
       await windowManager.ensureInitialized();
-      final windowSize = Size(1900, 1200);
+      final windowSize = Size(1200, 800);
       WindowOptions windowOptions = WindowOptions(
         // minimumSize: windowSize,
         // maximumSize: windowSize,
@@ -72,7 +73,6 @@ class _WaterboardAppState extends State<WaterboardApp> {
           backgroundColor: WaterboardColors.containerBackground,
           unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
           selectedItemColor: Colors.red.shade800,
-
         ),
         fontFamily: "inter",
       ),

@@ -107,8 +107,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          lfs: true
-
+#          lfs: true
+      # TEMPORARY WORKAROUND BECAUSE WE FILLED LFS USAGE QUOTAS
       - name: Install flutter build dependencies
         if: ${{ matrix.platform == 'linux' }}
         run: |
@@ -226,10 +226,24 @@ jobs:
           if-no-files-found: error
 
   github-pages:
-    name: "Upload to GitHub Pages"
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-22.04
-    if: ${{ github.repository == 'Stevens-Electric-Boatworks/Waterboard' && github.ref == 'refs/heads/main' }}
     needs: [build-web]
+
+    # Run on main pushes OR pull requests
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
+    # Required permissions
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+
+    environment:
+      # Production for main, Preview for PRs
+      name: ${{ github.event_name == 'pull_request' && format('preview-pr-{0}', github.event.number) || 'github-pages' }}
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Download Web Build
         uses: actions/download-artifact@v4
@@ -237,13 +251,13 @@ jobs:
           name: Waterboard-Web
 
       - name: Extract Web Build
-        run: unzip Waterboard-Web.zip -d Waterboard-Web
+        run: unzip Waterboard-Web.zip -d site
 
-      - name: Upload GitHub Pages Artifact
-        uses: actions/upload-pages-artifact@v3.0.0
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: Waterboard-Web
-          retention-days: 31
+          path: site
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4.0.2
+        id: deployment
+        uses: actions/deploy-pages@v4

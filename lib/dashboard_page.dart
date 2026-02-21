@@ -230,10 +230,13 @@ class _DashboardPageState extends State<DashboardPage> {
             SizedBox(width: 15),
             IconButton(
               onPressed: () => PageUtils.showSettingsDialog(context, model.ros),
-              icon: Icon(Icons.settings, size: Theme.of(context).textTheme.titleLarge!.fontSize!,),
+              icon: Icon(
+                Icons.settings,
+                size: Theme.of(context).textTheme.titleLarge!.fontSize!,
+              ),
             ),
           ],
-          leadingWidth: 300,
+          leadingWidth: 700,
         ),
 
         body: PageView(
