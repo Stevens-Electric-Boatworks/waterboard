@@ -18,9 +18,9 @@ import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
-import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/services.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
@@ -32,11 +32,12 @@ class DashboardPageViewModel extends ChangeNotifier {
     null,
   );
   final int totalPages = 6;
-  final ROS ros;
-  DashboardPageViewModel(this.ros);
+  final Services services;
+  DashboardPageViewModel(this.services);
 
+  ROS get ros => services.ros;
   int get currentPage => _currentPage;
-  Log get log => Log.instance;
+  Log get log => services.logger;
 
   late SharedPreferences preferences;
 
@@ -111,11 +112,8 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     _mainDriverPageViewModel = MainDriverPageViewModel(ros: model.ros);
     _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
-    _radiosPageViewModel = RadiosPageViewModel(
-      ros: model.ros,
-      connection: InternetCheckerImpl(),
-    );
-    _logsPageViewModel = LogsPageViewModel(ros: model.ros);
+    _radiosPageViewModel = RadiosPageViewModel(services: model.services);
+    _logsPageViewModel = LogsPageViewModel(services: model.services);
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==

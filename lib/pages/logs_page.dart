@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import 'package:waterboard/services/services.dart';
 import '../services/log.dart';
 
 class LogMessage {
@@ -30,22 +31,23 @@ class LogMessage {
 enum Emitter { ros, dash, none }
 
 class LogsPageViewModel extends ChangeNotifier {
-  final ROS ros;
+  final Services services;
   final List<LogMessage> logMessages = [];
   late ROSSubscription subscription;
 
   Emitter selectedFilter = Emitter.none;
 
-  LogsPageViewModel({required this.ros});
-
+  LogsPageViewModel({required this.services});
+  ROS get ros => services.ros;
+  Log get log => services.logger;
   void init() {
     ros.rosLogs.onLogMessage.addListener(_onROSLogMsg);
-    Log.instance.onMessage.addListener(_onWaterboardLogMsg);
+    log.onMessage.addListener(_onWaterboardLogMsg);
     //go through all previous logs
     for (var element in ros.rosLogs.logs) {
       _addROSLogToList(element);
     }
-    for (var element in Log.instance.msgs) {
+    for (var element in log.msgs) {
       _addWaterboardLogToList(element);
     }
     //sort by time
@@ -58,7 +60,7 @@ class LogsPageViewModel extends ChangeNotifier {
   void dispose() {
     super.dispose();
     ros.rosLogs.onLogMessage.removeListener(_onROSLogMsg);
-    Log.instance.onMessage.removeListener(_onWaterboardLogMsg);
+    log.onMessage.removeListener(_onWaterboardLogMsg);
   }
 
   void _onROSLogMsg() {
@@ -82,7 +84,7 @@ class LogsPageViewModel extends ChangeNotifier {
   }
 
   void _onWaterboardLogMsg() {
-    var msg = Log.instance.onMessage.value;
+    var msg = log.onMessage.value;
     if (msg == null) return;
     _addWaterboardLogToList(msg);
     notifyListeners();

@@ -15,6 +15,7 @@ import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
@@ -23,7 +24,7 @@ import 'test_helpers/test_util.dart';
 
 Future<DashboardPageViewModel> pumpDashboardPage(
   WidgetTester widgetTester,
-  ROS ros,
+  Services services,
   SharedPreferences preferences, {
   Size? size = const Size(1200, 820),
 }) async {
@@ -32,8 +33,7 @@ Future<DashboardPageViewModel> pumpDashboardPage(
     widgetTester.view.physicalSize = size;
     widgetTester.view.devicePixelRatio = 1.0;
   }
-
-  var model = DashboardPageViewModel(ros);
+  DashboardPageViewModel model = DashboardPageViewModel(services);
   await widgetTester.pumpWidget(MaterialApp(home: DashboardPage(model: model)));
   return model;
 }
@@ -51,7 +51,11 @@ void main() {
     testWidgets('Main Page Layout', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createMockOfflineROS(),
+        createServicesRegistry(
+          createMockOfflineROS(),
+          createMockLogger(),
+          createOfflineMockInternetChecker(),
+        ),
         preferences,
       );
       void checkInsideAppbar(Finder finder) {
@@ -74,7 +78,11 @@ void main() {
       testWidgets('Page Switching', (widgetTester) async {
         var model = await pumpDashboardPage(
           widgetTester,
-          FakeROS(initialState: ROSConnectionState.connected),
+          createServicesRegistry(
+            FakeROS(initialState: ROSConnectionState.connected),
+            createMockLogger(),
+            createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
+          ),
           preferences,
         );
         Future<void> moveRight() async {
@@ -132,7 +140,11 @@ void main() {
       testWidgets('Settings Dialog', (widgetTester) async {
         await pumpDashboardPage(
           widgetTester,
-          FakeROS(initialState: ROSConnectionState.connected),
+          createServicesRegistry(
+            FakeROS(initialState: ROSConnectionState.connected),
+            createMockLogger(),
+            createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
+          ),
           preferences,
         );
         expect(find.byType(SettingsDialog), findsNothing);
@@ -151,7 +163,11 @@ void main() {
 
         var model = await pumpDashboardPage(
           widgetTester,
-          FakeROS(initialState: ROSConnectionState.connected),
+          createServicesRegistry(
+            FakeROS(initialState: ROSConnectionState.connected),
+            createMockLogger(),
+            createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
+          ),
           preferences,
         );
         Future<void> moveRight() async {
@@ -177,7 +193,11 @@ void main() {
     testWidgets('Websocket Disconnected', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createMockOfflineROS(),
+        createServicesRegistry(
+          createMockOfflineROS(),
+          createMockLogger(),
+          createOfflineMockInternetChecker(),
+        ),
         preferences,
       );
       await widgetTester.pumpAndSettle();
@@ -202,7 +222,11 @@ void main() {
     testWidgets('ROS Stale Data', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createMockOfflineROS(initialState: ROSConnectionState.staleData),
+        createServicesRegistry(
+          createMockOfflineROS(initialState: ROSConnectionState.staleData),
+          createMockLogger(),
+          createOfflineMockInternetChecker(),
+        ),
         preferences,
       );
       await widgetTester.pumpAndSettle();
@@ -221,7 +245,11 @@ void main() {
     testWidgets('ROS Connected (No Dialog)', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createFakeROS(initialState: ROSConnectionState.connected),
+        createServicesRegistry(
+          FakeROS(initialState: ROSConnectionState.connected),
+          createMockLogger(),
+          createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
+        ),
         preferences,
       );
       await widgetTester.pumpAndSettle();
@@ -230,7 +258,15 @@ void main() {
   });
   testWidgets('ROS Connection State Text', (widgetTester) async {
     FakeROS ros = createFakeROS();
-    await pumpDashboardPage(widgetTester, ros, preferences);
+    await pumpDashboardPage(
+      widgetTester,
+      createServicesRegistry(
+        ros,
+        createMockLogger(),
+        createOfflineMockInternetChecker(),
+      ),
+      preferences,
+    );
     await widgetTester.pumpAndSettle();
     expect(find.text(ROSConnectionStateMessages.noWebsocket), findsOneWidget);
 

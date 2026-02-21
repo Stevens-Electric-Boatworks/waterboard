@@ -9,8 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 // Project imports:
-import 'package:waterboard/services/log.dart';
-import 'package:waterboard/services/ros_comms/ros.dart';
+import 'package:waterboard/services/services.dart';
 import 'package:waterboard/waterboard_colors.dart';
 import 'dashboard_page.dart';
 
@@ -36,26 +35,26 @@ void main() async {
       });
     }
   }
-  await Log.instance.initialize();
-  ROS ros = ROSImpl();
-  runApp(MyApp(ros));
+  Services services = Services();
+  services.initialize();
+  runApp(WaterboardApp(services));
 }
 
-class MyApp extends StatefulWidget {
-  final ROS ros;
+class WaterboardApp extends StatefulWidget {
+  final Services services;
 
-  const MyApp(this.ros, {super.key});
+  const WaterboardApp(this.services, {super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<WaterboardApp> createState() => _WaterboardAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _WaterboardAppState extends State<WaterboardApp> {
   late DashboardPageViewModel _mainPageViewModel;
   @override
   void initState() {
     super.initState();
-    _mainPageViewModel = DashboardPageViewModel(widget.ros);
+    _mainPageViewModel = DashboardPageViewModel(widget.services);
   }
 
   // This widget is the root of your application.

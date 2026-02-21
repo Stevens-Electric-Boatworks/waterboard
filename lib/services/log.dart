@@ -6,19 +6,19 @@
 import 'package:flutter/foundation.dart';
 
 // Package imports:
+import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
 // Project imports:
 import 'package:waterboard/debug_vars.dart';
-import 'package:waterboard/services/time.dart';
 
 class Log extends ChangeNotifier {
   static final DateFormat _dateFormat = DateFormat('HH:mm:ss.S');
 
-  static Log instance = Log._internal();
-
-  Log._internal();
+  final bool storeLogs;
+  final Clock clock;
+  Log({required this.storeLogs, required this.clock});
 
   Logger? _logger;
   List<WaterboardLogMessage> msgs = [];
@@ -46,7 +46,7 @@ class Log extends ChangeNotifier {
     var msg = WaterboardLogMessage(
       msg: message,
       level: level,
-      time: Time.instance.clock.now(),
+      time: clock.now(),
     );
     msgs.add(msg);
     _logger?.log(
@@ -91,5 +91,3 @@ class WaterboardLogMessage {
     required this.time,
   });
 }
-
-Log get logger => Log.instance;
