@@ -20,12 +20,13 @@ abstract class ROS {
 }
 
 class ROSImpl extends ROS {
+  final Log _log;
   late ROSBridge _rosBridge;
   final Map<String, ROSSubscription> _subs = {};
   @override
   late final ROSLogsCollector rosLogs;
-  ROSImpl() {
-    _rosBridge = ROSBridge(this);
+  ROSImpl(this._log) {
+    _rosBridge = ROSBridge(this, _log);
     rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
     rosLogs.init();
   }
@@ -44,7 +45,7 @@ class ROSImpl extends ROS {
 
   @override
   void reconnect() {
-    Log.instance.info("[ROS] Reconnecting...");
+    _log.info("[ROS] Reconnecting...");
     _rosBridge.reconnect();
   }
 
@@ -54,7 +55,7 @@ class ROSImpl extends ROS {
     if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
-    Log.instance.info("[ROS] Subscribing to $topic");
+    _log.info("[ROS] Subscribing to $topic");
     var sub = ROSSubscriptionImpl(topic, _rosBridge);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;

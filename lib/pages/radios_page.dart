@@ -22,17 +22,16 @@ import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import 'package:waterboard/services/services.dart';
 import 'package:waterboard/waterboard_colors.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
 class RadiosPageViewModel extends ChangeNotifier {
-  final ROS ros;
+  final Services services;
   final MapController mapController = MapController();
 
   late final Stream<InternetStatus> internetStatusStream;
-
-  InternetChecker? connection;
 
   // ROS subscriptions
   late final ROSSubscription gpsSub;
@@ -51,7 +50,7 @@ class RadiosPageViewModel extends ChangeNotifier {
   bool mapReady = false;
   PmTilesVectorTileProvider? provider;
 
-  RadiosPageViewModel({required this.ros, required this.connection}) {
+  RadiosPageViewModel({required this.services}) {
     gpsSub = ros.subscribe("/motion/gps");
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
@@ -101,6 +100,10 @@ class RadiosPageViewModel extends ChangeNotifier {
     }
   }
 
+  InternetChecker? get connection => services.internet;
+  ROS get ros => services.ros;
+  Log get log => services.logger;
+
   void _onGpsUpdate() {
     if (!mapReady) return;
     final val = gpsSub.notifier.value;
@@ -124,12 +127,12 @@ class RadiosPageViewModel extends ChangeNotifier {
       final file = File(filePath);
       await file.writeAsBytes(byteData.buffer.asUint8List());
 
-      Log.instance.info("Hoboken Offline Map copied to: $filePath");
+      log.info("Hoboken Offline Map copied to: $filePath");
       provider = await PmTilesVectorTileProvider.fromSource(filePath);
-      Log.instance.info("Hoboken Offline Map loaded");
+      log.info("Hoboken Offline Map loaded");
       notifyListeners();
     } catch (e) {
-      Log.instance.error("Failed to load map: $e");
+      log.error("Failed to load map: $e");
     }
   }
 

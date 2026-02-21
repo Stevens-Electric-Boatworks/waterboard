@@ -19,10 +19,11 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 
 class ROSBridge {
   final ROS _ros;
+  final Log _log;
   final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
     ROSConnectionState.noWebsocket,
   );
-  ROSBridge(this._ros);
+  ROSBridge(this._ros, this._log);
   Timer? _websocketTimer;
   Timer? _rosBridgeTimer;
   WebSocketChannel? _channel;
@@ -54,26 +55,26 @@ class ROSBridge {
     final wsUrl = Uri.parse(
       'ws://${prefs.getString("websocket.ip") ?? "127.0.0.1"}:${prefs.getInt("websocket.port") ?? 9090}',
     );
-    Log.instance.info("[ROS] Connecting to $wsUrl");
+    _log.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);
     try {
       await _channel!.ready;
     } on SocketException {
-      Log.instance.error("[ROS] Socket error while connecting");
+      _log.error("[ROS] Socket error while connecting");
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     } on WebSocketChannelException {
-      Log.instance.error("[ROS] WebsocketChannelException while connecting");
+      _log.error("[ROS] WebsocketChannelException while connecting");
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     }
 
     _connectionState.value = ROSConnectionState.staleData;
-    Log.instance.info("[ROS] Connected to Websocket!");
+    _log.info("[ROS] Connected to Websocket!");
     _rosBridgeTimer?.cancel();
     _rosBridgeTimer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       if (DateTime.now().millisecondsSinceEpoch - _lastROSBridgeMsg >= 1500) {
-        Log.instance.info("[ROS] Stale data from ROSBridge");
+        _log.info("[ROS] Stale data from ROSBridge");
         _connectionState.value = ROSConnectionState.staleData;
         _sendAllSubscriptions();
       }
@@ -92,7 +93,7 @@ class ROSBridge {
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
       } else {
-        Log.instance.warning("[ROS] Unknown message from ROSBridge: $msg");
+        _log.warning("[ROS] Unknown message from ROSBridge: $msg");
       }
     });
   }

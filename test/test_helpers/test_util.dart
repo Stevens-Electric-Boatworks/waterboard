@@ -1,4 +1,6 @@
 // Flutter imports:
+
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,12 +10,21 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 // Project imports:
+import 'package:waterboard/services/internet_connection.dart';
+import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import 'package:waterboard/services/services.dart';
 import '../pages/radios_page.mocks.dart';
 import 'fakes/fake_internet_checker.dart';
 import 'fakes/fake_ros.dart';
 import 'test_util.mocks.dart';
+
+Services createServicesRegistry(ROS ros, Log logger, InternetChecker checker) {
+  Services service = Services();
+  service.initializeWithMocks(ros: ros, logger: logger, internet: checker);
+  return service;
+}
 
 @GenerateNiceMocks([MockSpec<ROSImpl>(), MockSpec<ROSSubscriptionImpl>()])
 MockROSImpl createMockOfflineROS({
@@ -41,6 +52,13 @@ FakeROS createFakeROS({
 }) {
   final fakeROS = FakeROS(initialState: initialState);
   return fakeROS;
+}
+
+@GenerateNiceMocks([MockSpec<Log>()])
+Log createMockLogger() {
+  MockLog mock = MockLog();
+  when(mock.onMessage).thenReturn(ValueNotifier(null));
+  return mock;
 }
 
 MockInternetChecker createOfflineMockInternetChecker() {
