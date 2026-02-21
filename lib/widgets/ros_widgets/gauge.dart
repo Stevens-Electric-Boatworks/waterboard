@@ -1,9 +1,7 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
 // Package imports:
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_listenable_widget.dart';
@@ -45,15 +43,16 @@ class ROSGauge extends StatelessWidget {
       valueNotifier: dataSource.sub.notifier,
       builder: (BuildContext context, Map<String, dynamic> json) {
         double value = dataSource.valueBuilder(json);
-        return _buildGauge(value, true);
+        return _buildGauge(context, value, true);
       },
       noDataBuilder: (BuildContext context) {
-        return _buildGauge(minimum, false, hasData: false);
+        return _buildGauge(context, minimum, false, hasData: false);
       },
     );
   }
 
   Widget _buildGauge(
+    BuildContext context,
     double value,
     bool enableAnimation, {
     bool hasData = true,
@@ -70,7 +69,6 @@ class ROSGauge extends StatelessWidget {
           ),
           minimum: minimum,
           maximum: maximum,
-          // ranges: ranges,
           pointers: [
             NeedlePointer(
               value: value,
@@ -97,7 +95,9 @@ class ROSGauge extends StatelessWidget {
             GaugeAnnotation(
               widget: Text(
                 title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                style: Theme.of(context).textTheme.titleLarge?.merge(
+                  TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               angle: 90,
               positionFactor: 0.4,
@@ -110,15 +110,16 @@ class ROSGauge extends StatelessWidget {
                 children: [
                   Text(
                     hasData ? "$value" : "Unknown",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: hasData ? 30 : 24,
+                    style: Theme.of(context).textTheme.headlineMedium?.merge(
+                      TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(width: 5),
                   Text(
                     unitText,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    style: Theme.of(context).textTheme.titleMedium?.merge(
+                      TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -127,7 +128,7 @@ class ROSGauge extends StatelessWidget {
             ),
           ],
           axisLabelStyle: GaugeTextStyle(
-            fontSize: 18,
+            fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),

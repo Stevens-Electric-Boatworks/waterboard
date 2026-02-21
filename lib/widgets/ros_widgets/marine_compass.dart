@@ -33,12 +33,17 @@ class MarineCompass extends StatelessWidget {
 
   Widget _buildCompass(double heading, BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(
-          width: size,
-          height: size,
-          child: CustomPaint(painter: _MarineCompassPainter(heading % 360)),
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return SizedBox(
+              width: constraints.maxWidth * 0.7,
+              height: constraints.maxWidth * 0.7,
+              child: CustomPaint(painter: _MarineCompassPainter(heading % 360, context)),
+            );
+          },
         ),
         SizedBox(height: 5),
         Text("$heading°", style: Theme.of(context).textTheme.displayMedium),
@@ -50,8 +55,9 @@ class MarineCompass extends StatelessWidget {
 
 class _MarineCompassPainter extends CustomPainter {
   final double heading;
+  final BuildContext context;
 
-  _MarineCompassPainter(this.heading);
+  _MarineCompassPainter(this.heading, this.context);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -61,10 +67,10 @@ class _MarineCompassPainter extends CustomPainter {
     final circlePaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
+      ..strokeWidth = radius / 50;
 
     final tickPaint = Paint()
-      ..color = Colors.black
+    ..color = Colors.black
       ..strokeCap = StrokeCap.round;
 
     final textPainter = TextPainter(
@@ -88,8 +94,8 @@ class _MarineCompassPainter extends CustomPainter {
 
     for (int deg = 0; deg < 360; deg += 5) {
       final isMajor = deg % 30 == 0;
-      final tickLength = isMajor ? 14.0 : 7.0;
-      tickPaint.strokeWidth = isMajor ? 3 : 1.5;
+      final tickLength = isMajor ? radius / 15 : radius / 15 / 2;
+      tickPaint.strokeWidth = isMajor ? radius / 50 : radius / 50 / 2;
 
       final angle = (deg - 90) * pi / 180;
       final start = Offset(
@@ -109,17 +115,13 @@ class _MarineCompassPainter extends CustomPainter {
     labels.forEach((deg, label) {
       final angle = (deg - 90) * pi / 180;
       final offset = Offset(
-        center.dx + (radius - 32) * cos(angle),
-        center.dy + (radius - 32) * sin(angle),
+        center.dx + (radius - (radius / 5)) * cos(angle),
+        center.dy + (radius - (radius / 5)) * sin(angle),
       );
 
       textPainter.text = TextSpan(
         text: label,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
+        style: Theme.of(context).textTheme.titleLarge?.merge(TextStyle(fontWeight: FontWeight.bold))
       );
       textPainter.layout();
       textPainter.paint(
