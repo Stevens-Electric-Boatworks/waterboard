@@ -106,7 +106,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
+#        with:
 #          lfs: true
       # TEMPORARY WORKAROUND BECAUSE WE FILLED LFS USAGE QUOTAS
       - name: Install flutter build dependencies
