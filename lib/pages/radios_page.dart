@@ -101,7 +101,9 @@ class RadiosPageViewModel extends ChangeNotifier {
   }
 
   InternetChecker? get connection => services.internet;
+
   ROS get ros => services.ros;
+
   Log get log => services.logger;
 
   void _onGpsUpdate() {
@@ -170,190 +172,197 @@ class _RadiosPageState extends State<RadiosPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          _buildInternetAndCell(),
-          const SizedBox(width: 15),
-          _buildGPS(),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(flex: 3, child: _buildInternetAndCell()),
+              const SizedBox(width: 20),
+              Flexible(flex: 7, child: _buildGPS()),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildInternetAndCell() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
-      decoration: BoxDecoration(
-        color: WaterboardColors.containerBackground,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 20,
-        children: [
-          Text(
-            "Internet and Cellular",
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          ValueListenableBuilder(
-            valueListenable: model.connection!.ipAddress,
-            builder: (_, value, __) {
-              return _buildText(
-                value ?? (kIsWeb ? "Unsupported" : "Not Connected"),
-                "IP Address",
-              );
-            },
-          ),
-          StreamBuilder<InternetStatus>(
-            stream: model.internetStatusStream,
-            builder: (_, snapshot) {
-              final status = snapshot.data;
-              if (status == InternetStatus.connected) {
-                return _buildText(
-                  "Reachable",
-                  "Shore Reachable?",
-                  color: Colors.green,
-                );
-              } else {
-                return _buildText(
-                  "Unreachable",
-                  "Shore Reachable?",
-                  color: Colors.red,
-                );
-              }
-            },
-          ),
-          ValueListenableBuilder(
-            valueListenable: model.connection!.ssid,
-            builder: (_, value, __) {
-              return _buildText(
-                value ?? (kIsWeb ? "Unsupported" : "Not Connected"),
-                "WiFi SSID",
-              );
-            },
-          ),
-          _buildWidgetBackground(
-            ROSText(dataSource: model.cell, subtext: "Cell Strength"),
-          ),
-          _buildText(
-            "shore.stevenseboat.org",
-            "Shore URL",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ],
+      padding: const EdgeInsets.all(20),
+      decoration: _panelDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Center(
+            child: SizedBox(
+              width: constraints.maxWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Internet and Cellular",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 24),
+
+                  _internetBox(
+                    ValueListenableBuilder(
+                      valueListenable: model.connection!.ipAddress,
+                      builder: (_, value, __) {
+                        return _buildText(
+                          value ?? "Not Connected",
+                          "IP Address",
+                        );
+                      },
+                    ),
+                  ),
+
+                  _internetBox(
+                    StreamBuilder<InternetStatus>(
+                      stream: model.internetStatusStream,
+                      builder: (_, snapshot) {
+                        final connected =
+                            snapshot.data == InternetStatus.connected;
+
+                        return _buildText(
+                          connected ? "Reachable" : "Unreachable",
+                          "Shore Reachable?",
+                          color: connected ? Colors.green : Colors.red,
+                        );
+                      },
+                    ),
+                  ),
+
+                  _internetBox(
+                    ValueListenableBuilder(
+                      valueListenable: model.connection!.ssid,
+                      builder: (_, value, __) {
+                        return _buildText(
+                          value ?? "Not Connected",
+                          "WiFi SSID",
+                        );
+                      },
+                    ),
+                  ),
+
+                  _internetBox(
+                    ROSText(dataSource: model.cell, subtext: "Cell Strength"),
+                  ),
+                  _buildText(
+                    "shore.stevenseboat.org",
+                    "Shore URL",
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildGPS() {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 10, 24, 10),
-        decoration: BoxDecoration(
-          color: WaterboardColors.containerBackground,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 20,
-          children: [
-            Text(
-              "GPS and Location",
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildWidgetBackground(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _panelDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "GPS and Location",
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          const SizedBox(height: 20),
+
+          // Latitude / Longitude
+          Row(
+            children: [
+              Expanded(
+                child: _buildWidgetBackground(
                   ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
-                  width: 350,
                 ),
-                _buildWidgetBackground(
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildWidgetBackground(
                   ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
-                  width: 350,
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Stats Row 1
+          Row(
+            children: [
+              Expanded(
+                child: _buildWidgetBackground(
+                  ROSText(dataSource: model.sv, subtext: "Satellites"),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildWidgetBackground(
+                  ROSText(dataSource: model.vtg, subtext: "Speed (mph)"),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildWidgetBackground(
+                  ROSText(dataSource: model.alt, subtext: "Altitude"),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildWidgetBackground(
+                  ROSText(dataSource: model.climb, subtext: "Climb"),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Compass + Map
+          Expanded(
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    _buildWidgetBackground(
-                      ROSText(dataSource: model.sv, subtext: "Satellites"),
-                      width: 172.5 - 5,
-                    ),
-                    const SizedBox(width: 10),
-                    _buildWidgetBackground(
-                      ROSText(dataSource: model.vtg, subtext: "Speed (mph)"),
-                      width: 172.5 - 5,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    _buildWidgetBackground(
-                      ROSText(dataSource: model.alt, subtext: "Altitude"),
-                      width: 172.5 - 5,
-                    ),
-                    const SizedBox(width: 10),
-                    _buildWidgetBackground(
-                      ROSText(dataSource: model.climb, subtext: "Climb"),
-                      width: 172.5 - 5,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            // compass and map
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildWidgetBackground(
-                  MarineCompass(dataSource: model.compass),
-                  width: 350,
-                ),
-                SizedBox(
-                  height: 370,
+                Expanded(
                   child: _buildWidgetBackground(
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: (!kIsWeb && model.provider == null)
-                          ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "The map is loading...",
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                Text(
-                                  "(Did you remember to run git lfs pull?)",
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
-                              ],
-                            )
-                          : _getMap(),
-                    ),
-                    width: 350,
-                    verticalPadding: 0,
+                    MarineCompass(dataSource: model.compass),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SizedBox(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        child: _buildWidgetBackground(
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: _getMap(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _getMap() {
     model.mapReady = true;
+    // return Container();
     return FlutterMap(
       mapController: model.mapController,
       options: MapOptions(
@@ -410,18 +419,28 @@ class _RadiosPageState extends State<RadiosPage> {
     );
   }
 
-  Widget _buildWidgetBackground(
-    Widget inside, {
-    double width = 275,
-    double verticalPadding = 8,
-  }) {
+  Widget _internetBox(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: _buildWidgetBackground(child),
+    );
+  }
+
+  Widget _buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding),
+      padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: WaterboardColors.containerForeground,
       ),
-      child: SizedBox(width: width, child: inside),
+      child: inside,
+    );
+  }
+
+  BoxDecoration _panelDecoration() {
+    return BoxDecoration(
+      color: WaterboardColors.containerBackground,
+      borderRadius: BorderRadius.circular(16),
     );
   }
 }

@@ -28,7 +28,7 @@ class ResponsiveGaugeGrid extends StatelessWidget {
             ? rowHeight * 0.95
             : maxWidthBased * 0.95;
 
-        final thickness = (gaugeSize * 0.14).clamp(8.0, 40.0);
+        final thickness = (gaugeSize * 0.1).clamp(8.0, 80.0);
 
         List<Widget> buildRows() {
           List<Widget> result = [];

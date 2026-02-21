@@ -195,7 +195,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 decoration: BoxDecoration(
                   border: BoxBorder.all(color: Colors.black),
                 ),
-                margin: EdgeInsets.symmetric(vertical: 4),
+                margin: EdgeInsets.symmetric(vertical: 8),
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -223,19 +223,22 @@ class _DashboardPageState extends State<DashboardPage> {
               valueListenable: model.ros.connectionState,
               builder: (context, value, child) => ROSConnectionStateWidget(
                 value: value,
-                fontSize: 18,
-                iconSize: 18,
+                fontSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
+                iconSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
               ),
             ),
             SizedBox(width: 15),
             IconButton(
               onPressed: () => PageUtils.showSettingsDialog(context, model.ros),
-              icon: Icon(Icons.settings),
+              icon: Icon(
+                Icons.settings,
+                size: Theme.of(context).textTheme.titleLarge!.fontSize!,
+              ),
             ),
           ],
-          leadingWidth: 100,
-          toolbarHeight: 35,
+          leadingWidth: 700,
         ),
+
         body: PageView(
           controller: _pageController,
           scrollBehavior: ScrollBehavior().copyWith(
