@@ -85,7 +85,7 @@ class _WaterboardAppState extends State<WaterboardApp> {
         return Theme(
           data: baseTheme.copyWith(
             textTheme: baseTheme.textTheme.apply(
-              fontSizeFactor: scale.clamp(0.8, 2),
+              fontSizeFactor: scale.clamp(0.5, 1.5),
             ),
           ),
           child: child!,

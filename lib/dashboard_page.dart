@@ -21,6 +21,7 @@ import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 import 'widgets/ros_connection_state_widget.dart';
 import 'widgets/time_text.dart';
 
@@ -182,62 +183,7 @@ class _DashboardPageState extends State<DashboardPage> {
         return KeyEventResult.ignored;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Stevens Electric Boatworks",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          leading: Row(
-            children: [
-              SizedBox(width: 4),
-              Container(
-                decoration: BoxDecoration(
-                  border: BoxBorder.all(color: Colors.black),
-                ),
-                margin: EdgeInsets.symmetric(vertical: 8),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClockText(
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ),
-                ),
-              ),
-              kIsWeb
-                  ? Text(
-                      "         WARNING: Web Support is Experimental!",
-                      style: Theme.of(context).textTheme.titleSmall?.merge(
-                        TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  : Container(),
-            ],
-          ),
-          actions: [
-            ValueListenableBuilder(
-              valueListenable: model.ros.connectionState,
-              builder: (context, value, child) => ROSConnectionStateWidget(
-                value: value,
-                fontSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
-                iconSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
-              ),
-            ),
-            SizedBox(width: 15),
-            IconButton(
-              onPressed: () => PageUtils.showSettingsDialog(context, model.ros),
-              icon: Icon(
-                Icons.settings,
-                size: Theme.of(context).textTheme.titleLarge!.fontSize!,
-              ),
-            ),
-          ],
-          leadingWidth: 700,
-        ),
+        appBar: WaterboardAppBarWidget(ros: model.ros),
 
         body: PageView(
           controller: _pageController,

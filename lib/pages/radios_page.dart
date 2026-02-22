@@ -199,6 +199,7 @@ class _RadiosPageState extends State<RadiosPage> {
             child: SizedBox(
               width: constraints.maxWidth,
               child: Column(
+                mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
@@ -206,55 +207,57 @@ class _RadiosPageState extends State<RadiosPage> {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _internetBox(
+                          ValueListenableBuilder(
+                            valueListenable: model.connection!.ipAddress,
+                            builder: (_, value, __) {
+                              return _buildText(
+                                value ?? "Not Connected",
+                                "IP Address",
+                              );
+                            },
+                          ),
+                        ),
 
-                  _internetBox(
-                    ValueListenableBuilder(
-                      valueListenable: model.connection!.ipAddress,
-                      builder: (_, value, __) {
-                        return _buildText(
-                          value ?? "Not Connected",
-                          "IP Address",
-                        );
-                      },
+                        _internetBox(
+                          StreamBuilder<InternetStatus>(
+                            stream: model.internetStatusStream,
+                            builder: (_, snapshot) {
+                              final connected =
+                                  snapshot.data == InternetStatus.connected;
+
+                              return _buildText(
+                                connected ? "Reachable" : "Unreachable",
+                                "Shore Reachable?",
+                                color: connected ? Colors.green : Colors.red,
+                              );
+                            },
+                          ),
+                        ),
+
+                        _internetBox(
+                          ValueListenableBuilder(
+                            valueListenable: model.connection!.ssid,
+                            builder: (_, value, __) {
+                              return _buildText(
+                                value ?? "Not Connected",
+                                "WiFi SSID",
+                              );
+                            },
+                          ),
+                        ),
+
+                        _internetBox(
+                          ROSText(dataSource: model.cell, subtext: "Cell Strength"),
+                        ),
+                      ],
                     ),
-                  ),
-
-                  _internetBox(
-                    StreamBuilder<InternetStatus>(
-                      stream: model.internetStatusStream,
-                      builder: (_, snapshot) {
-                        final connected =
-                            snapshot.data == InternetStatus.connected;
-
-                        return _buildText(
-                          connected ? "Reachable" : "Unreachable",
-                          "Shore Reachable?",
-                          color: connected ? Colors.green : Colors.red,
-                        );
-                      },
-                    ),
-                  ),
-
-                  _internetBox(
-                    ValueListenableBuilder(
-                      valueListenable: model.connection!.ssid,
-                      builder: (_, value, __) {
-                        return _buildText(
-                          value ?? "Not Connected",
-                          "WiFi SSID",
-                        );
-                      },
-                    ),
-                  ),
-
-                  _internetBox(
-                    ROSText(dataSource: model.cell, subtext: "Cell Strength"),
-                  ),
-                  _buildText(
-                    "shore.stevenseboat.org",
-                    "Shore URL",
-                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
               ),
