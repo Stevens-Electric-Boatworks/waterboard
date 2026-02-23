@@ -254,7 +254,10 @@ class _RadiosPageState extends State<RadiosPage> {
                         ),
 
                         _internetBox(
-                          ROSText(dataSource: model.cell, subtext: "Cell Strength"),
+                          ROSText(
+                            dataSource: model.cell,
+                            subtext: "Cell Strength",
+                          ),
                         ),
                       ],
                     ),

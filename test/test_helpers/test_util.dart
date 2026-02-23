@@ -20,9 +20,17 @@ import 'fakes/fake_internet_checker.dart';
 import 'fakes/fake_ros.dart';
 import 'test_util.mocks.dart';
 
-Services createServicesRegistry(ROS ros, Log logger, InternetChecker checker) {
+Future<Services> createServicesRegistry(
+  ROS ros,
+  Log logger,
+  InternetChecker checker,
+) async {
   Services service = Services();
-  service.initializeWithMocks(ros: ros, logger: logger, internet: checker);
+  await service.initializeWithMocks(
+    ros: ros,
+    logger: logger,
+    internet: checker,
+  );
   return service;
 }
 

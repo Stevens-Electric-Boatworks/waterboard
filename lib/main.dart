@@ -36,7 +36,7 @@ void main() async {
     }
   }
   Services services = Services();
-  services.initialize();
+  await services.initialize();
   runApp(WaterboardApp(services));
 }
 
