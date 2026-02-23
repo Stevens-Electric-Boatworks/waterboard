@@ -1,12 +1,12 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
-// Package imports:
-
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/time_text.dart';
+
+// Package imports:
 
 class SettingsDialog extends StatefulWidget {
   final Services services;

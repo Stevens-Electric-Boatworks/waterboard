@@ -183,8 +183,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          lfs: true
+#        with:
+#          lfs: true
+# TEMPORARY WORKAROUND BECAUSE WE FILLED GITHUB LFS USAGE QUOTAS. We will likely move off of LFS soon...
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
