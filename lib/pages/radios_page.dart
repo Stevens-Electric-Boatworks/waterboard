@@ -206,6 +206,8 @@ class _RadiosPageState extends State<RadiosPage> {
                     "Internet and Cellular",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
                   ),
                   Expanded(
                     child: Column(
@@ -218,7 +220,7 @@ class _RadiosPageState extends State<RadiosPage> {
                             valueListenable: model.connection!.ipAddress,
                             builder: (_, value, __) {
                               return _buildText(
-                                value ?? "Not Connected",
+                                value ?? "Disconnected",
                                 "IP Address",
                               );
                             },
@@ -246,7 +248,7 @@ class _RadiosPageState extends State<RadiosPage> {
                             valueListenable: model.connection!.ssid,
                             builder: (_, value, __) {
                               return _buildText(
-                                value ?? "Not Connected",
+                                value ?? "Disconnected",
                                 "WiFi SSID",
                               );
                             },
@@ -276,13 +278,13 @@ class _RadiosPageState extends State<RadiosPage> {
       padding: const EdgeInsets.all(20),
       decoration: _panelDecoration(),
       child: Column(
+        spacing: 20,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             "GPS and Location",
             style: Theme.of(context).textTheme.headlineLarge,
           ),
-          const SizedBox(height: 20),
 
           // Latitude / Longitude
           Row(
@@ -300,7 +302,6 @@ class _RadiosPageState extends State<RadiosPage> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
 
           // Stats Row 1
           Row(
@@ -313,7 +314,13 @@ class _RadiosPageState extends State<RadiosPage> {
               const SizedBox(width: 20),
               Expanded(
                 child: _buildWidgetBackground(
-                  ROSText(dataSource: model.vtg, subtext: "Speed (mph)"),
+                  ROSText(
+                    dataSource: model.vtg,
+                    subtext: "Speed (mph)",
+                    subTextStyle: Theme.of(context).textTheme.titleLarge!.merge(
+                      TextStyle(overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 20),
@@ -330,7 +337,6 @@ class _RadiosPageState extends State<RadiosPage> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
 
           // Compass + Map
           Expanded(
@@ -426,10 +432,7 @@ class _RadiosPageState extends State<RadiosPage> {
   }
 
   Widget _internetBox(Widget child) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: _buildWidgetBackground(child),
-    );
+    return _buildWidgetBackground(child);
   }
 
   Widget _buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {

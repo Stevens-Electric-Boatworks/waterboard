@@ -15,18 +15,28 @@ class ROSTextDataSource {
 class ROSText extends StatefulWidget {
   final String subtext;
   final ROSTextDataSource dataSource;
-
-  const ROSText({super.key, required this.subtext, required this.dataSource});
+  final TextStyle? valueTextStyle;
+  final TextStyle? subTextStyle;
+  const ROSText({
+    super.key,
+    required this.subtext,
+    required this.dataSource,
+    this.valueTextStyle,
+    this.subTextStyle,
+  });
 
   @override
   State<ROSText> createState() => _ROSTextState();
 }
 
 class _ROSTextState extends State<ROSText> {
-  TextStyle? valueTextStyle;
-  TextStyle? subTextStyle;
+  late TextStyle? valueTextStyle;
+  late TextStyle? subTextStyle;
   @override
   Widget build(BuildContext context) {
+    valueTextStyle = widget.valueTextStyle;
+    subTextStyle = widget.subTextStyle;
+
     valueTextStyle ??= Theme.of(context).textTheme.displaySmall;
     subTextStyle ??= Theme.of(context).textTheme.titleLarge;
     return ROSListenable(
@@ -44,7 +54,12 @@ class _ROSTextState extends State<ROSText> {
   Widget _buildTextWidget(String value, Color color) {
     return Column(
       children: [
-        Text(value, style: valueTextStyle?.merge(TextStyle(color: color))),
+        Text(
+          value,
+          style: valueTextStyle?.merge(TextStyle(color: color)),
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+        ),
         SizedBox(height: 10),
         Text(widget.subtext, style: subTextStyle),
       ],
