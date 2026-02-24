@@ -18,7 +18,7 @@ class FakeROSSubscription extends ROSSubscription {
   }
 
   @override
-  bool isStale = false;
+  bool isStale = true;
 
   @override
   void onData(Map<String, dynamic> data) {

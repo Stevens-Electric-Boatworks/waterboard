@@ -40,7 +40,7 @@ class _ROSTextState extends State<ROSText> {
     valueTextStyle ??= Theme.of(context).textTheme.displaySmall;
     subTextStyle ??= Theme.of(context).textTheme.titleLarge;
     return ROSListenable(
-      valueNotifier: widget.dataSource.sub.notifier,
+      subscription: widget.dataSource.sub,
       builder: (BuildContext context, Map<String, dynamic> json) {
         var val = widget.dataSource.valueBuilder(json);
         return _buildTextWidget(val.$1, val.$2);

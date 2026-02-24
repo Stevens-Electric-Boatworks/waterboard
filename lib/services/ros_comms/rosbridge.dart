@@ -113,9 +113,9 @@ class ROSBridge {
   }
 
   void _sendAllSubscriptions() {
-    for (var sub in _ros.subs.values) {
-      sendSubscription(sub);
-    }
+    // for (var sub in _ros.subs.values) {
+    //   sendSubscription(sub);
+    // }
   }
 
   void sendSubscription(ROSSubscription sub) {

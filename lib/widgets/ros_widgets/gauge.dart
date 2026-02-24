@@ -42,7 +42,7 @@ class ROSGauge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ROSListenable(
-      valueNotifier: dataSource.sub.notifier,
+      subscription: dataSource.sub,
       builder: (BuildContext context, Map<String, dynamic> json) {
         double value = dataSource.valueBuilder(json);
         return _buildGauge(context, value, true);

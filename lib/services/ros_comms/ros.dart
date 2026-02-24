@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 
 // Package imports:
+import 'package:clock/clock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
@@ -60,7 +61,7 @@ class ROSImpl extends ROS {
       return _subs[topic]!;
     }
     _log.info("[ROS] Creating new subscription to '$topic'");
-    var sub = ROSSubscriptionImpl(topic, _rosBridge);
+    var sub = ROSSubscriptionImpl(topic, _rosBridge, clock);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
     return sub;

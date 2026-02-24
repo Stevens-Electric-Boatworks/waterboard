@@ -24,7 +24,7 @@ class MarineCompass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ROSListenable(
-      valueNotifier: dataSource.sub.notifier,
+      subscription: dataSource.sub,
       noDataBuilder: (context) => _buildCompass(0, context),
       builder: (context, value) =>
           _buildCompass(dataSource.valueBuilder(value), context),
