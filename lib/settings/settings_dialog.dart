@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
@@ -34,8 +35,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   void _updateIPInSettings() async {
     var prefs = widget.services.preferences;
-    String ip = prefs.getString("websocket.ip") ?? "127.0.0.1";
-    int? port = prefs.getInt("websocket.port") ?? 9090;
+    String ip = prefs.getString(PrefKeys.websocketIP) ?? "127.0.0.1";
+    int? port = prefs.getInt(PrefKeys.websocketPort) ?? 9090;
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }
@@ -66,7 +67,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     onChanged: (value) {
                       if (value.isEmpty) return;
                       widget.services.preferences.setString(
-                        "websocket.ip",
+                        PrefKeys.websocketIP,
                         value,
                       );
                       widget.onSettingsChanged();
@@ -95,7 +96,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       if (value.isEmpty) return;
                       if (int.tryParse(value) == null) return;
                       widget.services.preferences.setInt(
-                        "websocket.port",
+                        PrefKeys.websocketPort,
                         int.parse(value),
                       );
                       widget.onSettingsChanged();
@@ -112,11 +113,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
               SizedBox(width: 10),
               Switch(
                 value:
-                    widget.services.preferences.getBool("locked_layout") ??
+                    widget.services.preferences.getBool(PrefKeys.layoutLocked) ??
                     false,
                 onChanged: (value) {
                   setState(() {
-                    widget.services.preferences.setBool("locked_layout", value);
+                    widget.services.preferences.setBool(PrefKeys.layoutLocked, value);
                     widget.onSettingsChanged();
                   });
                 },

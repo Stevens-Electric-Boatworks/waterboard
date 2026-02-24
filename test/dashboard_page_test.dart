@@ -14,6 +14,7 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
@@ -177,7 +178,7 @@ void main() {
         expect(find.byType(MainDriverPage), findsOneWidget);
         expect(find.byType(ElectricsPage), findsNothing);
 
-        preferences.setBool("locked_layout", false);
+        preferences.setBool(PrefKeys.layoutLocked, false);
         await moveRight();
         expect(model.currentPage, 1);
         expect(find.byType(MainDriverPage), findsNothing);

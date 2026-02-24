@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../test_helpers/test_util.dart';
@@ -72,18 +73,18 @@ void main() {
       expect(find.text("9090"), findsOneWidget);
 
       expect(find.byType(TextField), findsNWidgets(2));
-      expect(services.preferences.getString("websocket.ip"), null);
-      expect(services.preferences.getInt("websocket.port"), null);
+      expect(services.preferences.getString(PrefKeys.websocketIP), null);
+      expect(services.preferences.getInt(PrefKeys.websocketPort), null);
 
       var ipPrompt = find.byKey(Key("ip_address"));
       await widgetTester.enterText(ipPrompt, "192.172.1.3");
       await widgetTester.pumpAndSettle();
-      expect(services.preferences.getString("websocket.ip"), "192.172.1.3");
+      expect(services.preferences.getString(PrefKeys.websocketIP), "192.172.1.3");
 
       var portPrompt = find.byKey(Key("port"));
       await widgetTester.enterText(portPrompt, "8281");
       await widgetTester.pumpAndSettle();
-      expect(services.preferences.getInt("websocket.port"), 8281);
+      expect(services.preferences.getInt(PrefKeys.websocketPort), 8281);
 
       //validate new values
       expect(find.text("192.172.1.3"), findsOneWidget);
@@ -92,22 +93,22 @@ void main() {
       //find swtich
       var lockedLayout = find.byType(Switch);
       expect(lockedLayout, findsOneWidget);
-      expect(services.preferences.getBool("locked_layout"), null);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), null);
       expect(widgetTester.widget<Switch>(lockedLayout).value, false);
       await widgetTester.tap(lockedLayout);
       await widgetTester.pumpAndSettle();
-      expect(services.preferences.getBool("locked_layout"), true);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), true);
       expect(widgetTester.widget<Switch>(lockedLayout).value, true);
       await widgetTester.tap(lockedLayout);
       await widgetTester.pumpAndSettle();
-      expect(services.preferences.getBool("locked_layout"), false);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), false);
       expect(widgetTester.widget<Switch>(lockedLayout).value, false);
     });
     testWidgets('With Initial Data', (widgetTester) async {
       SharedPreferences.setMockInitialValues({
-        'websocket.ip': "127.132.2.3",
-        'websocket.port': 2712,
-        'locked_layout': true,
+        PrefKeys.websocketIP: "127.132.2.3",
+        PrefKeys.websocketPort: 2712,
+        PrefKeys.layoutLocked: true,
       });
       var mock = createMockOfflineROS();
       await widgetTester.pumpWidget(

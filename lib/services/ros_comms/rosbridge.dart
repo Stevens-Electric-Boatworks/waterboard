@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 // Project imports:
@@ -53,7 +54,7 @@ class ROSBridge {
 
   Future<void> _attemptConnect() async {
     final wsUrl = Uri.parse(
-      'ws://${_preferences.getString("websocket.ip") ?? "127.0.0.1"}:${_preferences.getInt("websocket.port") ?? 9090}',
+      'ws://${_preferences.getString(PrefKeys.websocketIP) ?? "127.0.0.1"}:${_preferences.getInt(PrefKeys.websocketPort) ?? 9090}',
     );
     _log.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);

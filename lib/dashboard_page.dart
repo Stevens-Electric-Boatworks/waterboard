@@ -15,6 +15,7 @@ import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
@@ -36,7 +37,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   Log get log => services.logger;
   SharedPreferences get _preferences => services.preferences;
 
-  bool get layoutLocked => _preferences.getBool("locked_layout") ?? false;
+  bool get layoutLocked => _preferences.getBool(PrefKeys.layoutLocked) ?? false;
 
   Future<void> init() async {
     ros.startConnectionLoop();
@@ -61,13 +62,13 @@ class DashboardPageViewModel extends ChangeNotifier {
   }
 
   void moveToNextPage() {
-    if (!(_preferences.getBool("locked_layout") ?? false)) {
+    if (!layoutLocked) {
       moveToPage(min(_currentPage + 1, totalPages - 1));
     }
   }
 
   void moveToPreviousPage() {
-    if (!(_preferences.getBool("locked_layout") ?? false)) {
+    if (!layoutLocked) {
       moveToPage(max(0, _currentPage - 1));
     }
   }
