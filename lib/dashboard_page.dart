@@ -27,7 +27,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
     null,
   );
-  final int totalPages = 6;
+  final int totalPages = 4;
   final Services services;
   DashboardPageViewModel(this.services);
 
@@ -82,6 +82,14 @@ class DashboardPageViewModel extends ChangeNotifier {
 
   void closeAllDialogs() {
     connectionDialogType.value = null;
+  }
+
+  void openSettingsDialog(BuildContext context) {
+    PageUtils.showSettingsDialog(context, services, () => onSettingsChange());
+  }
+
+  void onSettingsChange() {
+    notifyListeners();
   }
 }
 
@@ -142,10 +150,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  void _onSettingsChange() {
-    setState(() {});
-  }
-
   @override
   void dispose() {
     model.removeListener(_onModelChanged);
@@ -168,11 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent &&
               event.logicalKey == LogicalKeyboardKey.keyS) {
-            PageUtils.showSettingsDialog(
-              context,
-              model.services,
-              _onSettingsChange,
-            );
+            model.openSettingsDialog(context);
             return KeyEventResult.handled;
           }
           if (event is KeyDownEvent &&
@@ -191,7 +191,7 @@ class _DashboardPageState extends State<DashboardPage> {
           appBar: WaterboardAppBarWidget(
             services: model.services,
             layoutLocked: () => model.layoutLocked,
-            onSettingsChanged: _onSettingsChange,
+            onSettingsChanged: model.onSettingsChange,
           ),
 
           body: PageView(
@@ -208,10 +208,8 @@ class _DashboardPageState extends State<DashboardPage> {
               KeepAlivePage(
                 child: ElectricsPage(model: _electricsPageViewModel),
               ),
-              KeepAlivePage(child: Placeholder()),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
               KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
-              KeepAlivePage(child: Placeholder()),
             ],
           ),
           bottomNavigationBar: SizedBox(
@@ -231,20 +229,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       label: "Electric",
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.water_rounded),
-                      label: "Motors",
-                    ),
-                    BottomNavigationBarItem(
                       icon: Icon(Icons.radio),
                       label: "Radios",
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.notes),
                       label: "Logs",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.error),
-                      label: "Faults",
                     ),
                   ],
                   onTap: (value) {
@@ -283,11 +273,7 @@ class _DashboardPageState extends State<DashboardPage> {
               TextButton(
                 onPressed: () {
                   if (model.layoutLocked) return;
-                  PageUtils.showSettingsDialog(
-                    context,
-                    model.services,
-                    _onSettingsChange,
-                  );
+                  model.openSettingsDialog(context);
                 },
                 child: Text("Open Settings"),
               ),
@@ -334,11 +320,7 @@ class _DashboardPageState extends State<DashboardPage> {
               TextButton(
                 onPressed: () {
                   if (model.layoutLocked) return;
-                  PageUtils.showSettingsDialog(
-                    context,
-                    model.services,
-                    _onSettingsChange,
-                  );
+                  model.openSettingsDialog(context);
                 },
                 child: Text("Open Settings"),
               ),

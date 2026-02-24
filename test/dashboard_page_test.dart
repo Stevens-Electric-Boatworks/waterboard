@@ -111,36 +111,27 @@ void main() {
         expect(model.currentPage, 1);
         expect(find.byType(ElectricsPage), findsOneWidget);
 
-        //verify correct pages
         await moveRight();
         expect(model.currentPage, 2);
-        expect(find.byType(Placeholder), findsOneWidget);
-
-        await moveRight();
-        expect(model.currentPage, 3);
         expect(find.byType(RadiosPage), findsOneWidget);
 
         await moveRight();
-        expect(model.currentPage, 4);
+        expect(model.currentPage, 3);
         expect(find.byType(LogsPage), findsOneWidget);
-
-        await moveRight();
-        expect(model.currentPage, 5);
-        expect(find.byType(Placeholder), findsOneWidget);
 
         //verify moving right does nothing
         await moveRight();
-        expect(model.currentPage, 5);
-        expect(find.byType(Placeholder), findsOneWidget);
+        expect(model.currentPage, 3);
+        expect(find.byType(LogsPage), findsOneWidget);
 
         //verify that we can move back
         await moveLeft();
-        expect(model.currentPage, 4);
-        expect(find.byType(LogsPage), findsOneWidget);
+        expect(model.currentPage, 2);
+        expect(find.byType(RadiosPage), findsOneWidget);
 
         await moveLeft();
-        expect(model.currentPage, 3);
-        expect(find.byType(RadiosPage), findsOneWidget);
+        expect(model.currentPage, 1);
+        expect(find.byType(ElectricsPage), findsOneWidget);
       });
       testWidgets('Settings Dialog', (widgetTester) async {
         await pumpDashboardPage(
