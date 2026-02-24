@@ -22,11 +22,11 @@ class Services {
   SharedPreferences get preferences => _preferences;
 
   Future<void> initialize() async {
+    _preferences = await SharedPreferences.getInstance();
     _logger = Log(storeLogs: true, clock: clock);
     _logger.initialize();
-    _ros = ROSImpl(_logger);
+    _ros = ROSImpl(_logger, _preferences);
     _internetChecker = InternetCheckerImpl();
-    _preferences = await SharedPreferences.getInstance();
   }
 
   Future<void> initializeWithMocks({

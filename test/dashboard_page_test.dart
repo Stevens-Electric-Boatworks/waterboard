@@ -80,6 +80,7 @@ void main() {
     });
     group("Main Page Keybinds", () {
       testWidgets('Page Switching', (widgetTester) async {
+        DebugVariables.loadMap = false;
         var model = await pumpDashboardPage(
           widgetTester,
           await createServicesRegistry(

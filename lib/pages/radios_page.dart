@@ -373,6 +373,9 @@ class _RadiosPageState extends State<RadiosPage> {
   }
 
   Widget _getMap() {
+    if (!DebugVariables.loadMap) {
+      return Container();
+    }
     model.mapReady = true;
     // return Container();
     return FlutterMap(
