@@ -8,10 +8,10 @@ import 'package:flutter/cupertino.dart';
 
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterboard/pref_keys.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 // Project imports:
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';

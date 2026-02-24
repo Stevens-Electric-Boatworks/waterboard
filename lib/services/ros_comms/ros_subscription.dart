@@ -24,7 +24,7 @@ class ROSSubscriptionImpl extends ROSSubscription {
     _valueNotifier.addListener(() {
       _timeOfLastMessage = DateTime.now().millisecondsSinceEpoch;
     });
-    Timer(Duration(seconds: 1), () {
+    Timer.periodic(Duration(seconds: 1), (var timer) {
       if (isStale) {
         _rosBridge.sendSubscription(this);
       }

@@ -113,11 +113,16 @@ class _SettingsDialogState extends State<SettingsDialog> {
               SizedBox(width: 10),
               Switch(
                 value:
-                    widget.services.preferences.getBool(PrefKeys.layoutLocked) ??
+                    widget.services.preferences.getBool(
+                      PrefKeys.layoutLocked,
+                    ) ??
                     false,
                 onChanged: (value) {
                   setState(() {
-                    widget.services.preferences.setBool(PrefKeys.layoutLocked, value);
+                    widget.services.preferences.setBool(
+                      PrefKeys.layoutLocked,
+                      value,
+                    );
                     widget.onSettingsChanged();
                   });
                 },

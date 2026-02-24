@@ -59,7 +59,7 @@ class ROSImpl extends ROS {
     if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
-    _log.info("[ROS] Subscribing to $topic");
+    _log.info("[ROS] Creating new subscription to '$topic'");
     var sub = ROSSubscriptionImpl(topic, _rosBridge);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;

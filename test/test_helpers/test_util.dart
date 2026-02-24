@@ -47,7 +47,6 @@ MockROSImpl createMockOfflineROS({
 
     final mockSub = MockROSSubscriptionImpl();
     when(mockSub.topic).thenReturn(topic);
-    when(mockSub.isStale).thenReturn(true);
     when(mockSub.notifier).thenReturn(ValueNotifier({}));
     virtualSubs[topic] = mockSub;
     return mockSub;

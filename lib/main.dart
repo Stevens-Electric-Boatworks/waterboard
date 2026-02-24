@@ -19,12 +19,9 @@ void main() async {
     if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
         !Platform.isLinux) {
       await windowManager.ensureInitialized();
-      // final windowSize = Size(1200, 800);
       WindowOptions windowOptions = WindowOptions(
-        // minimumSize: windowSize,
-        // maximumSize: windowSize,
-        // size: windowSize,
         center: true,
+        title: "Waterboard Driver Dashboard | Stevens Electric Boatworks",
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
         titleBarStyle: TitleBarStyle.normal,
@@ -37,6 +34,9 @@ void main() async {
   }
   Services services = Services();
   await services.initialize();
+  services.logger.info(
+    "Finished app services initialization. Running flutter...",
+  );
   runApp(WaterboardApp(services));
 }
 

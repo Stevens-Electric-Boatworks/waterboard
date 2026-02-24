@@ -79,7 +79,10 @@ void main() {
       var ipPrompt = find.byKey(Key("ip_address"));
       await widgetTester.enterText(ipPrompt, "192.172.1.3");
       await widgetTester.pumpAndSettle();
-      expect(services.preferences.getString(PrefKeys.websocketIP), "192.172.1.3");
+      expect(
+        services.preferences.getString(PrefKeys.websocketIP),
+        "192.172.1.3",
+      );
 
       var portPrompt = find.byKey(Key("port"));
       await widgetTester.enterText(portPrompt, "8281");
