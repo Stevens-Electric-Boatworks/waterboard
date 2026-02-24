@@ -46,7 +46,7 @@ class _ROSTextState extends State<ROSText> {
         return _buildTextWidget(val.$1, val.$2);
       },
       noDataBuilder: (BuildContext context) {
-        return _buildTextWidget("Unknown", Colors.grey);
+        return _buildTextWidget("N/A", Colors.grey);
       },
     );
   }

@@ -111,7 +111,7 @@ class ROSGauge extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    hasData ? "$value" : "Unknown",
+                    hasData ? "$value" : "N/A",
                     style: Theme.of(context).textTheme.headlineMedium?.merge(
                       TextStyle(fontWeight: FontWeight.bold),
                     ),

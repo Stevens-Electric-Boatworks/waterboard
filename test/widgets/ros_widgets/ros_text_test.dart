@@ -50,7 +50,7 @@ void main() {
       ),
     );
     await widgetTester.pumpAndSettle();
-    var text = find.text("Unknown");
+    var text = find.text("N/A");
     expect(text, findsOneWidget);
     final textWidget = widgetTester.widget<Text>(text);
     expect(textWidget.style?.color, Colors.grey);

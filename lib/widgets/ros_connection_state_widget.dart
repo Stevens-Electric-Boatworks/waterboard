@@ -57,7 +57,7 @@ class ROSConnectionStateWidget extends StatelessWidget {
       return Row(
         children: [
           Icon(Icons.question_mark, size: iconSize),
-          Text("Unknown", style: style),
+          Text("N/A", style: style),
         ],
       );
     }

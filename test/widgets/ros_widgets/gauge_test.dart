@@ -67,7 +67,7 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.text("Example Title"), findsOneWidget);
     expect(find.text("RPM"), findsOneWidget);
-    expect(find.text("Unknown"), findsOneWidget);
+    expect(find.text("N/A"), findsOneWidget);
     expect(find.byType(CustomPaint), findsNWidgets(2));
   });
 }

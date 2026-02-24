@@ -105,7 +105,7 @@ void main() {
     expect(find.widgetWithText(MarineCompass, "14.0°"), findsOneWidget);
 
     //alt, cell, and climb are all unimplemented
-    expect(find.widgetWithText(ROSText, "Unknown"), findsNWidgets(3));
+    expect(find.widgetWithText(ROSText, "N/A"), findsNWidgets(3));
   });
   group("Verify Internet State Widgets", () {
     testWidgets('Offline', (widgetTester) async {
