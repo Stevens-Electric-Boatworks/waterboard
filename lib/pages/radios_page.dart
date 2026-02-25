@@ -122,10 +122,10 @@ class RadiosPageViewModel extends ChangeNotifier {
     }
     try {
       final byteData = await rootBundle.load(
-        'assets/mapdata/hoboken_final.pmtiles',
+        'assets/mapdata/hoboken_small.pmtiles',
       );
       final tempDir = await getTemporaryDirectory();
-      final filePath = p.join(tempDir.path, 'hoboken_final.pmtiles');
+      final filePath = p.join(tempDir.path, 'hoboken_small.pmtiles');
       final file = File(filePath);
       await file.writeAsBytes(byteData.buffer.asUint8List());
 

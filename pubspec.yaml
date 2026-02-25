@@ -88,7 +88,7 @@ flutter:
      - assets/sponsors/plat/private.png
      - assets/sponsors/gold/sname.png
      - assets/sponsors/silver/dhx.png
-     - assets/mapdata/hoboken_final.pmtiles
+     - assets/mapdata/hoboken_small.pmtiles
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
