@@ -89,7 +89,8 @@ flutter:
      - assets/sponsors/gold/sname.png
      - assets/sponsors/silver/dhx.png
      - assets/mapdata/hoboken_small.pmtiles
-
+     - assets/compass/overlay.png
+     - assets/compass/compass.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
