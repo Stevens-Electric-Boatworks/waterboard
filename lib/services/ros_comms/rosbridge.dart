@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 // Project imports:
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -20,10 +21,11 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 class ROSBridge {
   final ROS _ros;
   final Log _log;
+  final SharedPreferences _preferences;
   final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
     ROSConnectionState.noWebsocket,
   );
-  ROSBridge(this._ros, this._log);
+  ROSBridge(this._ros, this._log, this._preferences);
   Timer? _websocketTimer;
   Timer? _rosBridgeTimer;
   WebSocketChannel? _channel;
@@ -51,9 +53,8 @@ class ROSBridge {
   }
 
   Future<void> _attemptConnect() async {
-    var prefs = await SharedPreferences.getInstance();
     final wsUrl = Uri.parse(
-      'ws://${prefs.getString("websocket.ip") ?? "127.0.0.1"}:${prefs.getInt("websocket.port") ?? 9090}',
+      'ws://${_preferences.getString(PrefKeys.websocketIP) ?? "127.0.0.1"}:${_preferences.getInt(PrefKeys.websocketPort) ?? 9090}',
     );
     _log.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);
@@ -112,9 +113,9 @@ class ROSBridge {
   }
 
   void _sendAllSubscriptions() {
-    for (var sub in _ros.subs.values) {
-      sendSubscription(sub);
-    }
+    // for (var sub in _ros.subs.values) {
+    //   sendSubscription(sub);
+    // }
   }
 
   void sendSubscription(ROSSubscription sub) {

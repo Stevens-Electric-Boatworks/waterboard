@@ -1,10 +1,7 @@
 // Dart imports:
-
-// Dart imports:
 import 'dart:math';
 
 // Flutter imports:
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
 
@@ -18,11 +15,11 @@ import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
-import 'widgets/ros_connection_state_widget.dart';
-import 'widgets/time_text.dart';
+import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
 
@@ -31,18 +28,18 @@ class DashboardPageViewModel extends ChangeNotifier {
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
     null,
   );
-  final int totalPages = 6;
+  final int totalPages = 4;
   final Services services;
   DashboardPageViewModel(this.services);
 
   ROS get ros => services.ros;
   int get currentPage => _currentPage;
   Log get log => services.logger;
+  SharedPreferences get _preferences => services.preferences;
 
-  late SharedPreferences preferences;
+  bool get layoutLocked => _preferences.getBool(PrefKeys.layoutLocked) ?? false;
 
-  void init() async {
-    preferences = await SharedPreferences.getInstance();
+  Future<void> init() async {
     ros.startConnectionLoop();
     ros.connectionState.addListener(() {
       if (ros.connectionState.value == ROSConnectionState.noWebsocket) {
@@ -50,9 +47,9 @@ class DashboardPageViewModel extends ChangeNotifier {
       } else if (ros.connectionState.value == ROSConnectionState.staleData) {
         showStaleDataDialog();
       } else if (ros.connectionState.value == ROSConnectionState.connected) {
-        //weird race condition fix
-        closeAllDialogs();
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) => {});
+        WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) => closeAllDialogs(),
+        );
       }
     });
   }
@@ -65,13 +62,13 @@ class DashboardPageViewModel extends ChangeNotifier {
   }
 
   void moveToNextPage() {
-    if (!(preferences.getBool("locked_layout") ?? false)) {
+    if (!layoutLocked) {
       moveToPage(min(_currentPage + 1, totalPages - 1));
     }
   }
 
   void moveToPreviousPage() {
-    if (!(preferences.getBool("locked_layout") ?? false)) {
+    if (!layoutLocked) {
       moveToPage(max(0, _currentPage - 1));
     }
   }
@@ -86,6 +83,14 @@ class DashboardPageViewModel extends ChangeNotifier {
 
   void closeAllDialogs() {
     connectionDialogType.value = null;
+  }
+
+  void openSettingsDialog(BuildContext context) {
+    PageUtils.showSettingsDialog(context, services, () => onSettingsChange());
+  }
+
+  void onSettingsChange() {
+    notifyListeners();
   }
 }
 
@@ -161,138 +166,86 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      autofocus: true,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.keyS) {
-          PageUtils.showSettingsDialog(context, model.ros);
-          return KeyEventResult.handled;
-        }
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.arrowRight) {
-          model.moveToNextPage();
-          return KeyEventResult.handled;
-        }
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-          model.moveToPreviousPage();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Stevens Electric Boatworks",
-            style: TextStyle(fontWeight: FontWeight.bold),
+    return AbsorbPointer(
+      absorbing: model.layoutLocked,
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.keyS) {
+            model.openSettingsDialog(context);
+            return KeyEventResult.handled;
+          }
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            model.moveToNextPage();
+            return KeyEventResult.handled;
+          }
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+            model.moveToPreviousPage();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Scaffold(
+          appBar: WaterboardAppBarWidget(
+            services: model.services,
+            layoutLocked: () => model.layoutLocked,
+            onSettingsChanged: model.onSettingsChange,
           ),
-          centerTitle: true,
-          leading: Row(
+
+          body: PageView(
+            controller: _pageController,
+            scrollBehavior: ScrollBehavior().copyWith(
+              physics: NeverScrollableScrollPhysics(),
+              scrollbars: false,
+              overscroll: false,
+            ),
             children: [
-              SizedBox(width: 4),
-              Container(
-                decoration: BoxDecoration(
-                  border: BoxBorder.all(color: Colors.black),
-                ),
-                margin: EdgeInsets.symmetric(vertical: 4),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClockText(
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ),
-                ),
+              KeepAlivePage(
+                child: MainDriverPage(model: _mainDriverPageViewModel),
               ),
-              kIsWeb
-                  ? Text(
-                      "         WARNING: Web Support is Experimental!",
-                      style: Theme.of(context).textTheme.titleSmall?.merge(
-                        TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  : Container(),
+              KeepAlivePage(
+                child: ElectricsPage(model: _electricsPageViewModel),
+              ),
+              KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
+              KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
             ],
           ),
-          actions: [
-            ValueListenableBuilder(
-              valueListenable: model.ros.connectionState,
-              builder: (context, value, child) => ROSConnectionStateWidget(
-                value: value,
-                fontSize: 18,
-                iconSize: 18,
-              ),
+          bottomNavigationBar: SizedBox(
+            height: 60,
+            child: ListenableBuilder(
+              listenable: model,
+              builder: (BuildContext context, Widget? child) {
+                return BottomNavigationBar(
+                  type: BottomNavigationBarType.fixed,
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.sports_motorsports),
+                      label: "Primary",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.electric_bolt),
+                      label: "Electric",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.radio),
+                      label: "Radios",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.notes),
+                      label: "Logs",
+                    ),
+                  ],
+                  onTap: (value) {
+                    if (model.layoutLocked) return;
+                    model.moveToPage(value);
+                  },
+                  currentIndex: model.currentPage,
+                );
+              },
             ),
-            SizedBox(width: 15),
-            IconButton(
-              onPressed: () => PageUtils.showSettingsDialog(context, model.ros),
-              icon: Icon(Icons.settings),
-            ),
-          ],
-          leadingWidth: 100,
-          toolbarHeight: 35,
-        ),
-        body: PageView(
-          controller: _pageController,
-          scrollBehavior: ScrollBehavior().copyWith(
-            physics: NeverScrollableScrollPhysics(),
-            scrollbars: false,
-            overscroll: false,
-          ),
-          children: [
-            KeepAlivePage(
-              child: MainDriverPage(model: _mainDriverPageViewModel),
-            ),
-            KeepAlivePage(child: ElectricsPage(model: _electricsPageViewModel)),
-            KeepAlivePage(child: Placeholder()),
-            KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
-            KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
-            KeepAlivePage(child: Placeholder()),
-          ],
-        ),
-        bottomNavigationBar: SizedBox(
-          height: 60,
-          child: ListenableBuilder(
-            listenable: model,
-            builder: (BuildContext context, Widget? child) {
-              return BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                items: [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.sports_motorsports),
-                    label: "Primary",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.electric_bolt),
-                    label: "Electric",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.water_rounded),
-                    label: "Motors",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.radio),
-                    label: "Radios",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.notes),
-                    label: "Logs",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.error),
-                    label: "Faults",
-                  ),
-                ],
-                onTap: (value) {
-                  model.moveToPage(value);
-                },
-                currentIndex: model.currentPage,
-              );
-            },
           ),
         ),
       ),
@@ -320,7 +273,8 @@ class _DashboardPageState extends State<DashboardPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, model.ros);
+                  if (model.layoutLocked) return;
+                  model.openSettingsDialog(context);
                 },
                 child: Text("Open Settings"),
               ),
@@ -366,7 +320,8 @@ class _DashboardPageState extends State<DashboardPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  PageUtils.showSettingsDialog(context, model.ros);
+                  if (model.layoutLocked) return;
+                  model.openSettingsDialog(context);
                 },
                 child: Text("Open Settings"),
               ),

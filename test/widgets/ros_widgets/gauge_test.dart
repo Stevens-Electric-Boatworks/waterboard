@@ -15,8 +15,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Has Data', (widgetTester) async {
     FakeROS fakeROS = createFakeROS(initialState: ROSConnectionState.connected);
+    var sub = fakeROS.subscribe("/test/", initialData: {'test': 53.0});
+    sub.isStale = false;
     var dataGauge = ROSGaugeDataSource(
-      sub: fakeROS.subscribe("/test/", initialData: {'test': 53.0}),
+      sub: sub,
       valueBuilder: (json) {
         return json['test'];
       },
@@ -67,7 +69,7 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.text("Example Title"), findsOneWidget);
     expect(find.text("RPM"), findsOneWidget);
-    expect(find.text("Unknown"), findsOneWidget);
+    expect(find.text("N/A"), findsOneWidget);
     expect(find.byType(CustomPaint), findsNWidgets(2));
   });
 }

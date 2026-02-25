@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
-import '../services/ros_comms/ros.dart';
 import '../settings/settings_dialog.dart';
 
 class ResponsiveGaugeGrid extends StatelessWidget {
@@ -28,7 +28,7 @@ class ResponsiveGaugeGrid extends StatelessWidget {
             ? rowHeight * 0.95
             : maxWidthBased * 0.95;
 
-        final thickness = (gaugeSize * 0.14).clamp(8.0, 40.0);
+        final thickness = (gaugeSize * 0.1).clamp(8.0, 80.0);
 
         List<Widget> buildRows() {
           List<Widget> result = [];
@@ -71,13 +71,20 @@ class ResponsiveGaugeGrid extends StatelessWidget {
 }
 
 class PageUtils {
-  static void showSettingsDialog(BuildContext context, ROS ros) {
+  static void showSettingsDialog(
+    BuildContext context,
+    Services services,
+    Function() onSettingsChange,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Waterboard Settings"),
-          content: SettingsDialog(ros: ros),
+          content: SettingsDialog(
+            services: services,
+            onSettingsChanged: onSettingsChange,
+          ),
         );
       },
     );

@@ -14,10 +14,11 @@ void main() {
   testWidgets('Has Data', (widgetTester) async {
     FakeROS fakeROS = createFakeROS(initialState: ROSConnectionState.connected);
     var sub = fakeROS.subscribe("/test/", initialData: {'test': 53.0});
+    sub.isStale = false;
     await widgetTester.pumpWidget(
       MaterialApp(
         home: ROSListenable(
-          valueNotifier: sub.notifier,
+          subscription: sub,
           builder: (context, value) {
             return Text("${value['test']}");
           },
@@ -40,7 +41,7 @@ void main() {
     await widgetTester.pumpWidget(
       MaterialApp(
         home: ROSListenable(
-          valueNotifier: sub.notifier,
+          subscription: sub,
           builder: (context, value) {
             return Text("${value['test']}");
           },
@@ -55,10 +56,11 @@ void main() {
   testWidgets('Has Data to Stale Data', (widgetTester) async {
     FakeROS fakeROS = createFakeROS(initialState: ROSConnectionState.connected);
     var sub = fakeROS.subscribe("/test/");
+    sub.isStale = false;
     await widgetTester.pumpWidget(
       MaterialApp(
         home: ROSListenable(
-          valueNotifier: sub.notifier,
+          subscription: sub,
           builder: (context, value) {
             return Text("${value['test']}");
           },
@@ -76,7 +78,8 @@ void main() {
     ); //there is a custompaint caused by MaterialApp widget
 
     //now move to no data
-    await widgetTester.pump(const Duration(milliseconds: 2100));
+    sub.isStale = true;
+    await widgetTester.pump(Duration(seconds: 1));
     expect(find.text("53.0"), findsOneWidget);
     expect(
       find.byType(CustomPaint),

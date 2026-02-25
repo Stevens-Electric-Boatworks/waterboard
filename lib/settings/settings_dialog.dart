@@ -1,18 +1,23 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
-// Package imports:
-import 'package:shared_preferences/shared_preferences.dart';
-
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
+import 'package:waterboard/pref_keys.dart';
+import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/time_text.dart';
-import '../services/ros_comms/ros.dart';
+
+// Package imports:
 
 class SettingsDialog extends StatefulWidget {
-  final ROS ros;
+  final Services services;
+  final Function() onSettingsChanged;
 
-  const SettingsDialog({super.key, required this.ros});
+  const SettingsDialog({
+    super.key,
+    required this.services,
+    required this.onSettingsChanged,
+  });
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -29,9 +34,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   void _updateIPInSettings() async {
-    var prefs = await SharedPreferences.getInstance();
-    String ip = prefs.getString("websocket.ip") ?? "127.0.0.1";
-    int? port = prefs.getInt("websocket.port") ?? 9090;
+    var prefs = widget.services.preferences;
+    String ip = prefs.getString(PrefKeys.websocketIP) ?? "127.0.0.1";
+    int? port = prefs.getInt(PrefKeys.websocketPort) ?? 9090;
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }
@@ -61,9 +66,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     controller: _ipTextController,
                     onChanged: (value) {
                       if (value.isEmpty) return;
-                      SharedPreferences.getInstance().then((prefs) {
-                        prefs.setString("websocket.ip", value);
-                      });
+                      widget.services.preferences.setString(
+                        PrefKeys.websocketIP,
+                        value,
+                      );
+                      widget.onSettingsChanged();
                     },
                   ),
                 ),
@@ -88,9 +95,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     onChanged: (value) {
                       if (value.isEmpty) return;
                       if (int.tryParse(value) == null) return;
-                      SharedPreferences.getInstance().then((prefs) {
-                        prefs.setInt("websocket.port", int.parse(value));
-                      });
+                      widget.services.preferences.setInt(
+                        PrefKeys.websocketPort,
+                        int.parse(value),
+                      );
+                      widget.onSettingsChanged();
                     },
                   ),
                 ),
@@ -98,32 +107,34 @@ class _SettingsDialogState extends State<SettingsDialog> {
             ],
           ),
           SizedBox(height: 5),
-          FutureBuilder(
-            future: SharedPreferences.getInstance(),
-            builder: (context, asyncSnapshot) {
-              return Row(
-                children: [
-                  Text("Lock Layout"),
-                  SizedBox(width: 10),
-                  Switch(
-                    value:
-                        asyncSnapshot.data?.getBool("locked_layout") ?? false,
-                    onChanged: (value) {
-                      setState(() {
-                        asyncSnapshot.data?.setBool("locked_layout", value);
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
+          Row(
+            children: [
+              Text("Lock Layout"),
+              SizedBox(width: 10),
+              Switch(
+                value:
+                    widget.services.preferences.getBool(
+                      PrefKeys.layoutLocked,
+                    ) ??
+                    false,
+                onChanged: (value) {
+                  setState(() {
+                    widget.services.preferences.setBool(
+                      PrefKeys.layoutLocked,
+                      value,
+                    );
+                    widget.onSettingsChanged();
+                  });
+                },
+              ),
+            ],
           ),
           SizedBox(height: 25),
           Center(
             child: FilledButton(
               child: Text("Restart ROSBridge Comms"),
               onPressed: () {
-                widget.ros.reconnect();
+                widget.services.ros.reconnect();
               },
             ),
           ),
@@ -135,7 +146,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) {
-                      return StandbyModePage(ros: widget.ros);
+                      return StandbyModePage(ros: widget.services.ros);
                     },
                   ),
                 );

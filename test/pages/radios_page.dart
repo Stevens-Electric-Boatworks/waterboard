@@ -33,7 +33,7 @@ void main() {
   testWidgets('Verify Correct Widgets', (widgetTester) async {
     await pumpPage(
       widgetTester,
-      createServicesRegistry(
+      await createServicesRegistry(
         createFakeROS(initialState: ROSConnectionState.connected),
         createMockLogger(),
         createOfflineMockInternetChecker(),
@@ -60,7 +60,7 @@ void main() {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
     await pumpPage(
       widgetTester,
-      createServicesRegistry(
+      await createServicesRegistry(
         ros,
         createMockLogger(),
         createOfflineMockInternetChecker(),
@@ -81,7 +81,7 @@ void main() {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
     await pumpPage(
       widgetTester,
-      createServicesRegistry(
+      await createServicesRegistry(
         ros,
         createMockLogger(),
         createOfflineMockInternetChecker(),
@@ -105,14 +105,14 @@ void main() {
     expect(find.widgetWithText(MarineCompass, "14.0°"), findsOneWidget);
 
     //alt, cell, and climb are all unimplemented
-    expect(find.widgetWithText(ROSText, "Unknown"), findsNWidgets(3));
+    expect(find.widgetWithText(ROSText, "N/A"), findsNWidgets(3));
   });
   group("Verify Internet State Widgets", () {
     testWidgets('Offline', (widgetTester) async {
       MockInternetChecker internetChecker = createOfflineMockInternetChecker();
       await pumpPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createFakeROS(initialState: ROSConnectionState.connected),
           createMockLogger(),
           internetChecker,
@@ -128,7 +128,7 @@ void main() {
       );
       await pumpPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createFakeROS(initialState: ROSConnectionState.connected),
           createMockLogger(),
           internetChecker,
@@ -143,7 +143,7 @@ void main() {
       FakeInternetChecker internetChecker = createFakeInternetChecker();
       await pumpPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createFakeROS(initialState: ROSConnectionState.connected),
           createMockLogger(),
           internetChecker,

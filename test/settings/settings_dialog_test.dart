@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../test_helpers/test_util.dart';
@@ -18,18 +19,24 @@ import '../test_helpers/test_util.mocks.dart';
 void main() {
   FlutterError.onError = ignoreOverflowErrors;
   TestWidgetsFlutterBinding.ensureInitialized();
-  late SharedPreferences instance;
-  setUp(() async {
+  setUp(() {
     SharedPreferences.setMockInitialValues({});
-    instance = await SharedPreferences.getInstance();
   });
   testWidgets('Verify Layout', (widgetTester) async {
+    var mock = createMockOfflineROS();
+    var services = await createServicesRegistry(
+      mock,
+      createMockLogger(),
+      createOfflineMockInternetChecker(),
+    );
     await widgetTester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
+        home: Scaffold(
+          body: SettingsDialog(services: services, onSettingsChanged: () {}),
+        ),
       ),
     );
-    await widgetTester.pumpAndSettle();
+    await widgetTester.pump();
     expect(find.byType(TextField), findsNWidgets(2));
     expect(find.byType(Switch), findsOneWidget);
     expect(find.byType(ClockText), findsOneWidget);
@@ -47,9 +54,17 @@ void main() {
   });
   group("Enterable Data", () {
     testWidgets('No Initial Data', (widgetTester) async {
+      var mock = createMockOfflineROS();
+      var services = await createServicesRegistry(
+        mock,
+        createMockLogger(),
+        createOfflineMockInternetChecker(),
+      );
       await widgetTester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
+          home: Scaffold(
+            body: SettingsDialog(services: services, onSettingsChanged: () {}),
+          ),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -58,18 +73,21 @@ void main() {
       expect(find.text("9090"), findsOneWidget);
 
       expect(find.byType(TextField), findsNWidgets(2));
-      expect(instance.getString("websocket.ip"), null);
-      expect(instance.getInt("websocket.port"), null);
+      expect(services.preferences.getString(PrefKeys.websocketIP), null);
+      expect(services.preferences.getInt(PrefKeys.websocketPort), null);
 
       var ipPrompt = find.byKey(Key("ip_address"));
       await widgetTester.enterText(ipPrompt, "192.172.1.3");
       await widgetTester.pumpAndSettle();
-      expect(instance.getString("websocket.ip"), "192.172.1.3");
+      expect(
+        services.preferences.getString(PrefKeys.websocketIP),
+        "192.172.1.3",
+      );
 
       var portPrompt = find.byKey(Key("port"));
       await widgetTester.enterText(portPrompt, "8281");
       await widgetTester.pumpAndSettle();
-      expect(instance.getInt("websocket.port"), 8281);
+      expect(services.preferences.getInt(PrefKeys.websocketPort), 8281);
 
       //validate new values
       expect(find.text("192.172.1.3"), findsOneWidget);
@@ -78,26 +96,36 @@ void main() {
       //find swtich
       var lockedLayout = find.byType(Switch);
       expect(lockedLayout, findsOneWidget);
-      expect(instance.getBool("locked_layout"), null);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), null);
       expect(widgetTester.widget<Switch>(lockedLayout).value, false);
       await widgetTester.tap(lockedLayout);
       await widgetTester.pumpAndSettle();
-      expect(instance.getBool("locked_layout"), true);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), true);
       expect(widgetTester.widget<Switch>(lockedLayout).value, true);
       await widgetTester.tap(lockedLayout);
       await widgetTester.pumpAndSettle();
-      expect(instance.getBool("locked_layout"), false);
+      expect(services.preferences.getBool(PrefKeys.layoutLocked), false);
       expect(widgetTester.widget<Switch>(lockedLayout).value, false);
     });
     testWidgets('With Initial Data', (widgetTester) async {
       SharedPreferences.setMockInitialValues({
-        'websocket.ip': "127.132.2.3",
-        'websocket.port': 2712,
-        'locked_layout': true,
+        PrefKeys.websocketIP: "127.132.2.3",
+        PrefKeys.websocketPort: 2712,
+        PrefKeys.layoutLocked: true,
       });
+      var mock = createMockOfflineROS();
       await widgetTester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: SettingsDialog(ros: createMockOfflineROS())),
+          home: Scaffold(
+            body: SettingsDialog(
+              services: await createServicesRegistry(
+                mock,
+                createMockLogger(),
+                createOfflineMockInternetChecker(),
+              ),
+              onSettingsChanged: () {},
+            ),
+          ),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -111,10 +139,19 @@ void main() {
   });
   group("Verify Buttons", () {
     testWidgets('Restart ROSBridge Comms', (widgetTester) async {
-      MockROSImpl mock = createMockOfflineROS();
+      var mock = createMockOfflineROS();
       await widgetTester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: SettingsDialog(ros: mock)),
+          home: Scaffold(
+            body: SettingsDialog(
+              services: await createServicesRegistry(
+                mock,
+                createMockLogger(),
+                createOfflineMockInternetChecker(),
+              ),
+              onSettingsChanged: () {},
+            ),
+          ),
         ),
       );
       await widgetTester.pumpAndSettle();
@@ -128,7 +165,16 @@ void main() {
       FlutterError.onError = ignoreOverflowErrors;
       await widgetTester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: SettingsDialog(ros: mock)),
+          home: Scaffold(
+            body: SettingsDialog(
+              services: await createServicesRegistry(
+                mock,
+                createMockLogger(),
+                createOfflineMockInternetChecker(),
+              ),
+              onSettingsChanged: () {},
+            ),
+          ),
         ),
       );
       await widgetTester.pumpAndSettle();

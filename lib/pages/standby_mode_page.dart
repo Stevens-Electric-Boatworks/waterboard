@@ -161,22 +161,28 @@ class _StandbyModePageState extends State<StandbyModePage> {
                     ),
                   ),
                   SizedBox(height: 50),
-                  ClockText(
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 206, 206, 206),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 128,
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: ClockText(
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 206, 206, 206),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 25),
-                  Spacer(),
+                  SizedBox(height: 50),
                   ValueListenableBuilder(
                     valueListenable: widget.ros.connectionState,
                     builder: (context, value, child) =>
                         ROSConnectionStateWidget(
                           value: value,
-                          fontSize: 82,
-                          iconSize: 82,
+                          fontSize: 54,
+                          iconSize: 54,
                         ),
                   ),
                   SizedBox(height: 50),

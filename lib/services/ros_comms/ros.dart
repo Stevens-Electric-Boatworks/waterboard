@@ -1,6 +1,10 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
 
+// Package imports:
+import 'package:clock/clock.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -21,12 +25,13 @@ abstract class ROS {
 
 class ROSImpl extends ROS {
   final Log _log;
+  final SharedPreferences _preferences;
   late ROSBridge _rosBridge;
   final Map<String, ROSSubscription> _subs = {};
   @override
   late final ROSLogsCollector rosLogs;
-  ROSImpl(this._log) {
-    _rosBridge = ROSBridge(this, _log);
+  ROSImpl(this._log, this._preferences) {
+    _rosBridge = ROSBridge(this, _log, _preferences);
     rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
     rosLogs.init();
   }
@@ -55,8 +60,8 @@ class ROSImpl extends ROS {
     if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
-    _log.info("[ROS] Subscribing to $topic");
-    var sub = ROSSubscriptionImpl(topic, _rosBridge);
+    _log.info("[ROS] Creating new subscription to '$topic'");
+    var sub = ROSSubscriptionImpl(topic, _rosBridge, clock);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
     return sub;

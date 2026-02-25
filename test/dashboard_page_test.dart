@@ -14,9 +14,11 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
+import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 import 'package:waterboard/widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import 'test_helpers/fakes/fake_ros.dart';
@@ -51,7 +53,7 @@ void main() {
     testWidgets('Main Page Layout', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createMockOfflineROS(),
           createMockLogger(),
           createOfflineMockInternetChecker(),
@@ -60,7 +62,10 @@ void main() {
       );
       void checkInsideAppbar(Finder finder) {
         expect(
-          find.descendant(of: find.byType(AppBar), matching: finder),
+          find.descendant(
+            of: find.byType(WaterboardAppBarWidget),
+            matching: finder,
+          ),
           findsOneWidget,
         );
       }
@@ -76,9 +81,10 @@ void main() {
     });
     group("Main Page Keybinds", () {
       testWidgets('Page Switching', (widgetTester) async {
+        DebugVariables.loadMap = false;
         var model = await pumpDashboardPage(
           widgetTester,
-          createServicesRegistry(
+          await createServicesRegistry(
             FakeROS(initialState: ROSConnectionState.connected),
             createMockLogger(),
             createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
@@ -106,41 +112,32 @@ void main() {
         expect(model.currentPage, 1);
         expect(find.byType(ElectricsPage), findsOneWidget);
 
-        //verify correct pages
         await moveRight();
         expect(model.currentPage, 2);
-        expect(find.byType(Placeholder), findsOneWidget);
-
-        await moveRight();
-        expect(model.currentPage, 3);
         expect(find.byType(RadiosPage), findsOneWidget);
 
         await moveRight();
-        expect(model.currentPage, 4);
+        expect(model.currentPage, 3);
         expect(find.byType(LogsPage), findsOneWidget);
-
-        await moveRight();
-        expect(model.currentPage, 5);
-        expect(find.byType(Placeholder), findsOneWidget);
 
         //verify moving right does nothing
         await moveRight();
-        expect(model.currentPage, 5);
-        expect(find.byType(Placeholder), findsOneWidget);
+        expect(model.currentPage, 3);
+        expect(find.byType(LogsPage), findsOneWidget);
 
         //verify that we can move back
         await moveLeft();
-        expect(model.currentPage, 4);
-        expect(find.byType(LogsPage), findsOneWidget);
+        expect(model.currentPage, 2);
+        expect(find.byType(RadiosPage), findsOneWidget);
 
         await moveLeft();
-        expect(model.currentPage, 3);
-        expect(find.byType(RadiosPage), findsOneWidget);
+        expect(model.currentPage, 1);
+        expect(find.byType(ElectricsPage), findsOneWidget);
       });
       testWidgets('Settings Dialog', (widgetTester) async {
         await pumpDashboardPage(
           widgetTester,
-          createServicesRegistry(
+          await createServicesRegistry(
             FakeROS(initialState: ROSConnectionState.connected),
             createMockLogger(),
             createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
@@ -163,7 +160,7 @@ void main() {
 
         var model = await pumpDashboardPage(
           widgetTester,
-          createServicesRegistry(
+          await createServicesRegistry(
             FakeROS(initialState: ROSConnectionState.connected),
             createMockLogger(),
             createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
@@ -181,7 +178,7 @@ void main() {
         expect(find.byType(MainDriverPage), findsOneWidget);
         expect(find.byType(ElectricsPage), findsNothing);
 
-        preferences.setBool("locked_layout", false);
+        preferences.setBool(PrefKeys.layoutLocked, false);
         await moveRight();
         expect(model.currentPage, 1);
         expect(find.byType(MainDriverPage), findsNothing);
@@ -193,7 +190,7 @@ void main() {
     testWidgets('Websocket Disconnected', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createMockOfflineROS(),
           createMockLogger(),
           createOfflineMockInternetChecker(),
@@ -222,7 +219,7 @@ void main() {
     testWidgets('ROS Stale Data', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           createMockOfflineROS(initialState: ROSConnectionState.staleData),
           createMockLogger(),
           createOfflineMockInternetChecker(),
@@ -245,7 +242,7 @@ void main() {
     testWidgets('ROS Connected (No Dialog)', (widgetTester) async {
       await pumpDashboardPage(
         widgetTester,
-        createServicesRegistry(
+        await createServicesRegistry(
           FakeROS(initialState: ROSConnectionState.connected),
           createMockLogger(),
           createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
@@ -260,7 +257,7 @@ void main() {
     FakeROS ros = createFakeROS();
     await pumpDashboardPage(
       widgetTester,
-      createServicesRegistry(
+      await createServicesRegistry(
         ros,
         createMockLogger(),
         createOfflineMockInternetChecker(),
