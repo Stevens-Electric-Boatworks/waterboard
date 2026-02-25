@@ -354,11 +354,9 @@ class _RadiosPageState extends State<RadiosPage> {
                       return SizedBox(
                         width: constraints.maxWidth,
                         height: constraints.maxHeight,
-                        child: _buildWidgetBackground(
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: _getMap(),
-                          ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _getMap(),
                         ),
                       );
                     },
