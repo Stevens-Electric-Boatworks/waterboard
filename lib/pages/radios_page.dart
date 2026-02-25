@@ -35,6 +35,7 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   // ROS subscriptions
   late final ROSSubscription gpsSub;
+  late final ROSSubscription vtgSub;
   late final ROSTextDataSource gpsLat;
   late final ROSTextDataSource gpsLon;
   late final ROSTextDataSource sv;
@@ -46,6 +47,7 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   double lat = 0;
   double lon = 0;
+  double track = -1;
 
   bool mapReady = false;
   PmTilesVectorTileProvider? provider;
@@ -66,8 +68,9 @@ class RadiosPageViewModel extends ChangeNotifier {
       sub: ros.subscribe("/motion/sv"),
       valueBuilder: (json) => ("${json["sats"]}", Colors.black),
     );
+    vtgSub = ros.subscribe("/motion/vtg");
     vtg = ROSTextDataSource(
-      sub: ros.subscribe("/motion/vtg"),
+      sub: vtgSub,
       valueBuilder: (json) =>
           ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
     );
@@ -86,12 +89,15 @@ class RadiosPageViewModel extends ChangeNotifier {
       valueBuilder: (json) => (json["cell_strength"].toString(), Colors.black),
     );
     compass = ROSCompassDataSource(
-      sub: ros.subscribe("/motion/vtg"),
+      sub: vtgSub,
       valueBuilder: (json) => json["true_track"] as double,
     );
 
     // Update map coordinates whenever GPS changes
     gpsSub.notifier.addListener(_onGpsUpdate);
+    vtgSub.notifier.addListener(() {
+      track = vtgSub.notifier.value["true_track"] as double;
+    });
 
     // Network status
     internetStatusStream = connection!.internetStatus;
@@ -406,7 +412,14 @@ class _RadiosPageState extends State<RadiosPage> {
           markers: [
             Marker(
               point: LatLng(model.lat, model.lon),
-              child: const Icon(Icons.location_on, size: 32),
+              child: Stack(
+                children: [
+                  Transform.rotate(
+                    angle: degToRadian(model.track),
+                    child: Icon(Icons.navigation, size: 32),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
