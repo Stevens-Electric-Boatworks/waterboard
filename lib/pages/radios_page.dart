@@ -209,7 +209,7 @@ class _RadiosPageState extends State<RadiosPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Internet and Cellular",
+                    "Internet",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
                     overflow: TextOverflow.ellipsis,
