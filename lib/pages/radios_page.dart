@@ -412,13 +412,9 @@ class _RadiosPageState extends State<RadiosPage> {
           markers: [
             Marker(
               point: LatLng(model.lat, model.lon),
-              child: Stack(
-                children: [
-                  Transform.rotate(
-                    angle: degToRadian(model.track),
-                    child: Icon(Icons.navigation, size: 32),
-                  ),
-                ],
+              child: Transform.rotate(
+                angle: degToRadian(model.track),
+                child: Icon(Icons.navigation, size: 32),
               ),
             ),
           ],
