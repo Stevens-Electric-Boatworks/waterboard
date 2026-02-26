@@ -55,18 +55,27 @@ class LogsPageViewModel extends ChangeNotifier {
     logMessages.sort((a, b) {
       return a.timestamp.compareTo(b.timestamp);
     });
-    services.hotkeys.register(LogicalKeyboardKey.keyA, callback: () {
-      selectedFilter = Emitter.none;
-      notifyListeners();
-    },);
-    services.hotkeys.register(LogicalKeyboardKey.keyW, callback: () {
-      selectedFilter = Emitter.dash;
-      notifyListeners();
-    },);
-    services.hotkeys.register(LogicalKeyboardKey.keyR, callback: () {
-      selectedFilter = Emitter.ros;
-      notifyListeners();
-    },);
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyA,
+      callback: () {
+        selectedFilter = Emitter.none;
+        notifyListeners();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyW,
+      callback: () {
+        selectedFilter = Emitter.dash;
+        notifyListeners();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyR,
+      callback: () {
+        selectedFilter = Emitter.ros;
+        notifyListeners();
+      },
+    );
   }
 
   @override

@@ -23,7 +23,6 @@ import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
 
-
 mixin DashboardPageStateMixin on State<DashboardPage> {
   void openSettingsDialog() {
     if (mounted) widget.model.openSettingsDialog(context);
@@ -62,15 +61,24 @@ class DashboardPageViewModel extends ChangeNotifier {
         );
       }
     });
-    services.hotkeys.register(LogicalKeyboardKey.keyS, callback: () {
-      state!.openSettingsDialog();
-    },);
-    services.hotkeys.register(LogicalKeyboardKey.arrowRight, callback: () {
-      moveToNextPage();
-    },);
-    services.hotkeys.register(LogicalKeyboardKey.arrowLeft, callback: () {
-      moveToPreviousPage();
-    },);
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyS,
+      callback: () {
+        state!.openSettingsDialog();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.arrowRight,
+      callback: () {
+        moveToNextPage();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.arrowLeft,
+      callback: () {
+        moveToPreviousPage();
+      },
+    );
   }
 
   void moveToPage(int index) {
@@ -122,7 +130,8 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> with DashboardPageStateMixin {
+class _DashboardPageState extends State<DashboardPage>
+    with DashboardPageStateMixin {
   Widget? dialogWidget;
   DialogRoute? _connectionAlertDialog;
   final PageController _pageController = PageController();

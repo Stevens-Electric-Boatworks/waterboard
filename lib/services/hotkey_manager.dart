@@ -1,10 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+// Package imports:
 import 'package:collection/collection.dart';
+
 // Based off of the Elastic hotkey manager -> https://github.com/Gold872/elastic_dashboard/blob/main/lib/services/hotkey_manager.dart
 class HotKeyManager {
-
   bool _initialized = false;
   final List<LogicalKeyboardKey> _hotKeyList = [];
   final Map<LogicalKeyboardKey, void Function()> _callbackMap = {};
@@ -50,11 +52,7 @@ class HotKeyManager {
     if (!_initialized) _init();
 
     if (callback != null) {
-      _callbackMap.update(
-        shortcut,
-            (_) => callback,
-        ifAbsent: () => callback,
-      );
+      _callbackMap.update(shortcut, (_) => callback, ifAbsent: () => callback);
     }
     _hotKeyList.add(shortcut);
   }
