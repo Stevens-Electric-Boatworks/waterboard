@@ -16,7 +16,7 @@ void main() {
   testWidgets('Has Data', (widgetTester) async {
     FakeROS fakeROS = createFakeROS(initialState: ROSConnectionState.connected);
     var sub = fakeROS.subscribe("/test/", initialData: {'test': 53.0});
-    sub.isStale = false;
+    sub.isStale.value = false;
     var dataGauge = ROSGaugeDataSource(
       sub: sub,
       valueBuilder: (json) {

@@ -13,7 +13,7 @@ import 'package:waterboard/services/ros_comms/rosbridge.dart';
 abstract class ROSSubscription {
   ValueNotifier<Map<String, dynamic>> get notifier;
   String get topic;
-  bool get isStale;
+  ValueNotifier<bool> get isStale;
   void onData(Map<String, dynamic> data);
 }
 
@@ -23,16 +23,23 @@ class ROSSubscriptionImpl extends ROSSubscription {
   final Clock clock;
   final ValueNotifier<Map<String, dynamic>> _valueNotifier = ValueNotifier({});
   int _timeOfLastMessage = 0;
+  final ValueNotifier<bool> _isStale = ValueNotifier(true);
 
   ROSSubscriptionImpl(this._topic, this._rosBridge, this.clock) {
     _valueNotifier.addListener(() {
       _timeOfLastMessage = DateTime.now().millisecondsSinceEpoch;
     });
     Timer.periodic(Duration(seconds: 1), (var timer) {
-      if (isStale) {
+      updateStale();
+      if (isStale.value) {
         _rosBridge.sendSubscription(this);
       }
     });
+  }
+
+  void updateStale() {
+    _isStale.value =
+        clock.now().millisecondsSinceEpoch - _timeOfLastMessage > 1000;
   }
 
   @override
@@ -42,8 +49,7 @@ class ROSSubscriptionImpl extends ROSSubscription {
   String get topic => _topic;
 
   @override
-  bool get isStale =>
-      clock.now().millisecondsSinceEpoch - _timeOfLastMessage > 1000;
+  ValueNotifier<bool> get isStale => _isStale;
 
   @override
   void onData(Map<String, dynamic> data) {

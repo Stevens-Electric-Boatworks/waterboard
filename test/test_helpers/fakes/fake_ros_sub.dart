@@ -16,9 +16,8 @@ class FakeROSSubscription extends ROSSubscription {
   }) {
     notifier = ValueNotifier(initialData);
   }
-
   @override
-  bool isStale = true;
+  ValueNotifier<bool> isStale = ValueNotifier(true);
 
   @override
   void onData(Map<String, dynamic> data) {

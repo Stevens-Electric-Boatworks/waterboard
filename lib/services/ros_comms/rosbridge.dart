@@ -65,7 +65,7 @@ class ROSBridge {
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     } on WebSocketChannelException {
-      _log.error("[ROS] WebsocketChannelException while connecting");
+      _log.info("[ROS] WebsocketChannelException while connecting");
       _connectionState.value = ROSConnectionState.noWebsocket;
       return;
     }
