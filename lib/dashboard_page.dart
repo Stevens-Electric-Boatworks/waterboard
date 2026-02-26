@@ -23,6 +23,13 @@ import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
 
+
+mixin DashboardPageStateMixin on State<DashboardPage> {
+  void openSettingsDialog() {
+    if (mounted) widget.model.openSettingsDialog(context);
+  }
+}
+
 class DashboardPageViewModel extends ChangeNotifier {
   int _currentPage = 0;
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
@@ -31,6 +38,9 @@ class DashboardPageViewModel extends ChangeNotifier {
   final int totalPages = 4;
   final Services services;
   DashboardPageViewModel(this.services);
+
+  DashboardPageStateMixin? _state;
+  DashboardPageStateMixin? get state => _state;
 
   ROS get ros => services.ros;
   int get currentPage => _currentPage;
@@ -52,6 +62,15 @@ class DashboardPageViewModel extends ChangeNotifier {
         );
       }
     });
+    services.hotkeys.register(LogicalKeyboardKey.keyS, callback: () {
+      state!.openSettingsDialog();
+    },);
+    services.hotkeys.register(LogicalKeyboardKey.arrowRight, callback: () {
+      moveToNextPage();
+    },);
+    services.hotkeys.register(LogicalKeyboardKey.arrowLeft, callback: () {
+      moveToPreviousPage();
+    },);
   }
 
   void moveToPage(int index) {
@@ -103,7 +122,7 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with DashboardPageStateMixin {
   Widget? dialogWidget;
   DialogRoute? _connectionAlertDialog;
   final PageController _pageController = PageController();
@@ -140,15 +159,18 @@ class _DashboardPageState extends State<DashboardPage> {
         showStaleDataDialog();
       }
     });
+    model._state = this;
     model.init();
   }
 
   void _onModelChanged() {
-    _pageController.animateToPage(
-      model.currentPage,
-      duration: Duration(milliseconds: 200),
-      curve: Curves.ease,
-    );
+    setState(() {
+      _pageController.animateToPage(
+        model.currentPage,
+        duration: Duration(milliseconds: 200),
+        curve: Curves.ease,
+      );
+    });
   }
 
   @override
@@ -169,25 +191,9 @@ class _DashboardPageState extends State<DashboardPage> {
     return AbsorbPointer(
       absorbing: model.layoutLocked,
       child: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.keyS) {
-            model.openSettingsDialog(context);
-            return KeyEventResult.handled;
-          }
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            model.moveToNextPage();
-            return KeyEventResult.handled;
-          }
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            model.moveToPreviousPage();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
+        autofocus: false,
+        canRequestFocus: false,
+        descendantsAreFocusable: false,
         child: Scaffold(
           appBar: WaterboardAppBarWidget(
             services: model.services,
