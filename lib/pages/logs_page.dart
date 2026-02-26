@@ -137,10 +137,92 @@ class LogsPage extends StatefulWidget {
 
 class _LogsPageState extends State<LogsPage> {
   LogsPageViewModel get model => widget.model;
+  final List<TableRow> rows = [];
+  final ScrollController _controller = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    model.log.onMessage.addListener(() {
+      int i = 0;
+      Color backgroundLevelColor(String level, Color normalColor) {
+        if (level == "ERROR") {
+          return Colors.red.shade100;
+        } else if (level == "INFO") {
+          return normalColor;
+        } else if (level == "WARN") {
+          return Colors.orange.shade100;
+        } else {
+          return normalColor;
+        }
+      }
+      LogMessage msg = model.logMessages.last;
+      // if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
+      //   return rows;
+      // }
+      // if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
+      //   return rows;
+      // }
+
+      Color color = backgroundLevelColor(
+        msg.level,
+        i % 2 == 0 ? Colors.white : Colors.grey.shade300,
+      );
+      final TextStyle style = Theme.of(context).textTheme.labelMedium!;
+
+      rows.add(
+        TableRow(
+          decoration: BoxDecoration(
+            color: color,
+            border: BoxBorder.fromLTRB(
+              bottom: BorderSide(color: Colors.black12),
+            ),
+          ),
+          children: [
+            _withPadding(
+              Text(
+                msg.level,
+                style: style.merge(
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
+            _withPadding(
+              Text(
+                msg.emitter.name.toUpperCase(),
+                style: style.merge(
+                  TextStyle(
+                    color: msg.emitter == Emitter.dash
+                        ? Colors.blue
+                        : Colors.black,
+                  ),
+                ),
+              ),
+            ),
+            _withPadding(
+              Text(
+                msg.message,
+                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
+              ),
+            ),
+            _withPadding(Text(msg.file ?? "", style: style)),
+            _withPadding(
+              Text(
+                msg.function ?? "",
+                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
+              ),
+            ),
+            _withPadding(
+              Text(
+                "${msg.lineNumber ?? ""}",
+                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
+              ),
+            ),
+          ],
+        ),
+      );
+    },);
     model.addListener(() => setState(() {}));
     model.init();
   }
@@ -153,6 +235,7 @@ class _LogsPageState extends State<LogsPage> {
 
   @override
   Widget build(BuildContext context) {
+    print("Building logs page!");
     return Padding(
       padding: EdgeInsetsGeometry.all(8),
       child: Column(
@@ -209,6 +292,7 @@ class _LogsPageState extends State<LogsPage> {
                 child: Stack(
                   children: [
                     SingleChildScrollView(
+                      controller: _controller,
                       child: Table(
                         columnWidths: _getColumnWidths(),
                         children: [
@@ -275,89 +359,9 @@ class _LogsPageState extends State<LogsPage> {
   }
 
   List<TableRow> _getRows() {
-    List<TableRow> rows = [];
-    int i = 0;
-    Color backgroundLevelColor(String level, Color normalColor) {
-      if (level == "ERROR") {
-        return Colors.red.shade100;
-      } else if (level == "INFO") {
-        return normalColor;
-      } else if (level == "WARN") {
-        return Colors.orange.shade100;
-      } else {
-        return normalColor;
-      }
-    }
 
-    for (LogMessage msg in model.logMessages) {
-      if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
-        continue;
-      }
-      if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
-        continue;
-      }
+    print("called _getRows");
 
-      Color color = backgroundLevelColor(
-        msg.level,
-        i % 2 == 0 ? Colors.white : Colors.grey.shade300,
-      );
-      final TextStyle style = Theme.of(context).textTheme.labelMedium!;
-
-      rows.insert(
-        0,
-        TableRow(
-          decoration: BoxDecoration(
-            color: color,
-            border: BoxBorder.fromLTRB(
-              bottom: BorderSide(color: Colors.black12),
-            ),
-          ),
-          children: [
-            _withPadding(
-              Text(
-                msg.level,
-                style: style.merge(
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
-            _withPadding(
-              Text(
-                msg.emitter.name.toUpperCase(),
-                style: style.merge(
-                  TextStyle(
-                    color: msg.emitter == Emitter.dash
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
-            ),
-            _withPadding(
-              Text(
-                msg.message,
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-            _withPadding(Text(msg.file ?? "", style: style)),
-            _withPadding(
-              Text(
-                msg.function ?? "",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-            _withPadding(
-              Text(
-                "${msg.lineNumber ?? ""}",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-          ],
-        ),
-      );
-      i++;
-    }
     return rows;
   }
 
