@@ -1,19 +1,14 @@
 // Dart imports:
 import 'dart:async';
-import 'dart:io';
 
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
@@ -126,22 +121,22 @@ class RadiosPageViewModel extends ChangeNotifier {
     if (!DebugVariables.loadMap) {
       return;
     }
-    try {
-      final byteData = await rootBundle.load(
-        'assets/mapdata/hoboken_small.pmtiles',
-      );
-      final tempDir = await getTemporaryDirectory();
-      final filePath = p.join(tempDir.path, 'hoboken_small.pmtiles');
-      final file = File(filePath);
-      await file.writeAsBytes(byteData.buffer.asUint8List());
-
-      log.info("Hoboken Offline Map copied to: $filePath");
-      provider = await PmTilesVectorTileProvider.fromSource(filePath);
-      log.info("Hoboken Offline Map loaded");
-      notifyListeners();
-    } catch (e) {
-      log.error("Failed to load map: $e");
-    }
+    // try {
+    //   final byteData = await rootBundle.load(
+    //     'assets/mapdata/hoboken_small.pmtiles',
+    //   );
+    //   final tempDir = await getTemporaryDirectory();
+    //   final filePath = p.join(tempDir.path, 'hoboken_small.pmtiles');
+    //   final file = File(filePath);
+    //   await file.writeAsBytes(byteData.buffer.asUint8List());
+    //
+    //   log.info("Hoboken Offline Map copied to: $filePath");
+    //   provider = await PmTilesVectorTileProvider.fromSource(filePath);
+    //   log.info("Hoboken Offline Map loaded");
+    //   notifyListeners();
+    // } catch (e) {
+    //   log.error("Failed to load map: $e");
+    // }
   }
 
   @override
@@ -354,72 +349,11 @@ class _RadiosPageState extends State<RadiosPage> {
                   ),
                 ),
                 const SizedBox(width: 20),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SizedBox(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _getMap(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _getMap() {
-    if (!DebugVariables.loadMap) {
-      return Container();
-    }
-    model.mapReady = true;
-    // return Container();
-    return FlutterMap(
-      mapController: model.mapController,
-      options: MapOptions(
-        keepAlive: true,
-        initialCenter: LatLng(40.7507, -74.0272),
-        interactionOptions: const InteractionOptions(
-          flags:
-              InteractiveFlag.scrollWheelZoom |
-              InteractiveFlag.pinchZoom |
-              InteractiveFlag.doubleTapZoom |
-              InteractiveFlag.doubleTapDragZoom,
-        ),
-        initialZoom: 15,
-      ),
-      children: [
-        if (!kIsWeb && DebugVariables.loadMap)
-          VectorTileLayer(
-            theme: ProtomapsThemes.lightV4(),
-            tileProviders: TileProviders({'protomaps': model.provider!}),
-            fileCacheTtl: Duration.zero,
-          )
-        else
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-          ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: LatLng(model.lat, model.lon),
-              child: Transform.rotate(
-                angle: degToRadian(model.track),
-                child: Icon(Icons.navigation, size: 32),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
