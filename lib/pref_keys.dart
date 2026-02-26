@@ -6,6 +6,6 @@ abstract class PrefKeys {
 
 abstract class Defaults {
   static const bool layoutLocked = false;
-  static const String websocketIP = "localhost";
+  static const String websocketIP = "127.0.0.1";
   static const int websocketPort = 9090;
 }

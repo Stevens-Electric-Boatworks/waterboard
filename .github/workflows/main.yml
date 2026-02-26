@@ -76,6 +76,7 @@ jobs:
   build:
     needs:
       - test
+      - formatting-analysis
     strategy:
       fail-fast: false
       matrix:
@@ -152,6 +153,7 @@ jobs:
     runs-on: "ubuntu-22.04"
     needs:
       - test
+      - formatting-analysis
 
     steps:
       - name: Checkout repo
@@ -179,6 +181,7 @@ jobs:
     runs-on: "ubuntu-24.04"
     needs:
       - test
+      - formatting-analysis
 
     steps:
       - name: Checkout repo
