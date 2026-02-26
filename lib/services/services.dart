@@ -1,9 +1,9 @@
 // Package imports:
 import 'package:clock/clock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterboard/services/hotkey_manager.dart';
 
 // Project imports:
+import 'package:waterboard/services/hotkey_manager.dart';
 import 'package:waterboard/services/hotkey_manager.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';

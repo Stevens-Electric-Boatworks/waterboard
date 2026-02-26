@@ -3,3 +3,9 @@ abstract class PrefKeys {
   static const String websocketIP = "websocket_ip";
   static const String websocketPort = "websocket_port";
 }
+
+abstract class Defaults {
+  static const bool layoutLocked = false;
+  static const String websocketIP = "localhost";
+  static const int websocketPort = 9090;
+}

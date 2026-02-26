@@ -54,7 +54,7 @@ class ROSBridge {
 
   Future<void> _attemptConnect() async {
     final wsUrl = Uri.parse(
-      'ws://${_preferences.getString(PrefKeys.websocketIP) ?? "127.0.0.1"}:${_preferences.getInt(PrefKeys.websocketPort) ?? 9090}',
+      'ws://${_preferences.getString(PrefKeys.websocketIP) ?? Defaults.websocketIP}:${_preferences.getInt(PrefKeys.websocketPort) ?? Defaults.websocketPort}',
     );
     _log.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);
