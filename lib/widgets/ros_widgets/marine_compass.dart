@@ -59,12 +59,12 @@ class MarineCompass extends StatelessWidget {
             },
           ),
         ),
-        SizedBox(width: 100,),
+        SizedBox(width: 100),
         Text(
           "${heading.round()}°",
           style: Theme.of(context).textTheme.displayLarge,
         ),
-        Text("Track", style: Theme.of(context).textTheme.displaySmall)
+        Text("Track", style: Theme.of(context).textTheme.displaySmall),
       ],
     );
   }

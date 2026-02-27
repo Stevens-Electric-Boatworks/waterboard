@@ -143,9 +143,11 @@ class _LogsPageState extends State<LogsPage> {
   @override
   void initState() {
     super.initState();
-    model.addListener(() => setState(() {
-      _onLogReceive();
-    }));
+    model.addListener(
+      () => setState(() {
+        _onLogReceive();
+      }),
+    );
     model.init();
   }
 
@@ -161,6 +163,7 @@ class _LogsPageState extends State<LogsPage> {
         return normalColor;
       }
     }
+
     LogMessage msg = model.logMessages.last;
     // if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
     //   return rows;
@@ -179,9 +182,7 @@ class _LogsPageState extends State<LogsPage> {
       TableRow(
         decoration: BoxDecoration(
           color: color,
-          border: BoxBorder.fromLTRB(
-            bottom: BorderSide(color: Colors.black12),
-          ),
+          border: BoxBorder.fromLTRB(bottom: BorderSide(color: Colors.black12)),
         ),
         children: [
           _withPadding(
@@ -237,7 +238,6 @@ class _LogsPageState extends State<LogsPage> {
 
   @override
   Widget build(BuildContext context) {
-    print("Building logs page!");
     return Padding(
       padding: EdgeInsetsGeometry.all(8),
       child: Column(
@@ -362,9 +362,6 @@ class _LogsPageState extends State<LogsPage> {
   }
 
   List<TableRow> _getRows() {
-
-    print("called _getRows");
-
     return rows;
   }
 
