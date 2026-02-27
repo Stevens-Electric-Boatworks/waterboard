@@ -21,6 +21,7 @@ class FakeROSSubscription extends ROSSubscription {
 
   @override
   void onData(Map<String, dynamic> data) {
+    isStale.value = false;
     notifier.value = data;
   }
 }
