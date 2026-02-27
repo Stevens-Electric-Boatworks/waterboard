@@ -174,11 +174,7 @@ class _DashboardPageState extends State<DashboardPage>
 
   void _onModelChanged() {
     setState(() {
-      _pageController.animateToPage(
-        model.currentPage,
-        duration: Duration(milliseconds: 1),
-        curve: Curves.linear,
-      );
+      _pageController.jumpToPage(model.currentPage);
     });
   }
 
@@ -225,7 +221,8 @@ class _DashboardPageState extends State<DashboardPage>
                 child: ElectricsPage(model: _electricsPageViewModel),
               ),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
-              KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
+              Placeholder(),
+              // KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
             ],
           ),
           bottomNavigationBar: SizedBox(

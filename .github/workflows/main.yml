@@ -228,6 +228,55 @@ jobs:
           name: Waterboard-Pi4B
           path: Waterboard-Pi4B.zip
           if-no-files-found: error
+  build-pi-3:
+    name: "Build (Temporary) - Raspberry Pi 3"
+    runs-on: "ubuntu-24.04"
+    needs:
+      - test
+      - formatting-analysis
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # need to use older version so FlutterPi builds correctly
+          flutter-version: 3.38.9
+          cache: true
+          cache-path: ${{ runner.tool_cache }}/flutter/${{ inputs.platform }}
+
+      - name: Flutter Doctor
+        shell: bash
+        run: flutter doctor -v
+
+      - name: Install dependencies
+        shell: bash
+        run: flutter pub get
+
+      - name: Install flutter build dependencies
+        if: ${{ matrix.platform == 'linux' }}
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libglu1-mesa ninja-build libgtk-3-dev liblzma-dev
+
+      - name: Download FlutterPi
+        run: flutter pub global activate flutterpi_tool
+
+      - name: Build for Raspberry Pi 3
+        run: flutterpi_tool build --arch=arm64 --cpu=pi3 --release
+
+      - name: Zip Artifact
+        working-directory: build/flutter-pi/pi3-64
+        run: zip -r ${{ github.workspace }}/Waterboard-Pi3.zip . --symlinks
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Waterboard-Pi3
+          path: Waterboard-Pi3.zip
+          if-no-files-found: error
 
   github-pages:
     name: Deploy to GitHub Pages
