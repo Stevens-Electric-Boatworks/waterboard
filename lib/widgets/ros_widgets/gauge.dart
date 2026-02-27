@@ -33,7 +33,7 @@ class ROSGauge extends StatelessWidget {
     required this.maximum,
     required this.ranges,
     this.thickness = 40,
-    this.positionFactor = 0.65,
+    this.positionFactor = 0.7,
     this.backgroundOpacity = 75,
     required this.title,
     required this.unitText,
@@ -72,13 +72,6 @@ class ROSGauge extends StatelessWidget {
           minimum: minimum,
           maximum: maximum,
           pointers: [
-            NeedlePointer(
-              value: value,
-              needleEndWidth: 5,
-              knobStyle: KnobStyle(knobRadius: 0.05),
-              needleColor: Colors.grey.withAlpha(150),
-              enableAnimation: enableAnimation,
-            ),
             RangePointer(
               width: thickness,
               value: maximum,
@@ -97,12 +90,12 @@ class ROSGauge extends StatelessWidget {
             GaugeAnnotation(
               widget: Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.merge(
+                style: Theme.of(context).textTheme.headlineSmall?.merge(
                   TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               angle: 90,
-              positionFactor: 0.4,
+              positionFactor: positionFactor,
             ),
             //Current Value
             GaugeAnnotation(
@@ -111,22 +104,22 @@ class ROSGauge extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    hasData ? "$value" : "N/A",
-                    style: Theme.of(context).textTheme.headlineMedium?.merge(
+                    hasData ? "${value.toInt()}" : "N/A",
+                    style: Theme.of(context).textTheme.displaySmall?.merge(
                       TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(width: 5),
                   Text(
                     unitText,
-                    style: Theme.of(context).textTheme.titleMedium?.merge(
+                    style: Theme.of(context).textTheme.headlineSmall?.merge(
                       TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
               angle: 90,
-              positionFactor: positionFactor,
+              positionFactor: 0,
             ),
           ],
           axisLabelStyle: GaugeTextStyle(
