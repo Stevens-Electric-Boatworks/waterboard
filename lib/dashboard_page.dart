@@ -221,8 +221,8 @@ class _DashboardPageState extends State<DashboardPage>
                 child: ElectricsPage(model: _electricsPageViewModel),
               ),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
-              Placeholder(),
-              // KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
+              // Placeholder(),
+              KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
             ],
           ),
           bottomNavigationBar: SizedBox(
