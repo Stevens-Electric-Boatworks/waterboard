@@ -231,9 +231,9 @@ jobs:
   build-pi-3:
     name: "Build (Temporary) - Raspberry Pi 3"
     runs-on: "ubuntu-24.04"
-    needs:
-      - test
-      - formatting-analysis
+    # needs:
+    #   - test
+    #   - formatting-analysis
 
     steps:
       - name: Checkout repo
