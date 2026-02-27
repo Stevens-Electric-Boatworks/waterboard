@@ -89,7 +89,6 @@ flutter:
      - assets/sponsors/plat/private.png
      - assets/sponsors/gold/sname.png
      - assets/sponsors/silver/dhx.png
-     - assets/mapdata/hoboken_small.pmtiles
      - assets/compass/overlay.png
      - assets/compass/compass.png
 
