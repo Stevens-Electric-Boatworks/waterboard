@@ -339,17 +339,10 @@ class _RadiosPageState extends State<RadiosPage> {
             ],
           ),
 
-          // Compass + Map
+          // Compass
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildWidgetBackground(
-                    MarineCompass(dataSource: model.compass),
-                  ),
-                ),
-                const SizedBox(width: 20),
-              ],
+            child: _buildWidgetBackground(
+              MarineCompass(dataSource: model.compass),
             ),
           ),
         ],

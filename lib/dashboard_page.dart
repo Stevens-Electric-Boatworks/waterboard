@@ -176,8 +176,8 @@ class _DashboardPageState extends State<DashboardPage>
     setState(() {
       _pageController.animateToPage(
         model.currentPage,
-        duration: Duration(milliseconds: 200),
-        curve: Curves.ease,
+        duration: Duration(milliseconds: 1),
+        curve: Curves.linear,
       );
     });
   }

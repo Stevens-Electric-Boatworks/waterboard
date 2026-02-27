@@ -143,88 +143,90 @@ class _LogsPageState extends State<LogsPage> {
   @override
   void initState() {
     super.initState();
-    model.log.onMessage.addListener(() {
-      int i = 0;
-      Color backgroundLevelColor(String level, Color normalColor) {
-        if (level == "ERROR") {
-          return Colors.red.shade100;
-        } else if (level == "INFO") {
-          return normalColor;
-        } else if (level == "WARN") {
-          return Colors.orange.shade100;
-        } else {
-          return normalColor;
-        }
+    model.addListener(() => setState(() {
+      _onLogReceive();
+    }));
+    model.init();
+  }
+
+  void _onLogReceive() {
+    Color backgroundLevelColor(String level, Color normalColor) {
+      if (level == "ERROR") {
+        return Colors.red.shade100;
+      } else if (level == "INFO") {
+        return normalColor;
+      } else if (level == "WARN") {
+        return Colors.orange.shade100;
+      } else {
+        return normalColor;
       }
-      LogMessage msg = model.logMessages.last;
-      // if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
-      //   return rows;
-      // }
-      // if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
-      //   return rows;
-      // }
+    }
+    LogMessage msg = model.logMessages.last;
+    // if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
+    //   return rows;
+    // }
+    // if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
+    //   return rows;
+    // }
 
-      Color color = backgroundLevelColor(
-        msg.level,
-        i % 2 == 0 ? Colors.white : Colors.grey.shade300,
-      );
-      final TextStyle style = Theme.of(context).textTheme.labelMedium!;
+    Color color = backgroundLevelColor(
+      msg.level,
+      model.logMessages.length % 2 == 0 ? Colors.white : Colors.grey.shade300,
+    );
+    final TextStyle style = Theme.of(context).textTheme.labelMedium!;
 
-      rows.add(
-        TableRow(
-          decoration: BoxDecoration(
-            color: color,
-            border: BoxBorder.fromLTRB(
-              bottom: BorderSide(color: Colors.black12),
+    rows.add(
+      TableRow(
+        decoration: BoxDecoration(
+          color: color,
+          border: BoxBorder.fromLTRB(
+            bottom: BorderSide(color: Colors.black12),
+          ),
+        ),
+        children: [
+          _withPadding(
+            Text(
+              msg.level,
+              style: style.merge(
+                TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
-          children: [
-            _withPadding(
-              Text(
-                msg.level,
-                style: style.merge(
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
+          _withPadding(
+            Text(
+              msg.emitter.name.toUpperCase(),
+              style: style.merge(
+                TextStyle(
+                  color: msg.emitter == Emitter.dash
+                      ? Colors.blue
+                      : Colors.black,
                 ),
               ),
             ),
-            _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
-            _withPadding(
-              Text(
-                msg.emitter.name.toUpperCase(),
-                style: style.merge(
-                  TextStyle(
-                    color: msg.emitter == Emitter.dash
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
+          ),
+          _withPadding(
+            Text(
+              msg.message,
+              style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
             ),
-            _withPadding(
-              Text(
-                msg.message,
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
+          ),
+          _withPadding(Text(msg.file ?? "", style: style)),
+          _withPadding(
+            Text(
+              msg.function ?? "",
+              style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
             ),
-            _withPadding(Text(msg.file ?? "", style: style)),
-            _withPadding(
-              Text(
-                msg.function ?? "",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
+          ),
+          _withPadding(
+            Text(
+              "${msg.lineNumber ?? ""}",
+              style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
             ),
-            _withPadding(
-              Text(
-                "${msg.lineNumber ?? ""}",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-          ],
-        ),
-      );
-    },);
-    model.addListener(() => setState(() {}));
-    model.init();
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -292,6 +294,7 @@ class _LogsPageState extends State<LogsPage> {
                 child: Stack(
                   children: [
                     SingleChildScrollView(
+                      reverse: true,
                       controller: _controller,
                       child: Table(
                         columnWidths: _getColumnWidths(),
