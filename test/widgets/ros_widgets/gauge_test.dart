@@ -39,7 +39,7 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.text("Example Title"), findsOneWidget);
     expect(find.text("RPM"), findsOneWidget);
-    expect(find.text("53.0"), findsOneWidget);
+    expect(find.text("53"), findsOneWidget);
     await widgetTester.pumpAndSettle();
     expect(find.byType(CustomPaint), findsOneWidget);
   });

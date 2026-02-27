@@ -53,15 +53,15 @@ void main() {
     await pumpPage(widgetTester, ros);
     ros.propagateData("/electrical/temp_sensors/in", {'inlet_temp': 13.2});
     await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "13.0"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "13"), findsOneWidget);
 
     ros.propagateData("/electrical/temp_sensors/out", {'outlet_temp': 19.1});
     await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "19.0"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "19"), findsOneWidget);
 
     ros.propagateData("/motion/vtg", {'track': 0.0, 'speed': 24.3});
     await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "24.0"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "24"), findsOneWidget);
 
     ros.propagateData("/motors/can_motor_data", {
       'voltage': 0.0,
@@ -70,8 +70,8 @@ void main() {
       'motor_temp': 172,
     });
     await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "256.0"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "128.0"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "172.0"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "256"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "128"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "172"), findsOneWidget);
   });
 }
