@@ -1,12 +1,12 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
+
 import '../services/log.dart';
 
 class LogMessage {
@@ -167,7 +167,11 @@ class _LogsPageState extends State<LogsPage> {
   @override
   void initState() {
     super.initState();
-    model.addListener(() => setState(() {}));
+    model.addListener(
+      () => setState(() {
+        _checkScrollState();
+      }),
+    );
     model.init();
   }
 
@@ -175,6 +179,21 @@ class _LogsPageState extends State<LogsPage> {
   void dispose() {
     super.dispose();
     model.dispose();
+  }
+
+  void _checkScrollState() {
+    if (!_controller.hasClients) return;
+
+    final threshold = 50.0;
+    final isNearBottom =
+        _controller.position.pixels >=
+        _controller.position.maxScrollExtent - threshold;
+
+    if (!isNearBottom) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.jumpTo(_controller.position.maxScrollExtent);
+    });
   }
 
   @override
@@ -200,6 +219,23 @@ class _LogsPageState extends State<LogsPage> {
                     Icon(Icons.delete),
                     SizedBox(width: 5),
                     Text("Clear Logs"),
+                  ],
+                ),
+              ),
+              SizedBox(width: 10),
+              FilledButton(
+                onPressed: () {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (timeStamp) => _controller.position.jumpTo(
+                      _controller.position.maxScrollExtent + 500,
+                    ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_downward),
+                    SizedBox(width: 5),
+                    Text("Jump To Bottom"),
                   ],
                 ),
               ),
