@@ -62,7 +62,7 @@ class ROSGauge extends StatelessWidget {
     return SfRadialGauge(
       enableLoadingAnimation: enableAnimation,
       backgroundColor: Colors.transparent,
-      animationDuration: 2000,
+      animationDuration: 1000,
       axes: [
         RadialAxis(
           axisLineStyle: AxisLineStyle(
@@ -71,7 +71,10 @@ class ROSGauge extends StatelessWidget {
           ),
           minimum: minimum,
           maximum: maximum,
+          showLastLabel: true,
+          interval: (maximum - minimum) / 2,
           pointers: [
+            //layer underneath
             RangePointer(
               width: thickness,
               value: maximum,
@@ -99,17 +102,30 @@ class ROSGauge extends StatelessWidget {
             ),
             //Current Value
             GaugeAnnotation(
-              widget: Row(
+              widget: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    hasData ? "${value.toInt()}" : "N/A",
-                    style: Theme.of(context).textTheme.displaySmall?.merge(
-                      TextStyle(fontWeight: FontWeight.bold),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(255),
+                      borderRadius: BorderRadiusGeometry.circular(8),
+                    ),
+                    child: Text(
+                      hasData ? "${value.toInt()}" : "N/A",
+                      style: Theme.of(context).textTheme.displayLarge?.merge(
+                        TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize:
+                              Theme.of(
+                                context,
+                              ).textTheme.displayLarge!.fontSize! *
+                              1.3,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 5),
+                  SizedBox(width: 25),
                   Text(
                     unitText,
                     style: Theme.of(context).textTheme.headlineSmall?.merge(
@@ -123,7 +139,7 @@ class ROSGauge extends StatelessWidget {
             ),
           ],
           axisLabelStyle: GaugeTextStyle(
-            fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+            fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
