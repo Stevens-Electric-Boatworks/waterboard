@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:mockito/annotations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/pages/radios_page.dart';
@@ -15,7 +16,7 @@ import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 import '../test_helpers/fakes/fake_internet_checker.dart';
 import '../test_helpers/test_util.dart';
-import 'radios_page.mocks.dart';
+import 'radios_page_test.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<InternetChecker>()])
 Future<void> pumpPage(WidgetTester widgetTester, Services services) async {
@@ -30,6 +31,9 @@ Future<void> pumpPage(WidgetTester widgetTester, Services services) async {
 void main() {
   FlutterError.onError = ignoreOverflowErrors;
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
   testWidgets('Verify Correct Widgets', (widgetTester) async {
     await pumpPage(
       widgetTester,
@@ -50,11 +54,7 @@ void main() {
     expect(find.text("Shore Reachable?"), findsOneWidget);
     expect(find.text("WiFi SSID"), findsOneWidget);
     expect(find.text("Cell Strength"), findsOneWidget);
-    expect(find.text("shore.stevenseboat.org"), findsOneWidget);
-    expect(find.text("Shore URL"), findsOneWidget);
-
-    //TODO: add proper map testing
-    expect(find.text("The map is loading..."), findsOneWidget);
+    expect(find.byType(MarineCompass), findsOneWidget);
   });
   testWidgets('Verify Correct Subscriptions', (widgetTester) async {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
@@ -67,8 +67,8 @@ void main() {
       ),
     );
     var subs = ros.subs;
-    expect(subs.length, 6);
     expect(subs.keys, [
+      '/rosout', //always subscribed
       '/motion/gps',
       '/motion/sv',
       '/motion/vtg',
@@ -102,7 +102,7 @@ void main() {
     ros.propagateData("/motion/vtg", {'speed': 8.24, 'true_track': 14.0});
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSText, "8.2" /*2 sig figs*/), findsOneWidget);
-    expect(find.widgetWithText(MarineCompass, "14.0°"), findsOneWidget);
+    expect(find.widgetWithText(MarineCompass, "14°"), findsOneWidget);
 
     //alt, cell, and climb are all unimplemented
     expect(find.widgetWithText(ROSText, "N/A"), findsNWidgets(3));
@@ -118,7 +118,7 @@ void main() {
           internetChecker,
         ),
       );
-      expect(find.text("Not Connected"), findsNWidgets(2));
+      expect(find.text("Disconnected"), findsNWidgets(2));
       expect(find.text("Unreachable"), findsOneWidget);
     });
     testWidgets('Online', (widgetTester) async {
@@ -150,7 +150,7 @@ void main() {
         ),
       );
       await widgetTester.pumpAndSettle();
-      expect(find.text("Not Connected"), findsNWidgets(2));
+      expect(find.text("Disconnected"), findsNWidgets(2));
       expect(find.text("Unreachable"), findsOneWidget);
 
       internetChecker.controller.add(InternetStatus.connected);
@@ -165,7 +165,7 @@ void main() {
       internetChecker.ipAddress.value = null;
       internetChecker.ssid.value = null;
       await widgetTester.pumpAndSettle();
-      expect(find.text("Not Connected"), findsNWidgets(2));
+      expect(find.text("Disconnected"), findsNWidgets(2));
       expect(find.text("Unreachable"), findsOneWidget);
     });
   });

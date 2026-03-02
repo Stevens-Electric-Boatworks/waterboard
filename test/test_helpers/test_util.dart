@@ -15,7 +15,7 @@ import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import '../pages/radios_page.mocks.dart';
+import '../pages/radios_page_test.mocks.dart';
 import 'fakes/fake_internet_checker.dart';
 import 'fakes/fake_ros.dart';
 import 'test_util.mocks.dart';
