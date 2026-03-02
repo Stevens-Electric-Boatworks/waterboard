@@ -36,38 +36,35 @@ class MarineCompass extends StatelessWidget {
   }
 
   Widget _buildCompass(double heading, BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(8),
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                return SizedBox(
-                  height: constraints.maxHeight,
-                  width: constraints.maxHeight,
-                  child: Stack(
-                    children: [
-                      Transform.rotate(
-                        angle: -degToRadian(heading),
-                        child: Image.asset("assets/compass/compass.png"),
-                      ),
-                      Image.asset("assets/compass/overlay.png"),
-                    ],
-                  ),
-                );
-              },
-            ),
+        Padding(
+          padding: EdgeInsetsGeometry.all(8),
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return SizedBox(
+                height: constraints.maxHeight,
+                width: constraints.maxHeight,
+                child: Stack(
+                  children: [
+                    Transform.rotate(
+                      angle: -degToRadian(heading),
+                      child: Image.asset("assets/compass/compass.png"),
+                    ),
+                    Image.asset("assets/compass/overlay.png"),
+                  ],
+                ),
+              );
+            },
           ),
         ),
-        SizedBox(height: 5),
+        SizedBox(width: 100),
         Text(
-          "${heading.toStringAsPrecision(3)}°",
-          style: Theme.of(context).textTheme.displayMedium,
+          "${heading.round()}°",
+          style: Theme.of(context).textTheme.displayLarge,
         ),
-        Text("Track", style: Theme.of(context).textTheme.titleLarge),
+        Text("Track", style: Theme.of(context).textTheme.displaySmall),
       ],
     );
   }

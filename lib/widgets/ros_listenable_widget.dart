@@ -1,5 +1,4 @@
 // Dart imports:
-import 'dart:async';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
@@ -25,22 +24,14 @@ class ROSListenable extends StatefulWidget {
 }
 
 class _ROSListenableState extends State<ROSListenable> {
-  late final Timer _ticker;
-
   @override
   void initState() {
+    widget.subscription.isStale.addListener(() => setState(() {}));
     super.initState();
-
-    _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
   }
 
   @override
   void dispose() {
-    _ticker.cancel();
     super.dispose();
   }
 
@@ -53,7 +44,7 @@ class _ROSListenableState extends State<ROSListenable> {
           alignment: Alignment.center,
           children: [
             RepaintBoundary(child: getWidget(value)),
-            if (widget.subscription.isStale)
+            if (widget.subscription.isStale.value)
               Positioned.fill(
                 child: IgnorePointer(
                   child: Padding(

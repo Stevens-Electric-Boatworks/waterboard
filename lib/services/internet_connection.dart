@@ -21,7 +21,7 @@ class InternetCheckerImpl extends InternetChecker {
   Timer? _networkTimer;
   final ValueNotifier<String?> _ssid = ValueNotifier(null);
   final ValueNotifier<String?> _ipAddress = ValueNotifier(null);
-  final NetworkInfo networkInfo = NetworkInfo();
+  final NetworkInfo _networkInfo = NetworkInfo();
   InternetCheckerImpl() {
     internetStatus = InternetConnection.createInstance(
       customCheckOptions: [
@@ -29,15 +29,17 @@ class InternetCheckerImpl extends InternetChecker {
       ],
     ).onStatusChange;
 
-    _networkTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => updateNetworkInfo(),
-    );
+    if (!kIsWeb) {
+      _networkTimer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => updateNetworkInfo(),
+      );
+    }
   }
 
   Future<void> updateNetworkInfo() async {
-    _ssid.value = await networkInfo.getWifiName();
-    _ipAddress.value = await networkInfo.getWifiIP();
+    _ssid.value = await _networkInfo.getWifiName();
+    _ipAddress.value = await _networkInfo.getWifiIP();
   }
 
   @override

@@ -35,8 +35,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   void _updateIPInSettings() async {
     var prefs = widget.services.preferences;
-    String ip = prefs.getString(PrefKeys.websocketIP) ?? "127.0.0.1";
-    int? port = prefs.getInt(PrefKeys.websocketPort) ?? 9090;
+    String ip = prefs.getString(PrefKeys.websocketIP) ?? Defaults.websocketIP;
+    int? port = prefs.getInt(PrefKeys.websocketPort) ?? Defaults.websocketPort;
     _ipTextController.text = ip;
     _portTextController.text = port.toString();
   }
@@ -116,7 +116,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     widget.services.preferences.getBool(
                       PrefKeys.layoutLocked,
                     ) ??
-                    false,
+                    Defaults.layoutLocked,
                 onChanged: (value) {
                   setState(() {
                     widget.services.preferences.setBool(

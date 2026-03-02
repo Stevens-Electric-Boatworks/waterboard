@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
@@ -38,8 +39,11 @@ class LogsPageViewModel extends ChangeNotifier {
   Emitter selectedFilter = Emitter.none;
 
   LogsPageViewModel({required this.services});
+
   ROS get ros => services.ros;
+
   Log get log => services.logger;
+
   void init() {
     ros.rosLogs.onLogMessage.addListener(_onROSLogMsg);
     log.onMessage.addListener(_onWaterboardLogMsg);
@@ -54,6 +58,27 @@ class LogsPageViewModel extends ChangeNotifier {
     logMessages.sort((a, b) {
       return a.timestamp.compareTo(b.timestamp);
     });
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyA,
+      callback: () {
+        selectedFilter = Emitter.none;
+        notifyListeners();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyW,
+      callback: () {
+        selectedFilter = Emitter.dash;
+        notifyListeners();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.keyR,
+      callback: () {
+        selectedFilter = Emitter.ros;
+        notifyListeners();
+      },
+    );
   }
 
   @override
@@ -61,6 +86,16 @@ class LogsPageViewModel extends ChangeNotifier {
     super.dispose();
     ros.rosLogs.onLogMessage.removeListener(_onROSLogMsg);
     log.onMessage.removeListener(_onWaterboardLogMsg);
+  }
+
+  List<LogMessage> get filteredLogs {
+    if (selectedFilter == Emitter.none) {
+      return logMessages;
+    }
+
+    return logMessages
+        .where((log) => log.emitter == selectedFilter)
+        .toList(growable: false);
   }
 
   void _onROSLogMsg() {
@@ -80,7 +115,14 @@ class LogsPageViewModel extends ChangeNotifier {
       function: log.function,
       lineNumber: log.line,
     );
-    logMessages.add(logMsg);
+    _addToList(logMsg);
+  }
+
+  void _addToList(LogMessage message) {
+    logMessages.add(message);
+    if (logMessages.length == 2000) {
+      logMessages.removeAt(0);
+    }
   }
 
   void _onWaterboardLogMsg() {
@@ -100,7 +142,12 @@ class LogsPageViewModel extends ChangeNotifier {
       function: null,
       lineNumber: null,
     );
-    logMessages.add(logMsg);
+    _addToList(logMsg);
+  }
+
+  void clearLogs() {
+    logMessages.clear();
+    notifyListeners();
   }
 }
 
@@ -115,11 +162,16 @@ class LogsPage extends StatefulWidget {
 
 class _LogsPageState extends State<LogsPage> {
   LogsPageViewModel get model => widget.model;
+  final ScrollController _controller = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    model.addListener(() => setState(() {}));
+    model.addListener(
+      () => setState(() {
+        _checkScrollState();
+      }),
+    );
     model.init();
   }
 
@@ -129,8 +181,27 @@ class _LogsPageState extends State<LogsPage> {
     model.dispose();
   }
 
+  void _checkScrollState() {
+    if (!_controller.hasClients) return;
+
+    final threshold = 50.0;
+    final isNearBottom =
+        _controller.position.pixels >=
+        _controller.position.maxScrollExtent - threshold;
+
+    if (!isNearBottom) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.jumpTo(_controller.position.maxScrollExtent);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final TextStyle messageStyle = Theme.of(context).textTheme.labelMedium!;
+    final TextStyle headerStyle = Theme.of(
+      context,
+    ).textTheme.labelSmall!.merge(TextStyle(fontWeight: FontWeight.bold));
     return Padding(
       padding: EdgeInsetsGeometry.all(8),
       child: Column(
@@ -139,6 +210,35 @@ class _LogsPageState extends State<LogsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              FilledButton(
+                onPressed: () {
+                  model.clearLogs();
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.delete),
+                    SizedBox(width: 5),
+                    Text("Clear Logs"),
+                  ],
+                ),
+              ),
+              SizedBox(width: 10),
+              FilledButton(
+                onPressed: () {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (timeStamp) => _controller.position.jumpTo(
+                      _controller.position.maxScrollExtent + 500,
+                    ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.arrow_downward),
+                    SizedBox(width: 5),
+                    Text("Jump To Bottom"),
+                  ],
+                ),
+              ),
               Spacer(),
               Center(
                 child: Text(
@@ -176,6 +276,7 @@ class _LogsPageState extends State<LogsPage> {
             ],
           ),
           SizedBox(height: 5),
+          //Log Viewer
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -184,26 +285,134 @@ class _LogsPageState extends State<LogsPage> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: Stack(
+                child: Column(
                   children: [
-                    SingleChildScrollView(
-                      child: Table(
-                        columnWidths: _getColumnWidths(),
+                    Container(
+                      color: Colors.grey,
+                      child: Row(
                         children: [
-                          TableRow(
-                            children: List.generate(
-                              7,
-                              //empty row thats hidden
-                              (index) => Text(" "),
-                            ),
+                          _buildRowEntry(Text("Level", style: headerStyle), 1),
+                          _buildRowEntry(
+                            Text("Timestamp", style: headerStyle),
+                            2,
                           ),
-                          ..._getRows(),
+                          _buildRowEntry(Text("Source", style: headerStyle), 1),
+                          _buildRowEntry(
+                            Text("Message", style: headerStyle),
+                            13,
+                          ),
+                          _buildRowEntry(Text("File", style: headerStyle), 4),
+                          _buildRowEntry(
+                            Text("Function", style: headerStyle),
+                            2,
+                          ),
+                          _buildRowEntry(Text("Line", style: headerStyle), 1),
                         ],
                       ),
                     ),
-                    Table(
-                      columnWidths: _getColumnWidths(),
-                      children: [getTopRow(context)],
+                    Expanded(
+                      child: ListView.separated(
+                        controller: _controller,
+                        itemCount: model.filteredLogs.length,
+                        itemBuilder: (context, index) {
+                          Color backgroundLevelColor(
+                            String level,
+                            Color normalColor,
+                          ) {
+                            if (level == "ERROR") {
+                              return Colors.red.shade100;
+                            } else if (level == "INFO") {
+                              return normalColor;
+                            } else if (level == "WARN") {
+                              return Colors.orange.shade100;
+                            } else {
+                              return normalColor;
+                            }
+                          }
+
+                          var msg = model.filteredLogs[index];
+                          Color color = backgroundLevelColor(
+                            msg.level,
+                            index % 2 == 0
+                                ? Colors.white
+                                : Colors.grey.shade300,
+                          );
+                          return Container(
+                            color: color,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                _buildRowEntry(
+                                  Text(
+                                    msg.level,
+                                    style: messageStyle.merge(
+                                      TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  1,
+                                ),
+                                _buildRowEntry(
+                                  Text(
+                                    _getTimeText(msg.timestamp),
+                                    style: messageStyle,
+                                  ),
+                                  2,
+                                ),
+                                _buildRowEntry(
+                                  Text(
+                                    msg.emitter.name.toUpperCase(),
+                                    style: messageStyle.merge(
+                                      TextStyle(
+                                        color: msg.emitter == Emitter.dash
+                                            ? Colors.blue
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  1,
+                                ),
+                                _buildRowEntry(
+                                  Text(
+                                    msg.message,
+                                    style: messageStyle.merge(
+                                      TextStyle(fontStyle: FontStyle.italic),
+                                    ),
+                                  ),
+                                  13,
+                                ),
+                                _buildRowEntry(
+                                  Text(msg.file ?? "", style: messageStyle),
+                                  4,
+                                ),
+                                _buildRowEntry(
+                                  Text(
+                                    msg.function ?? "",
+                                    style: messageStyle.merge(
+                                      TextStyle(fontStyle: FontStyle.italic),
+                                    ),
+                                  ),
+                                  2,
+                                ),
+                                _buildRowEntry(
+                                  Text(
+                                    "${msg.lineNumber ?? ""}",
+                                    style: messageStyle.merge(
+                                      TextStyle(fontStyle: FontStyle.italic),
+                                    ),
+                                  ),
+                                  1,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        separatorBuilder: (BuildContext context, int index) {
+                          return Divider(height: 1, thickness: 1);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -215,128 +424,14 @@ class _LogsPageState extends State<LogsPage> {
     );
   }
 
-  Map<int, FlexColumnWidth> _getColumnWidths() {
-    return {
-      0: FlexColumnWidth(0.8),
-      1: FlexColumnWidth(1.2),
-      2: FlexColumnWidth(0.8),
-      3: FlexColumnWidth(7),
-      4: FlexColumnWidth(4),
-      5: FlexColumnWidth(1),
-      6: FlexColumnWidth(1),
-    };
-  }
-
-  TableRow getTopRow(BuildContext context) {
-    TextStyle style = Theme.of(
-      context,
-    ).textTheme.bodyMedium!.merge(TextStyle(fontWeight: FontWeight.bold));
-    return TableRow(
-      decoration: BoxDecoration(color: Colors.grey.shade500),
-      children: [
-        _withPadding(Text("Level", style: style)),
-        _withPadding(Text("Timestamp", style: style)),
-        _withPadding(Text("Source", style: style)),
-        _withPadding(Text("Message", style: style)),
-        _withPadding(Text("File", style: style)),
-        _withPadding(Text("Function", style: style)),
-        _withPadding(Text("Line #", style: style)),
-      ],
+  Widget _buildRowEntry(Widget child, int flex) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: child,
+      ),
     );
-  }
-
-  Widget _withPadding(Widget child) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: child,
-    );
-  }
-
-  List<TableRow> _getRows() {
-    List<TableRow> rows = [];
-    int i = 0;
-    Color backgroundLevelColor(String level, Color normalColor) {
-      if (level == "ERROR") {
-        return Colors.red.shade100;
-      } else if (level == "INFO") {
-        return normalColor;
-      } else if (level == "WARN") {
-        return Colors.orange.shade100;
-      } else {
-        return normalColor;
-      }
-    }
-
-    for (LogMessage msg in model.logMessages) {
-      if (model.selectedFilter == Emitter.ros && msg.emitter == Emitter.dash) {
-        continue;
-      }
-      if (model.selectedFilter == Emitter.dash && msg.emitter == Emitter.ros) {
-        continue;
-      }
-
-      Color color = backgroundLevelColor(
-        msg.level,
-        i % 2 == 0 ? Colors.white : Colors.grey.shade300,
-      );
-      final TextStyle style = Theme.of(context).textTheme.labelMedium!;
-
-      rows.insert(
-        0,
-        TableRow(
-          decoration: BoxDecoration(
-            color: color,
-            border: BoxBorder.fromLTRB(
-              bottom: BorderSide(color: Colors.black12),
-            ),
-          ),
-          children: [
-            _withPadding(
-              Text(
-                msg.level,
-                style: style.merge(
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            _withPadding(Text(_getTimeText(msg.timestamp), style: style)),
-            _withPadding(
-              Text(
-                msg.emitter.name.toUpperCase(),
-                style: style.merge(
-                  TextStyle(
-                    color: msg.emitter == Emitter.dash
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
-            ),
-            _withPadding(
-              Text(
-                msg.message,
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-            _withPadding(Text(msg.file ?? "", style: style)),
-            _withPadding(
-              Text(
-                msg.function ?? "",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-            _withPadding(
-              Text(
-                "${msg.lineNumber ?? ""}",
-                style: style.merge(TextStyle(fontStyle: FontStyle.italic)),
-              ),
-            ),
-          ],
-        ),
-      );
-      i++;
-    }
-    return rows;
   }
 
   String _getTimeText(DateTime now) {

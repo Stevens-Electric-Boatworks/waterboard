@@ -22,7 +22,7 @@ void main() async {
       WindowOptions windowOptions = WindowOptions(
         center: true,
         title: "Waterboard Driver Dashboard | Stevens Electric Boatworks",
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.blue,
         skipTaskbar: false,
         titleBarStyle: TitleBarStyle.normal,
       );
@@ -73,6 +73,23 @@ class _WaterboardAppState extends State<WaterboardApp> {
           backgroundColor: WaterboardColors.containerBackground,
           unselectedLabelStyle: TextStyle(color: Colors.grey.shade600),
           selectedItemColor: Colors.red.shade800,
+        ),
+        buttonTheme: ButtonThemeData(
+          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
+        ),
+        segmentedButtonTheme: SegmentedButtonThemeData(
+          style: SegmentedButton.styleFrom(
+            selectedBackgroundColor: Colors.blue.shade500,
+            backgroundColor: Colors.blue.shade100,
+            foregroundColor: Colors.black,
+            selectedForegroundColor: Colors.black,
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.blue.shade100,
+            foregroundColor: Colors.black,
+          ),
         ),
         fontFamily: "inter",
       ),

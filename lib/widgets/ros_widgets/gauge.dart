@@ -33,7 +33,7 @@ class ROSGauge extends StatelessWidget {
     required this.maximum,
     required this.ranges,
     this.thickness = 40,
-    this.positionFactor = 0.65,
+    this.positionFactor = 0.7,
     this.backgroundOpacity = 75,
     required this.title,
     required this.unitText,
@@ -62,7 +62,7 @@ class ROSGauge extends StatelessWidget {
     return SfRadialGauge(
       enableLoadingAnimation: enableAnimation,
       backgroundColor: Colors.transparent,
-      animationDuration: 2000,
+      animationDuration: 1000,
       axes: [
         RadialAxis(
           axisLineStyle: AxisLineStyle(
@@ -71,14 +71,10 @@ class ROSGauge extends StatelessWidget {
           ),
           minimum: minimum,
           maximum: maximum,
+          showLastLabel: true,
+          interval: (maximum - minimum) / 2,
           pointers: [
-            NeedlePointer(
-              value: value,
-              needleEndWidth: 5,
-              knobStyle: KnobStyle(knobRadius: 0.05),
-              needleColor: Colors.grey.withAlpha(150),
-              enableAnimation: enableAnimation,
-            ),
+            //layer underneath
             RangePointer(
               width: thickness,
               value: maximum,
@@ -97,40 +93,53 @@ class ROSGauge extends StatelessWidget {
             GaugeAnnotation(
               widget: Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.merge(
+                style: Theme.of(context).textTheme.headlineSmall?.merge(
                   TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               angle: 90,
-              positionFactor: 0.4,
+              positionFactor: positionFactor,
             ),
             //Current Value
             GaugeAnnotation(
-              widget: Row(
+              widget: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    hasData ? "$value" : "N/A",
-                    style: Theme.of(context).textTheme.headlineMedium?.merge(
-                      TextStyle(fontWeight: FontWeight.bold),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(255),
+                      borderRadius: BorderRadiusGeometry.circular(8),
+                    ),
+                    child: Text(
+                      hasData ? "${value.toInt()}" : "N/A",
+                      style: Theme.of(context).textTheme.displayLarge?.merge(
+                        TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize:
+                              Theme.of(
+                                context,
+                              ).textTheme.displayLarge!.fontSize! *
+                              1.3,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 5),
+                  SizedBox(width: 25),
                   Text(
                     unitText,
-                    style: Theme.of(context).textTheme.titleMedium?.merge(
+                    style: Theme.of(context).textTheme.headlineSmall?.merge(
                       TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
               angle: 90,
-              positionFactor: positionFactor,
+              positionFactor: 0,
             ),
           ],
           axisLabelStyle: GaugeTextStyle(
-            fontSize: Theme.of(context).textTheme.titleMedium!.fontSize,
+            fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),

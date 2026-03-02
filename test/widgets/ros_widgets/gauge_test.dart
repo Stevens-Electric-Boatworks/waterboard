@@ -16,7 +16,7 @@ void main() {
   testWidgets('Has Data', (widgetTester) async {
     FakeROS fakeROS = createFakeROS(initialState: ROSConnectionState.connected);
     var sub = fakeROS.subscribe("/test/", initialData: {'test': 53.0});
-    sub.isStale = false;
+    sub.isStale.value = false;
     var dataGauge = ROSGaugeDataSource(
       sub: sub,
       valueBuilder: (json) {
@@ -39,7 +39,7 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.text("Example Title"), findsOneWidget);
     expect(find.text("RPM"), findsOneWidget);
-    expect(find.text("53.0"), findsOneWidget);
+    expect(find.text("53"), findsOneWidget);
     await widgetTester.pumpAndSettle();
     expect(find.byType(CustomPaint), findsOneWidget);
   });

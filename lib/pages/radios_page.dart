@@ -1,23 +1,16 @@
 // Dart imports:
 import 'dart:async';
-import 'dart:io';
 
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
-import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
@@ -94,16 +87,11 @@ class RadiosPageViewModel extends ChangeNotifier {
     );
 
     // Update map coordinates whenever GPS changes
-    gpsSub.notifier.addListener(_onGpsUpdate);
     vtgSub.notifier.addListener(() {
       track = vtgSub.notifier.value["true_track"] as double;
     });
 
-    // Network status
     internetStatusStream = connection!.internetStatus;
-    if (!kIsWeb) {
-      _prepareMapProvider();
-    }
   }
 
   InternetChecker? get connection => services.internet;
@@ -112,41 +100,8 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   Log get log => services.logger;
 
-  void _onGpsUpdate() {
-    if (!mapReady) return;
-    final val = gpsSub.notifier.value;
-
-    lat = val["lat"] as double;
-    lon = val["lon"] as double;
-    mapController.move(LatLng(lat, lon), mapController.camera.zoom);
-    notifyListeners();
-  }
-
-  Future<void> _prepareMapProvider() async {
-    if (!DebugVariables.loadMap) {
-      return;
-    }
-    try {
-      final byteData = await rootBundle.load(
-        'assets/mapdata/hoboken_small.pmtiles',
-      );
-      final tempDir = await getTemporaryDirectory();
-      final filePath = p.join(tempDir.path, 'hoboken_small.pmtiles');
-      final file = File(filePath);
-      await file.writeAsBytes(byteData.buffer.asUint8List());
-
-      log.info("Hoboken Offline Map copied to: $filePath");
-      provider = await PmTilesVectorTileProvider.fromSource(filePath);
-      log.info("Hoboken Offline Map loaded");
-      notifyListeners();
-    } catch (e) {
-      log.error("Failed to load map: $e");
-    }
-  }
-
   @override
   void dispose() {
-    gpsSub.notifier.removeListener(_onGpsUpdate);
     connection?.dispose();
     super.dispose();
   }
@@ -221,19 +176,21 @@ class _RadiosPageState extends State<RadiosPage> {
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _internetBox(
-                          ValueListenableBuilder(
-                            valueListenable: model.connection!.ipAddress,
-                            builder: (_, value, __) {
-                              return _buildText(
-                                value ?? "Disconnected",
-                                "IP Address",
-                              );
-                            },
-                          ),
+                        _buildWidgetBackground(
+                          !kIsWeb
+                              ? ValueListenableBuilder(
+                                  valueListenable: model.connection!.ipAddress,
+                                  builder: (_, value, __) {
+                                    return _buildText(
+                                      value ?? "Disconnected",
+                                      "IP Address",
+                                    );
+                                  },
+                                )
+                              : _buildText("Unsupported", "IP Address"),
                         ),
 
-                        _internetBox(
+                        _buildWidgetBackground(
                           StreamBuilder<InternetStatus>(
                             stream: model.internetStatusStream,
                             builder: (_, snapshot) {
@@ -249,19 +206,21 @@ class _RadiosPageState extends State<RadiosPage> {
                           ),
                         ),
 
-                        _internetBox(
-                          ValueListenableBuilder(
-                            valueListenable: model.connection!.ssid,
-                            builder: (_, value, __) {
-                              return _buildText(
-                                value ?? "Disconnected",
-                                "WiFi SSID",
-                              );
-                            },
-                          ),
+                        _buildWidgetBackground(
+                          !kIsWeb
+                              ? ValueListenableBuilder(
+                                  valueListenable: model.connection!.ssid,
+                                  builder: (_, value, __) {
+                                    return _buildText(
+                                      value ?? "Disconnected",
+                                      "WiFi SSID",
+                                    );
+                                  },
+                                )
+                              : _buildText("Unsupported", "WiFi SSID"),
                         ),
 
-                        _internetBox(
+                        _buildWidgetBackground(
                           ROSText(
                             dataSource: model.cell,
                             subtext: "Cell Strength",
@@ -344,82 +303,14 @@ class _RadiosPageState extends State<RadiosPage> {
             ],
           ),
 
-          // Compass + Map
+          // Compass
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildWidgetBackground(
-                    MarineCompass(dataSource: model.compass),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SizedBox(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _getMap(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            child: _buildWidgetBackground(
+              MarineCompass(dataSource: model.compass),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _getMap() {
-    if (!DebugVariables.loadMap) {
-      return Container();
-    }
-    model.mapReady = true;
-    // return Container();
-    return FlutterMap(
-      mapController: model.mapController,
-      options: MapOptions(
-        keepAlive: true,
-        initialCenter: LatLng(40.7507, -74.0272),
-        interactionOptions: const InteractionOptions(
-          flags:
-              InteractiveFlag.scrollWheelZoom |
-              InteractiveFlag.pinchZoom |
-              InteractiveFlag.doubleTapZoom |
-              InteractiveFlag.doubleTapDragZoom,
-        ),
-        initialZoom: 15,
-      ),
-      children: [
-        if (!kIsWeb && DebugVariables.loadMap)
-          VectorTileLayer(
-            theme: ProtomapsThemes.lightV4(),
-            tileProviders: TileProviders({'protomaps': model.provider!}),
-            fileCacheTtl: Duration.zero,
-          )
-        else
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-          ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: LatLng(model.lat, model.lon),
-              child: Transform.rotate(
-                angle: degToRadian(model.track),
-                child: Icon(Icons.navigation, size: 32),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -439,10 +330,6 @@ class _RadiosPageState extends State<RadiosPage> {
         ],
       ),
     );
-  }
-
-  Widget _internetBox(Widget child) {
-    return _buildWidgetBackground(child);
   }
 
   Widget _buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {

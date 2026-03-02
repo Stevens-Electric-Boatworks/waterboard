@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/dashboard_page.dart';
-import 'package:waterboard/debug_vars.dart';
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
@@ -47,7 +46,6 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     preferences = await SharedPreferences.getInstance();
-    DebugVariables.loadMap = false;
   });
   group("Main Page", () {
     testWidgets('Main Page Layout', (widgetTester) async {
@@ -81,7 +79,6 @@ void main() {
     });
     group("Main Page Keybinds", () {
       testWidgets('Page Switching', (widgetTester) async {
-        DebugVariables.loadMap = false;
         var model = await pumpDashboardPage(
           widgetTester,
           await createServicesRegistry(
