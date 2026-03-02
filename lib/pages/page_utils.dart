@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
 import '../settings/settings_dialog.dart';
+import '../waterboard_colors.dart';
 
 class ResponsiveGaugeGrid extends StatelessWidget {
   final List<ROSGaugeConfig> gauges;
@@ -87,6 +88,41 @@ class PageUtils {
           ),
         );
       },
+    );
+  }
+  static Widget buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: WaterboardColors.containerForeground,
+      ),
+      child: inside,
+    );
+  }
+
+  static BoxDecoration panelDecoration() {
+    return BoxDecoration(
+      color: WaterboardColors.containerBackground,
+      borderRadius: BorderRadius.circular(16),
+    );
+  }
+  static Widget buildText(
+      BuildContext context,
+      String value,
+      String subtitle, {
+        Color color = Colors.black,
+        TextStyle? style,
+      }) {
+    style ??= Theme.of(context).textTheme.displaySmall;
+    return PageUtils.buildWidgetBackground(
+      Column(
+        children: [
+          Text(value, style: style?.merge(TextStyle(color: color))),
+          const SizedBox(height: 10),
+          Text(subtitle, style: Theme.of(context).textTheme.titleLarge),
+        ],
+      ),
     );
   }
 }

@@ -17,6 +17,9 @@ abstract class ROS {
   ValueNotifier<ROSConnectionState> get connectionState;
   ROSLogsCollector get rosLogs;
   Map<String, ROSSubscription> get subs;
+
+  DateTime get timeSinceLastMsg;
+  ValueNotifier<ROSSubscription?> get onSubscription;
   ROSSubscription subscribe(String topic);
   void startConnectionLoop();
   void reconnect();
@@ -28,10 +31,11 @@ class ROSImpl extends ROS {
   final SharedPreferences _preferences;
   late ROSBridge _rosBridge;
   final Map<String, ROSSubscription> _subs = {};
+  final ValueNotifier<ROSSubscription?> _onSubscription = ValueNotifier(null);
   @override
   late final ROSLogsCollector rosLogs;
   ROSImpl(this._log, this._preferences) {
-    _rosBridge = ROSBridge(this, _log, _preferences);
+    _rosBridge = ROSBridge(this, _log, _preferences, clock);
     rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
     rosLogs.init();
   }
@@ -64,6 +68,7 @@ class ROSImpl extends ROS {
     var sub = ROSSubscriptionImpl(topic, _rosBridge, clock);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
+    _onSubscription.value = sub;
     return sub;
   }
 
@@ -73,6 +78,12 @@ class ROSImpl extends ROS {
     if (data.isEmpty) return;
     _subs[topic]?.onData(data);
   }
+
+  @override
+  DateTime get timeSinceLastMsg => _rosBridge.timeSinceLastMsg;
+
+  @override
+  ValueNotifier<ROSSubscription?> get onSubscription => _onSubscription;
 }
 
 enum ROSConnectionState { noWebsocket, staleData, connected }

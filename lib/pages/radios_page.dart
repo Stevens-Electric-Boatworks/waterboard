@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
+import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
 import 'package:waterboard/services/internet_connection.dart';
@@ -16,7 +17,7 @@ import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/waterboard_colors.dart';
+import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
@@ -153,7 +154,7 @@ class _RadiosPageState extends State<RadiosPage> {
   Widget _buildInternetAndCell() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: _panelDecoration(),
+      decoration: PageUtils.panelDecoration(),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Center(
@@ -176,28 +177,28 @@ class _RadiosPageState extends State<RadiosPage> {
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildWidgetBackground(
+                        PageUtils.buildWidgetBackground(
                           !kIsWeb
                               ? ValueListenableBuilder(
                                   valueListenable: model.connection!.ipAddress,
                                   builder: (_, value, __) {
-                                    return _buildText(
+                                    return PageUtils.buildText(context,
                                       value ?? "Disconnected",
                                       "IP Address",
                                     );
                                   },
                                 )
-                              : _buildText("Unsupported", "IP Address"),
+                              : PageUtils.buildText(context,"Unsupported", "IP Address"),
                         ),
 
-                        _buildWidgetBackground(
+                        PageUtils.buildWidgetBackground(
                           StreamBuilder<InternetStatus>(
                             stream: model.internetStatusStream,
                             builder: (_, snapshot) {
                               final connected =
                                   snapshot.data == InternetStatus.connected;
 
-                              return _buildText(
+                              return PageUtils.buildText(context,
                                 connected ? "Reachable" : "Unreachable",
                                 "Shore Reachable?",
                                 color: connected ? Colors.green : Colors.red,
@@ -206,21 +207,21 @@ class _RadiosPageState extends State<RadiosPage> {
                           ),
                         ),
 
-                        _buildWidgetBackground(
+                        PageUtils.buildWidgetBackground(
                           !kIsWeb
                               ? ValueListenableBuilder(
                                   valueListenable: model.connection!.ssid,
                                   builder: (_, value, __) {
-                                    return _buildText(
+                                    return PageUtils.buildText(context,
                                       value ?? "Disconnected",
                                       "WiFi SSID",
                                     );
                                   },
                                 )
-                              : _buildText("Unsupported", "WiFi SSID"),
+                              : PageUtils.buildText(context,"Unsupported", "WiFi SSID"),
                         ),
 
-                        _buildWidgetBackground(
+                        PageUtils.buildWidgetBackground(
                           ROSText(
                             dataSource: model.cell,
                             subtext: "Cell Strength",
@@ -241,7 +242,7 @@ class _RadiosPageState extends State<RadiosPage> {
   Widget _buildGPS() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: _panelDecoration(),
+      decoration: PageUtils.panelDecoration(),
       child: Column(
         spacing: 20,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -255,13 +256,13 @@ class _RadiosPageState extends State<RadiosPage> {
           Row(
             children: [
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
                 ),
               ),
               const SizedBox(width: 20),
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
                 ),
               ),
@@ -272,13 +273,13 @@ class _RadiosPageState extends State<RadiosPage> {
           Row(
             children: [
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(dataSource: model.sv, subtext: "Satellites"),
                 ),
               ),
               const SizedBox(width: 20),
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(
                     dataSource: model.vtg,
                     subtext: "Speed (mph)",
@@ -290,13 +291,13 @@ class _RadiosPageState extends State<RadiosPage> {
               ),
               const SizedBox(width: 20),
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(dataSource: model.alt, subtext: "Altitude"),
                 ),
               ),
               const SizedBox(width: 20),
               Expanded(
-                child: _buildWidgetBackground(
+                child: PageUtils.buildWidgetBackground(
                   ROSText(dataSource: model.climb, subtext: "Climb"),
                 ),
               ),
@@ -305,48 +306,12 @@ class _RadiosPageState extends State<RadiosPage> {
 
           // Compass
           Expanded(
-            child: _buildWidgetBackground(
+            child: PageUtils.buildWidgetBackground(
               MarineCompass(dataSource: model.compass),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildText(
-    String value,
-    String subtitle, {
-    Color color = Colors.black,
-    TextStyle? style,
-  }) {
-    style ??= Theme.of(context).textTheme.displaySmall;
-    return _buildWidgetBackground(
-      Column(
-        children: [
-          Text(value, style: style?.merge(TextStyle(color: color))),
-          const SizedBox(height: 10),
-          Text(subtitle, style: Theme.of(context).textTheme.titleLarge),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: WaterboardColors.containerForeground,
-      ),
-      child: inside,
-    );
-  }
-
-  BoxDecoration _panelDecoration() {
-    return BoxDecoration(
-      color: WaterboardColors.containerBackground,
-      borderRadius: BorderRadius.circular(16),
     );
   }
 }

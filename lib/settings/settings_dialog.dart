@@ -1,6 +1,5 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/pref_keys.dart';
@@ -157,6 +156,27 @@ class _SettingsDialogState extends State<SettingsDialog> {
           Center(
             child: ClockText(
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Center(
+            child: IconButton(
+              onPressed: () {
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierLabel: "fih",
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    return Center(
+                      child: Image.asset(
+                        "assets/fih.jpg",
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
+                );
+              },
+              icon: Icon(Icons.egg),
             ),
           ),
         ],

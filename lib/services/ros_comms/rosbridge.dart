@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // Flutter imports:
+import 'package:clock/clock.dart';
 import 'package:flutter/cupertino.dart';
 
 // Package imports:
@@ -21,15 +22,16 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 class ROSBridge {
   final ROS _ros;
   final Log _log;
+  final Clock _clock;
   final SharedPreferences _preferences;
   final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
     ROSConnectionState.noWebsocket,
   );
-  ROSBridge(this._ros, this._log, this._preferences);
+  ROSBridge(this._ros, this._log, this._preferences, this._clock);
   Timer? _websocketTimer;
   Timer? _rosBridgeTimer;
   WebSocketChannel? _channel;
-  int _lastROSBridgeMsg = 0;
+  int _lastROSBridgeMsg = clock.now().add(Duration(seconds: -2)).millisecondsSinceEpoch;
 
   Future<void> startConnectionLoop() async {
     if (_websocketTimer != null) {}
@@ -107,6 +109,11 @@ class ROSBridge {
   }
 
   ValueNotifier<ROSConnectionState> get connectionState => _connectionState;
+
+  DateTime get timeSinceLastMsg {
+    if(_lastROSBridgeMsg == 0) return DateTime.now();
+    return DateTime.fromMillisecondsSinceEpoch(_lastROSBridgeMsg);
+  }
 
   void _onDataReceive(String topic, Map<String, dynamic> data) {
     _ros.propagateData(topic, data);
