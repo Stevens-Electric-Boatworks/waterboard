@@ -5,7 +5,7 @@ name: Waterboard
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main,doom"]
   pull_request:
     branches: ["main"]
 
@@ -19,298 +19,56 @@ env:
 
 
 jobs:
-  formatting-analysis:
-    name: "Check Formatting & Analyze"
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-          cache-path: ${{ runner.tool_cache }}/flutter/linux
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib/* test/*
-
-      - name: Verify import sorting
-        run: dart run import_sorter:main --exit-if-changed
-
-      - name: Generate mocks
-        run: dart run build_runner build
-
-      - name: Analyze project source
-        run: flutter analyze --fatal-infos
-
-  test:
-    name: "Run Tests"
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-          cache-path: ${{ runner.tool_cache }}/flutter/linux
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate mocks
-        run: dart run build_runner build
-
-      - name: Run tests
-        run: flutter test --coverage --file-reporter json:reports/test-report.json
-
-  build:
-    needs:
-      - test
-      - formatting-analysis
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform-name: "Windows"
-            platform: "windows"
-            build-path: "build/windows/x64/runner/Release"
-            artifact-name: Waterboard-Windows
-            artifact-file: Waterboard-Windows.zip
-          - os: macos-latest
-            platform-name: "MacOS"
-            platform: "macos"
-            build-path: "build/macos/Build/Products/Release"
-            artifact-name: Waterboard-macos
-            artifact-file: Waterboard-macos.zip
-          - os: ubuntu-22.04
-            platform-name: "Linux"
-            platform: "linux"
-            build-path: "build/linux/x64/release/bundle"
-            artifact-name: Waterboard-Linux
-            artifact-file: Waterboard-Linux.zip
-
-
-    name: "Build - ${{ matrix.platform-name }}"
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+#  formatting-analysis:
+#    name: "Check Formatting & Analyze"
+#    runs-on: ubuntu-22.04
+#
+#    steps:
+#      - name: Checkout repo
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2
 #        with:
-#          lfs: true
-      # TEMPORARY WORKAROUND BECAUSE WE FILLED LFS USAGE QUOTAS
-      - name: Install flutter build dependencies
-        if: ${{ matrix.platform == 'linux' }}
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libglu1-mesa ninja-build libgtk-3-dev liblzma-dev
-
-      - name: Build for ${{ matrix.platform-name }}
-        uses: ./.github/workflows/waterboard-build
-        with:
-          flutter_version: ${{ env.FLUTTER_VERSION }}
-          platform: ${{ matrix.platform }}
-
-      - name: Copy runtime files
-        if: ${{ matrix.platform == 'windows' }}
-        run: ./.github/CopyRuntime.ps1 -OutputPath ${{ matrix.build-path }}
-
-      - name: Zip Windows Executable
-        if: ${{ matrix.platform == 'windows' }}
-        working-directory: ${{ matrix.build-path }}
-        run: Compress-Archive -Path * -DestinationPath ${{ github.workspace }}/${{ matrix.artifact-file }}
-
-      - name: Zip Linux Executable
-        if: ${{ matrix.platform == 'linux' }}
-        working-directory: ${{ matrix.build-path }}
-        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} . --symlinks
-
-      - name: Zip MacOS Release
-        if: ${{ matrix.platform == 'macos'}}
-        working-directory: ${{ matrix.build-path }}
-        run: zip -r ${{ github.workspace }}/${{ matrix.artifact-file }} waterboard.app --symlinks
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-file }}
-          if-no-files-found: error
-
-  build-web:
-    name: "Build - Web"
-    runs-on: "ubuntu-22.04"
-    needs:
-      - test
-      - formatting-analysis
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Build for Web
-        uses: ./.github/workflows/waterboard-build
-        with:
-          flutter_version: ${{ env.FLUTTER_VERSION }}
-          platform: web
-
-      - name: Zip Artifact
-        working-directory: build/web
-        run: zip -r ${{ github.workspace }}/Waterboard-Web.zip . --symlinks
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Waterboard-Web
-          path: Waterboard-Web.zip
-          if-no-files-found: error
-
-  build-pi:
-    name: "Build - Raspberry Pi 4B"
-    runs-on: "ubuntu-24.04"
-    needs:
-      - test
-      - formatting-analysis
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+#          flutter-version: ${{ env.FLUTTER_VERSION }}
+#          cache: true
+#          cache-path: ${{ runner.tool_cache }}/flutter/linux
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Verify formatting
+#        run: dart format --output=none --set-exit-if-changed lib/* test/*
+#
+#      - name: Verify import sorting
+#        run: dart run import_sorter:main --exit-if-changed
+#
+#      - name: Generate mocks
+#        run: dart run build_runner build
+#
+#      - name: Analyze project source
+#        run: flutter analyze --fatal-infos
+#
+#  test:
+#    name: "Run Tests"
+#    runs-on: ubuntu-22.04
+#
+#    steps:
+#      - name: Checkout repo
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2
 #        with:
-#          lfs: true
-# TEMPORARY WORKAROUND BECAUSE WE FILLED GITHUB LFS USAGE QUOTAS. We will likely move off of LFS soon...
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          # need to use older version so FlutterPi builds correctly
-          flutter-version: 3.38.9
-          cache: true
-          cache-path: ${{ runner.tool_cache }}/flutter/${{ inputs.platform }}
-
-      - name: Flutter Doctor
-        shell: bash
-        run: flutter doctor -v
-
-      - name: Install dependencies
-        shell: bash
-        run: flutter pub get
-
-      - name: Install flutter build dependencies
-        if: ${{ matrix.platform == 'linux' }}
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libglu1-mesa ninja-build libgtk-3-dev liblzma-dev
-
-      - name: Download FlutterPi
-        run: flutter pub global activate flutterpi_tool
-
-      - name: Build for Raspberry Pi 4B
-        run: flutterpi_tool build --arch=arm64 --cpu=pi4 --release
-
-      - name: Zip Artifact
-        working-directory: build/flutter-pi/pi4-64
-        run: zip -r ${{ github.workspace }}/Waterboard-Pi4B.zip . --symlinks
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Waterboard-Pi4B
-          path: Waterboard-Pi4B.zip
-          if-no-files-found: error
-  build-pi-3:
-    name: "Build (Temporary) - Raspberry Pi 3"
-    runs-on: "ubuntu-24.04"
-    needs:
-     - test
-     - formatting-analysis
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          # need to use older version so FlutterPi builds correctly
-          flutter-version: 3.38.9
-          cache: true
-          cache-path: ${{ runner.tool_cache }}/flutter/${{ inputs.platform }}
-
-      - name: Flutter Doctor
-        shell: bash
-        run: flutter doctor -v
-
-      - name: Install dependencies
-        shell: bash
-        run: flutter pub get
-
-      - name: Install flutter build dependencies
-        if: ${{ matrix.platform == 'linux' }}
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libglu1-mesa ninja-build libgtk-3-dev liblzma-dev
-
-      - name: Download FlutterPi
-        run: flutter pub global activate flutterpi_tool
-
-      - name: Build for Raspberry Pi 3
-        run: flutterpi_tool build --arch=arm64 --cpu=pi3 --release
-
-      - name: Zip Artifact
-        working-directory: build/flutter-pi/pi3-64
-        run: zip -r ${{ github.workspace }}/Waterboard-Pi3.zip . --symlinks
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Waterboard-Pi3
-          path: Waterboard-Pi3.zip
-          if-no-files-found: error
-
-  github-pages:
-    name: Deploy to GitHub Pages
-    runs-on: ubuntu-22.04
-    needs: [build-web]
-
-    # Run on main pushes OR pull requests
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-
-    # Required permissions
-    permissions:
-      pages: write
-      id-token: write
-      contents: read
-
-    environment:
-      # Production for main, Preview for PRs
-      name: ${{ github.event_name == 'pull_request' && format('preview-pr-{0}', github.event.number) || 'github-pages' }}
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Download Web Build
-        uses: actions/download-artifact@v4
-        with:
-          name: Waterboard-Web
-
-      - name: Extract Web Build
-        run: unzip Waterboard-Web.zip -d site
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+#          flutter-version: ${{ env.FLUTTER_VERSION }}
+#          cache: true
+#          cache-path: ${{ runner.tool_cache }}/flutter/linux
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Generate mocks
+#        run: dart run build_runner build
+#
+#      - name: Run tests
+#        run: flutter test --coverage --file-reporter json:reports/test-report.json

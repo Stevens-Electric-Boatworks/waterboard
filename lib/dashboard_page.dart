@@ -68,18 +68,18 @@ class DashboardPageViewModel extends ChangeNotifier {
     //     state!.openSettingsDialog();
     //   },
     // );
-    // services.hotkeys.register(
-    //   LogicalKeyboardKey.arrowRight,
-    //   callback: () {
-    //     moveToNextPage();
-    //   },
-    // );
-    // services.hotkeys.register(
-    //   LogicalKeyboardKey.arrowLeft,
-    //   callback: () {
-    //     moveToPreviousPage();
-    //   },
-    // );
+    services.hotkeys.register(
+      LogicalKeyboardKey.comma,
+      callback: () {
+        moveToNextPage();
+      },
+    );
+    services.hotkeys.register(
+      LogicalKeyboardKey.period,
+      callback: () {
+        moveToPreviousPage();
+      },
+    );
   }
 
   void moveToPage(int index) {

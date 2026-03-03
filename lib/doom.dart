@@ -17,7 +17,7 @@
  */
 
 import 'dart:async';
-import 'dart:ffi';
+import 'dart:ffi' hide Size;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -25,7 +25,7 @@ import 'dart:ui' as ui;
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide Size;
 import 'package:pointer_lock/pointer_lock.dart';
 
 import 'engine.dart';
@@ -160,49 +160,55 @@ class _DoomState extends State<Doom> with WidgetsBindingObserver {
 
     nodeAttachment.reparent();
 
-    var mediaquery = MediaQuery.of(context);
+    var size = Size(900, 900);
 
-    double destWidth;
-    double destHeight;
+    // double destWidth;
+    // double destHeight;
+    //
+    // if (size.width >= size.height) {
+    //   destHeight = size.height;
+    //   destWidth = destHeight * aspectRatios[selectedAspectRatio];
+    //   if (destWidth > size.width) {
+    //     destWidth = size.width;
+    //     destHeight = destWidth / aspectRatios[selectedAspectRatio];
+    //   }
+    // }
+    // else {
+    //   destWidth = size.width;
+    //   destHeight = destWidth / aspectRatios[selectedAspectRatio];
+    // }
 
-    if (mediaquery.size.width >= mediaquery.size.height) {
-      destHeight = mediaquery.size.height - mediaquery.padding.top - mediaquery.padding.bottom;
-      destWidth = destHeight * aspectRatios[selectedAspectRatio];
-      if (destWidth > mediaquery.size.width) {
-        destWidth = mediaquery.size.width - mediaquery.padding.left - mediaquery.padding.right;
-        destHeight = destWidth / aspectRatios[selectedAspectRatio];
-      }
-    }
-    else {
-      destWidth = mediaquery.size.width - mediaquery.padding.left - mediaquery.padding.right;
-      destHeight = destWidth / aspectRatios[selectedAspectRatio];
-    }
-
-    return Listener(
-        onPointerMove: Platform.isAndroid || Platform.isIOS ? (e) => _handleMouseMove(e.delta) : null,
-        onPointerDown: Platform.isAndroid || Platform.isIOS ? null : _handleMouseClick,
-        onPointerUp: Platform.isAndroid || Platform.isIOS ? null : _handleMouseClick,
-        child: ListenableBuilder(
-            listenable: model,
-            builder: (context, child) {
-              if (frame == null) {
-                return SizedBox(
-                  width: destWidth,
-                  height: destHeight,
-                  child: Center(child: Text("Doom is starting...", style: TextStyle(color: Colors.grey))),
-                );
-              }
-              else {
-                return Center(
-                    child: CustomPaint(
-                        willChange: true,
-                        painter: FramebufferPainter(width: destWidth, height: destHeight, frame: frame!),
-                        size: ui.Size(destWidth, destHeight)
-                    )
-                );
-              }
-            }
-        )
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double destWidth = constraints.maxWidth;
+        double destHeight = constraints.maxHeight;
+        return Listener(
+            onPointerMove: Platform.isAndroid || Platform.isIOS ? (e) => _handleMouseMove(e.delta) : null,
+            onPointerDown: Platform.isAndroid || Platform.isIOS ? null : _handleMouseClick,
+            onPointerUp: Platform.isAndroid || Platform.isIOS ? null : _handleMouseClick,
+            child: ListenableBuilder(
+                listenable: model,
+                builder: (context, child) {
+                  if (frame == null) {
+                    return SizedBox(
+                      width: destWidth,
+                      height: destHeight,
+                      child: Center(child: Text("Doom is starting...", style: TextStyle(color: Colors.grey))),
+                    );
+                  }
+                  else {
+                    return Center(
+                        child: CustomPaint(
+                            willChange: true,
+                            painter: FramebufferPainter(width: destWidth, height: destHeight, frame: frame!),
+                            size: ui.Size(destWidth, destHeight)
+                        )
+                    );
+                  }
+                }
+            )
+        );
+      },
     );
   }
 
