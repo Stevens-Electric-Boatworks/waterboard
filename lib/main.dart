@@ -58,6 +58,12 @@ class _WaterboardAppState extends State<WaterboardApp> {
     _mainPageViewModel = DashboardPageViewModel(widget.services);
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    widget.services.sysUtil.dispose();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

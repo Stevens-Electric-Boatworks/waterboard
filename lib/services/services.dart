@@ -8,6 +8,7 @@ import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
+import 'package:waterboard/services/sys_utils/system_util_service.dart';
 
 class Services {
   late final ROS _ros;
@@ -15,6 +16,7 @@ class Services {
   late final InternetChecker _internetChecker;
   late final SharedPreferences _preferences;
   late final HotKeyManager _hotKeyManager;
+  late final SystemUtilService _systemUtilService;
   final Clock clock = Clock();
 
   ROS get ros => _ros;
@@ -23,6 +25,7 @@ class Services {
   InternetChecker get internet => _internetChecker;
   SharedPreferences get preferences => _preferences;
   HotKeyManager get hotkeys => _hotKeyManager;
+  SystemUtilService get sysUtil => _systemUtilService;
 
   Future<void> initialize() async {
     _preferences = await SharedPreferences.getInstance();
@@ -31,6 +34,9 @@ class Services {
     _ros = ROSImpl(_logger, _preferences);
     _internetChecker = InternetCheckerImpl();
     _hotKeyManager = HotKeyManager();
+    _systemUtilService = SystemUtilService(log: _logger);
+    //auto start
+    _systemUtilService.start();
   }
 
   Future<void> initializeWithMocks({

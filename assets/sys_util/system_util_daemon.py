@@ -145,7 +145,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="System stats WebSocket daemon")
     parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=9889, help="WebSocket port (default: 9889)")
-    parser.add_argument("--interval", type=float, default=0.5, help="Broadcast interval in seconds (default: 1.0)")
+    parser.add_argument("--interval", type=float, default=1.0, help="Broadcast interval in seconds (default: 1.0)")
     args = parser.parse_args()
 
     try:

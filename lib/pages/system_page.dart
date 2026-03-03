@@ -2,12 +2,14 @@
 import 'dart:async';
 
 // Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/services/sys_utils/system_util_service.dart';
 
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
@@ -18,6 +20,12 @@ class SystemPageViewModel extends ChangeNotifier {
 
   ValueNotifier<ROSSubscription?> get onROSSubscription =>
       services.ros.onSubscription;
+
+  ValueNotifier<SystemDaemonState> get daemonState =>
+      services.sysUtil.daemonState;
+
+  ValueNotifier<SystemInformation?> get systemInformation =>
+      services.sysUtil.systemInformation;
 
   int get rosSubscriptions => services.ros.subs.length;
 
@@ -50,6 +58,11 @@ class SystemPageViewModel extends ChangeNotifier {
   void dispose() {
     super.dispose();
     _lastPacketTimer.cancel();
+  }
+
+  void rebootDaemon() {
+    services.sysUtil.dispose();
+    services.sysUtil.start();
   }
 }
 
@@ -112,6 +125,7 @@ class _SystemPageState extends State<SystemPage> {
                     overflow: TextOverflow.ellipsis,
                     softWrap: false,
                   ),
+                  SizedBox(height: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -268,33 +282,33 @@ class _SystemPageState extends State<SystemPage> {
       decoration: PageUtils.panelDecoration(),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Center(
-            child: SizedBox(
-              width: constraints.maxWidth,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "System State",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineLarge,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
+          return SizedBox(
+            width: constraints.maxWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                  "System Information",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: Listenable.merge([
+                      model.systemInformation,
+                      model.daemonState,
+                    ]),
+                    builder: (context, child) {
+                      return _buildSystemStats();
+                    },
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      spacing: 20,
-                      children: [
-
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -302,4 +316,121 @@ class _SystemPageState extends State<SystemPage> {
     );
   }
 
+  Widget _buildSystemStats() {
+    if (kIsWeb) {
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.block,
+            color: Colors.blue,
+            size: Theme.of(context).textTheme.displaySmall!.fontSize,
+          ),
+          Text(
+            "This feature is unsupported on Web",
+            style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            "Please use Windows, Linux, MacOS, or FlutterPi",
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
+    }
+    if (model.daemonState.value == SystemDaemonState.starting) {
+      return _buildDaemonErrorScreen("The daemon is starting");
+    }
+    if (model.daemonState.value == SystemDaemonState.unknown) {
+      return _buildDaemonErrorScreen("The daemon is unknown");
+    }
+    if (model.daemonState.value == SystemDaemonState.error) {
+      return _buildDaemonErrorScreen("The daemon has had an error");
+    }
+    if (model.systemInformation.value == null) {
+      return _buildDaemonErrorScreen(
+        "The daemon has not given any data yet...",
+      );
+    }
+    var val = model.systemInformation.value!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 20,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          spacing: 20,
+          children: [
+            Expanded(
+              child: PageUtils.buildText(
+                context,
+                "${val.cpuUtilPercent}",
+                "CPU %",
+              ),
+            ),
+            Expanded(
+              child: PageUtils.buildText(
+                context,
+                "${val.memUsagePercent}",
+                "Memory %",
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          spacing: 20,
+          children: [
+            Expanded(
+              child: PageUtils.buildText(
+                context,
+                "${val.usedMemMB} MB",
+                "Memory Usage",
+              ),
+            ),
+            Expanded(
+              child: PageUtils.buildText(
+                context,
+                "${val.totalDiskUsagePercent}",
+                "Disk %",
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDaemonErrorScreen(String message) {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.error,
+          color: Colors.red,
+          size: Theme.of(context).textTheme.displaySmall!.fontSize,
+        ),
+        Text(
+          message,
+          style: Theme.of(context).textTheme.displaySmall,
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 20),
+        FilledButton(
+          onPressed: () {
+            model.rebootDaemon();
+          },
+          child: Text(
+            "Reboot Daemon Process",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      ],
+    );
+  }
 }

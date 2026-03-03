@@ -34,9 +34,10 @@ class ROSBridge {
       .now()
       .add(Duration(seconds: -2))
       .millisecondsSinceEpoch;
+  bool _sinkClosed = true;
 
   Future<void> startConnectionLoop() async {
-    if (_websocketTimer != null) {}
+    _rosBridgeTimer?.cancel();
     _websocketTimer?.cancel();
     _connectionState.value = ROSConnectionState.noWebsocket;
     _websocketTimer = Timer(Duration(seconds: 1), _websocketTimerTick);
@@ -81,18 +82,21 @@ class ROSBridge {
       if (DateTime.now().millisecondsSinceEpoch - _lastROSBridgeMsg >= 1500) {
         _log.info("[ROS] Stale data from ROSBridge");
         _connectionState.value = ROSConnectionState.staleData;
-        _sendAllSubscriptions();
       }
     });
-    _sendAllSubscriptions();
+    _sinkClosed = false;
+    _channel?.sink.done.onError((error, stackTrace) {
+      _sinkClosed = true;
+    });
+    _channel?.sink.done.then((error) {
+      _sinkClosed = true;
+    });
     _channel?.stream.listen((message) {
       var msg = json.decode(message);
       if (msg["topic"] != '/rosout') {
         //ignore /rosout since it doesn't tell us any data about the state of ros, since rosbridge can send /rosout logs
         _lastROSBridgeMsg = DateTime.now().millisecondsSinceEpoch;
-        if (_connectionState.value != ROSConnectionState.connected) {
-          _sendAllSubscriptions();
-        }
+        if (_connectionState.value != ROSConnectionState.connected) {}
         _connectionState.value = ROSConnectionState.connected;
       }
       if (msg["op"] == "publish") {
@@ -106,7 +110,7 @@ class ROSBridge {
   void reconnect() async {
     _rosBridgeTimer?.cancel();
     _websocketTimer?.cancel();
-    await _channel?.sink.close();
+    _channel?.sink.close();
     startConnectionLoop();
   }
 
@@ -121,13 +125,8 @@ class ROSBridge {
     _ros.propagateData(topic, data);
   }
 
-  void _sendAllSubscriptions() {
-    // for (var sub in _ros.subs.values) {
-    //   sendSubscription(sub);
-    // }
-  }
-
   void sendSubscription(ROSSubscription sub) {
+    if (_sinkClosed) return;
     _channel?.sink.add(json.encode({"op": "subscribe", "topic": sub.topic}));
   }
 }
