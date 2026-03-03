@@ -17,6 +17,7 @@
 * Keyboard Driven Navigation
 * Lockable Layout
 * Unit tested with CI/CD builds published
+* _**The Dashboard [can run Doom](https://github.com/Stevens-Electric-Boatworks/waterboard/tree/doom)**_
 # Downloading Pre-Built Binaries
 
 You can download the latest version of Waterboard from the latest CI build on [GitHub Actions](https://github.com/Stevens-Electric-Boatworks/waterboard/actions). Note that you must be logged into GitHub to download. The following platforms are provided:
