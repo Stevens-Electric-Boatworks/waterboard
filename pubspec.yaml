@@ -44,6 +44,12 @@ dependencies:
   clock: ^1.1.2
   scroll_table: ^1.0.1
   collection: ^1.19.1
+  pointer_lock:
+    git:
+      url: https://github.com/domenicomuti/pointer_lock
+      ref: main
+  ffi: ^2.1.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -91,6 +97,7 @@ flutter:
      - assets/sponsors/silver/dhx.png
      - assets/compass/overlay.png
      - assets/compass/compass.png
+     - assets/doom1.wad
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -104,11 +111,14 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-     - family: inter
-       fonts:
-         - asset: assets/fonts/inter-font.ttf
-         - asset: assets/fonts/inter-font-italic.ttf
-           style: italic
+    - family: BigBlue_TerminalPlus
+      fonts:
+        - asset: assets/BigBlue_Terminal_v1.0/BigBlue_TerminalPlus.TTF
+    - family: inter
+      fonts:
+        - asset: assets/fonts/inter-font.ttf
+        - asset: assets/fonts/inter-font-italic.ttf
+          style: italic
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

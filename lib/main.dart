@@ -4,6 +4,9 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:waterboard/debug_vars.dart';
 
 // Package imports:
 import 'package:window_manager/window_manager.dart';
@@ -12,9 +15,49 @@ import 'package:window_manager/window_manager.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/waterboard_colors.dart';
 import 'dashboard_page.dart';
+import 'engine.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //START DOOM
+  Engine();   // Initialize the singleton Engine
+
+  if (Platform.isAndroid || Platform.isIOS) {
+    //we dont support these platforms lol
+    Directory destDirectory = await getApplicationDocumentsDirectory();
+    String wadPath = "${destDirectory.path}/doom1.wad";
+    File file = File(wadPath);
+
+    if (!file.existsSync()) {
+      ByteData wad = await rootBundle.load("assets/doom1.wad");
+      Uint8List wadBytes = wad.buffer.asUint8List(0);
+      await file.writeAsBytes(wadBytes, flush: true);
+    }
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ])
+        .then((_) {
+      doActualAppStuff();
+    });
+  }
+  else if (Platform.isMacOS) {
+    DebugVariables.WAD_Path = "../Frameworks/App.framework/Resources/flutter_assets/assets/doom1.wad";
+    doActualAppStuff();
+  }
+  else if (Platform.isLinux) {
+    DebugVariables.WAD_Path = "data/flutter_assets/assets/doom1.wad";
+    doActualAppStuff();
+  }
+  else {
+    DebugVariables.WAD_Path = "data\\flutter_assets\\assets\\doom1.wad";
+    doActualAppStuff();
+  }
+}
+
+
+void doActualAppStuff() async {
   if (!kIsWeb) {
     if ((Platform.isWindows || Platform.isMacOS || kDebugMode) &&
         !Platform.isLinux) {

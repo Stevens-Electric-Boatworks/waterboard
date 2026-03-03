@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/messages.dart';
+import 'package:waterboard/pages/doom_page.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
@@ -34,7 +35,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
     null,
   );
-  final int totalPages = 4;
+  final int totalPages = 5;
   final Services services;
   DashboardPageViewModel(this.services);
 
@@ -61,24 +62,24 @@ class DashboardPageViewModel extends ChangeNotifier {
         );
       }
     });
-    services.hotkeys.register(
-      LogicalKeyboardKey.keyS,
-      callback: () {
-        state!.openSettingsDialog();
-      },
-    );
-    services.hotkeys.register(
-      LogicalKeyboardKey.arrowRight,
-      callback: () {
-        moveToNextPage();
-      },
-    );
-    services.hotkeys.register(
-      LogicalKeyboardKey.arrowLeft,
-      callback: () {
-        moveToPreviousPage();
-      },
-    );
+    // services.hotkeys.register(
+    //   LogicalKeyboardKey.keyS,
+    //   callback: () {
+    //     state!.openSettingsDialog();
+    //   },
+    // );
+    // services.hotkeys.register(
+    //   LogicalKeyboardKey.arrowRight,
+    //   callback: () {
+    //     moveToNextPage();
+    //   },
+    // );
+    // services.hotkeys.register(
+    //   LogicalKeyboardKey.arrowLeft,
+    //   callback: () {
+    //     moveToPreviousPage();
+    //   },
+    // );
   }
 
   void moveToPage(int index) {
@@ -196,9 +197,9 @@ class _DashboardPageState extends State<DashboardPage>
     return AbsorbPointer(
       absorbing: model.layoutLocked,
       child: Focus(
-        autofocus: false,
-        canRequestFocus: false,
-        descendantsAreFocusable: false,
+        // autofocus: false,
+        // canRequestFocus: false,
+        // descendantsAreFocusable: false,
         child: Scaffold(
           appBar: WaterboardAppBarWidget(
             services: model.services,
@@ -222,6 +223,7 @@ class _DashboardPageState extends State<DashboardPage>
               ),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
               KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
+              KeepAlivePage(child: DoomPage()),
             ],
           ),
           bottomNavigationBar: SizedBox(
@@ -247,6 +249,10 @@ class _DashboardPageState extends State<DashboardPage>
                     BottomNavigationBarItem(
                       icon: Icon(Icons.notes),
                       label: "Logs",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.access_alarm_rounded),
+                      label: "Doom",
                     ),
                   ],
                   onTap: (value) {
