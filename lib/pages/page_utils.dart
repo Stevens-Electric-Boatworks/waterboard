@@ -90,7 +90,11 @@ class PageUtils {
       },
     );
   }
-  static Widget buildWidgetBackground(Widget inside, {double verticalPadding = 8}) {
+
+  static Widget buildWidgetBackground(
+    Widget inside, {
+    double verticalPadding = 8,
+  }) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),
       decoration: BoxDecoration(
@@ -107,13 +111,14 @@ class PageUtils {
       borderRadius: BorderRadius.circular(16),
     );
   }
+
   static Widget buildText(
-      BuildContext context,
-      String value,
-      String subtitle, {
-        Color color = Colors.black,
-        TextStyle? style,
-      }) {
+    BuildContext context,
+    String value,
+    String subtitle, {
+    Color color = Colors.black,
+    TextStyle? style,
+  }) {
     style ??= Theme.of(context).textTheme.displaySmall;
     return PageUtils.buildWidgetBackground(
       Column(

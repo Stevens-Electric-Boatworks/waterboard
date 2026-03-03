@@ -1,6 +1,10 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
@@ -259,8 +263,6 @@ class _SystemPageState extends State<SystemPage> {
   }
 
   Widget _buildSysInfo() {
-    return Container(
-      decoration: PageUtils.panelDecoration(),
-    );
+    return Container(decoration: PageUtils.panelDecoration());
   }
 }

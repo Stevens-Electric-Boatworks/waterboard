@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/pref_keys.dart';
@@ -154,11 +155,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
           SizedBox(height: 10),
           Center(
-            child: ClockText(
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Center(
             child: IconButton(
               onPressed: () {
                 showGeneralDialog(
@@ -176,7 +172,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   },
                 );
               },
-              icon: Icon(Icons.egg),
+              icon: Text("😺"),
+            ),
+          ),
+          Center(
+            child: ClockText(
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
         ],

@@ -1,9 +1,13 @@
 // Flutter imports:
 import 'package:flutter/src/foundation/change_notifier.dart' show ValueNotifier;
 
+// Package imports:
+import 'package:clock/clock.dart';
+
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
+import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {
@@ -13,6 +17,7 @@ class FakeROS extends ROS {
   Map<String, FakeROSSubscription> subs = {};
   @override
   late final ROSLogsCollector rosLogs;
+
   FakeROS({ROSConnectionState initialState = ROSConnectionState.noWebsocket}) {
     connectionState = ValueNotifier(initialState);
     rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
@@ -45,4 +50,10 @@ class FakeROS extends ROS {
       subs[topic]?.onData(data);
     }
   }
+
+  @override
+  ValueNotifier<ROSSubscription?> onSubscription = ValueNotifier(null);
+
+  @override
+  DateTime get timeSinceLastMsg => clock.now();
 }

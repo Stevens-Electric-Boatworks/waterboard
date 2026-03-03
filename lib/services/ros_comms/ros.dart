@@ -35,7 +35,7 @@ class ROSImpl extends ROS {
   @override
   late final ROSLogsCollector rosLogs;
   ROSImpl(this._log, this._preferences) {
-    _rosBridge = ROSBridge(this, _log, _preferences, clock);
+    _rosBridge = ROSBridge(this, _log, _preferences);
     rosLogs = ROSLogsCollector(subscription: subscribe("/rosout"));
     rosLogs.init();
   }

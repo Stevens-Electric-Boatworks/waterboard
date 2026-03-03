@@ -9,15 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
-import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
+import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
@@ -182,13 +181,18 @@ class _RadiosPageState extends State<RadiosPage> {
                               ? ValueListenableBuilder(
                                   valueListenable: model.connection!.ipAddress,
                                   builder: (_, value, __) {
-                                    return PageUtils.buildText(context,
+                                    return PageUtils.buildText(
+                                      context,
                                       value ?? "Disconnected",
                                       "IP Address",
                                     );
                                   },
                                 )
-                              : PageUtils.buildText(context,"Unsupported", "IP Address"),
+                              : PageUtils.buildText(
+                                  context,
+                                  "Unsupported",
+                                  "IP Address",
+                                ),
                         ),
 
                         PageUtils.buildWidgetBackground(
@@ -198,7 +202,8 @@ class _RadiosPageState extends State<RadiosPage> {
                               final connected =
                                   snapshot.data == InternetStatus.connected;
 
-                              return PageUtils.buildText(context,
+                              return PageUtils.buildText(
+                                context,
                                 connected ? "Reachable" : "Unreachable",
                                 "Shore Reachable?",
                                 color: connected ? Colors.green : Colors.red,
@@ -212,13 +217,18 @@ class _RadiosPageState extends State<RadiosPage> {
                               ? ValueListenableBuilder(
                                   valueListenable: model.connection!.ssid,
                                   builder: (_, value, __) {
-                                    return PageUtils.buildText(context,
+                                    return PageUtils.buildText(
+                                      context,
                                       value ?? "Disconnected",
                                       "WiFi SSID",
                                     );
                                   },
                                 )
-                              : PageUtils.buildText(context,"Unsupported", "WiFi SSID"),
+                              : PageUtils.buildText(
+                                  context,
+                                  "Unsupported",
+                                  "WiFi SSID",
+                                ),
                         ),
 
                         PageUtils.buildWidgetBackground(
