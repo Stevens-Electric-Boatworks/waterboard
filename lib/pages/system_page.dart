@@ -263,6 +263,43 @@ class _SystemPageState extends State<SystemPage> {
   }
 
   Widget _buildSysInfo() {
-    return Container(decoration: PageUtils.panelDecoration());
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: PageUtils.panelDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Center(
+            child: SizedBox(
+              width: constraints.maxWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "System State",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      spacing: 20,
+                      children: [
+
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
+
 }
