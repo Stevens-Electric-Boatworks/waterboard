@@ -5,11 +5,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+// Package imports:
+import 'package:syncfusion_flutter_charts/charts.dart';
+
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/services/sys_utils/system_util_service.dart';
+import 'package:waterboard/services/sys_utils/system_usage_service.dart';
 
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
@@ -29,6 +32,34 @@ class SystemPageViewModel extends ChangeNotifier {
 
   int get rosSubscriptions => services.ros.subs.length;
 
+  List<UsageDataPoint> cpuUsage = [];
+  List<UsageDataPoint> ramUsage = [];
+
+  void init() {
+    _lastPacketTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+      Duration timeSince = services.clock.now().difference(
+        services.ros.timeSinceLastMsg,
+      );
+      timeSinceLastMsg.value =
+          timeSince.inSeconds + (timeSince.inMilliseconds % 1000) * 0.001;
+    });
+    services.sysUtil.systemInformation.addListener(() {
+      var val = services.sysUtil.systemInformation.value;
+      if (val != null) {
+        _addToUsageList(cpuUsage, val.cpuUtilPercent);
+        _addToUsageList(ramUsage, val.memUsagePercent);
+        notifyListeners();
+      }
+    });
+  }
+
+  void _addToUsageList(List<UsageDataPoint> usageList, double data) {
+    usageList.insert(0, UsageDataPoint(time: DateTime.now(), usage: data));
+    if (usageList.length > 31) {
+      usageList.removeAt(usageList.length - 1);
+    }
+  }
+
   List<String> get rosSubList {
     List<String> subs = [];
 
@@ -43,16 +74,6 @@ class SystemPageViewModel extends ChangeNotifier {
   }
 
   late final Timer _lastPacketTimer;
-
-  void init() {
-    _lastPacketTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
-      Duration timeSince = services.clock.now().difference(
-        services.ros.timeSinceLastMsg,
-      );
-      timeSinceLastMsg.value =
-          timeSince.inSeconds + (timeSince.inMilliseconds % 1000) * 0.001;
-    });
-  }
 
   @override
   void dispose() {
@@ -82,6 +103,7 @@ class _SystemPageState extends State<SystemPage> {
   void initState() {
     super.initState();
     model.init();
+    model.addListener(() => setState(() {}));
   }
 
   @override
@@ -355,9 +377,9 @@ class _SystemPageState extends State<SystemPage> {
         "The daemon has not given any data yet...",
       );
     }
-    var val = model.systemInformation.value!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.max,
       spacing: 20,
       children: [
         Row(
@@ -365,43 +387,101 @@ class _SystemPageState extends State<SystemPage> {
           spacing: 20,
           children: [
             Expanded(
-              child: PageUtils.buildText(
-                context,
-                "${val.cpuUtilPercent}",
-                "CPU %",
+              child: PageUtils.buildWidgetBackground(
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0, top: 8),
+                  child: _buildChart(
+                    "CPU Usage (%)",
+                    _getChartData(model.cpuUsage),
+                  ),
+                ),
               ),
             ),
             Expanded(
-              child: PageUtils.buildText(
-                context,
-                "${val.memUsagePercent}",
-                "Memory %",
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          spacing: 20,
-          children: [
-            Expanded(
-              child: PageUtils.buildText(
-                context,
-                "${val.usedMemMB} MB",
-                "Memory Usage",
-              ),
-            ),
-            Expanded(
-              child: PageUtils.buildText(
-                context,
-                "${val.totalDiskUsagePercent}",
-                "Disk %",
+              child: PageUtils.buildWidgetBackground(
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0, top: 8),
+                  child: _buildChart(
+                    "Memory Usage (%)",
+                    _getChartData(model.ramUsage),
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ],
     );
+  }
+
+  Widget _buildChart(
+    String title,
+    List<FastLineSeries<UsageDataPoint, double>> data,
+  ) {
+    return Column(
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        SfCartesianChart(
+          series: data,
+          crosshairBehavior: CrosshairBehavior(
+            enable: true,
+            activationMode: ActivationMode.singleTap,
+            shouldAlwaysShow: true,
+            lineColor: Colors.black,
+          ),
+          plotAreaBackgroundColor: Colors.grey.shade300,
+          plotAreaBorderColor: Colors.black,
+          primaryXAxis: NumericAxis(
+            interval: 10,
+            minimum: 0,
+            maximum: 30,
+            isInversed: true,
+            decimalPlaces: 0,
+            labelFormat: 'T+{value}s',
+            majorGridLines: MajorGridLines(color: Colors.black),
+            majorTickLines: MajorTickLines(color: Colors.black),
+            axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
+              axisLabelRenderArgs.text,
+              Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
+          primaryYAxis: NumericAxis(
+            minimum: 0,
+            maximum: 100,
+            labelFormat: '{value}%',
+            majorTickLines: MajorTickLines(color: Colors.black),
+            majorGridLines: MajorGridLines(color: Colors.black),
+            axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
+              axisLabelRenderArgs.text,
+              Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<FastLineSeries<UsageDataPoint, double>> _getChartData(
+    List<UsageDataPoint> sourceData,
+  ) {
+    return <FastLineSeries<UsageDataPoint, double>>[
+      FastLineSeries<UsageDataPoint, double>(
+        animationDuration: 0.0,
+        animationDelay: 0.0,
+        sortingOrder: SortingOrder.ascending,
+        color: Colors.blue,
+        width: 2,
+        dataSource: sourceData,
+        xValueMapper: (value, index) {
+          return (DateTime.now().difference(value.time).inSeconds).toDouble();
+        },
+        yValueMapper: (value, index) {
+          return value.usage;
+        },
+        markerSettings: MarkerSettings(isVisible: true),
+        enableTooltip: true,
+      ),
+    ];
   }
 
   Widget _buildDaemonErrorScreen(String message) {
@@ -433,4 +513,11 @@ class _SystemPageState extends State<SystemPage> {
       ],
     );
   }
+}
+
+class UsageDataPoint {
+  final DateTime time;
+  final double usage;
+
+  UsageDataPoint({required this.time, required this.usage});
 }

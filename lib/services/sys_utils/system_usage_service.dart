@@ -38,7 +38,7 @@ class SystemInformation {
 
 enum SystemDaemonState { unknown, starting, online, error }
 
-class SystemUtilService {
+class SystemUsageService {
   final Log log;
   Process? _process;
   final ValueNotifier<SystemDaemonState> daemonState = ValueNotifier(
@@ -52,7 +52,7 @@ class SystemUtilService {
 
   StreamSubscription? _subscription;
 
-  SystemUtilService({required this.log});
+  SystemUsageService({required this.log});
 
   void start() async {
     if (kIsWeb) {
@@ -69,7 +69,7 @@ class SystemUtilService {
     }
   }
 
-  Future<(String, List<String>)> _getExecutableName() async {
+  Future<(String, List<String>)> _extractExecutable() async {
     final tmpDir = await getTemporaryDirectory();
     final scriptPath = p.join(tmpDir.path, 'system_util_daemon.py');
 
@@ -83,7 +83,7 @@ class SystemUtilService {
   }
 
   Future<void> _startProcess() async {
-    final executablePath = await _getExecutableName();
+    final executablePath = await _extractExecutable();
 
     _process = await Process.start(executablePath.$1, [
       ...executablePath.$2,

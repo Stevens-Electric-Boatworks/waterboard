@@ -44,6 +44,7 @@ dependencies:
   clock: ^1.1.2
   scroll_table: ^1.0.1
   collection: ^1.19.1
+  syncfusion_flutter_charts: ^32.2.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
