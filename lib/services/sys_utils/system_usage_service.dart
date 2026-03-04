@@ -118,7 +118,7 @@ class SystemUsageService {
           systemInformation.value = stats;
         } catch (e) {
           // ignore: avoid_print
-          print('[StatsDaemonService] parse error: $e');
+          log.error('[StatsDaemonService] parse error: $e');
         }
       },
       onError: (e) {
