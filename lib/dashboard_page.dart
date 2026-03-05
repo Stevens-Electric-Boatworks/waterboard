@@ -253,7 +253,7 @@ class _DashboardPageState extends State<DashboardPage>
                       label: "Logs",
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.settings_system_daydream),
+                      icon: Icon(Icons.build),
                       label: "System",
                     ),
                   ],

@@ -17,7 +17,17 @@ import 'package:waterboard/services/sys_utils/system_usage_service.dart';
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
 
-  SystemPageViewModel({required this.services});
+  SystemPageViewModel({required this.services}) {
+    //initialize the counter, and start on application startup
+    services.sysUtil.systemInformation.addListener(() {
+      var val = services.sysUtil.systemInformation.value;
+      if (val != null) {
+        _addToUsageList(cpuUsage, val.cpuUtilPercent);
+        _addToUsageList(ramUsage, val.memUsagePercent);
+        notifyListeners();
+      }
+    });
+  }
 
   ValueNotifier<double> timeSinceLastMsg = ValueNotifier(-1);
 
@@ -42,14 +52,6 @@ class SystemPageViewModel extends ChangeNotifier {
       );
       timeSinceLastMsg.value =
           timeSince.inSeconds + (timeSince.inMilliseconds % 1000) * 0.001;
-    });
-    services.sysUtil.systemInformation.addListener(() {
-      var val = services.sysUtil.systemInformation.value;
-      if (val != null) {
-        _addToUsageList(cpuUsage, val.cpuUtilPercent);
-        _addToUsageList(ramUsage, val.memUsagePercent);
-        notifyListeners();
-      }
     });
   }
 
@@ -172,7 +174,7 @@ class _SystemPageState extends State<SystemPage> {
                                   return PageUtils.buildWidgetBackground(
                                     PageUtils.buildText(
                                       context,
-                                      "s",
+                                      "Unknown",
                                       color: color,
                                       "Time Since Last Packet",
                                     ),
@@ -302,38 +304,85 @@ class _SystemPageState extends State<SystemPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: PageUtils.panelDecoration(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SizedBox(
-            width: constraints.maxWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  "System Information",
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                ),
-                SizedBox(height: 10),
-                Expanded(
-                  child: ListenableBuilder(
-                    listenable: Listenable.merge([
-                      model.systemInformation,
-                      model.daemonState,
-                    ]),
-                    builder: (context, child) {
-                      return _buildSystemStats();
-                    },
-                  ),
-                ),
-              ],
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Spacer(),
+              Text(
+                "System Information",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineLarge,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
+              Spacer(),
+              ValueListenableBuilder(
+                valueListenable: model.daemonState,
+                builder: (context, value, child) {
+                  if (model.daemonState.value == SystemDaemonState.online) {
+                    return IconButton(
+                      onPressed: () async {
+                        bool? confirm = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Center(child: Text("Reboot Python Daemon?")),
+                            content: Text(
+                              "This action will stop the python system usage daemon, and attempt to rerun the command to start it.",
+                            ),
+                            actions: [
+                              FilledButton(
+                                onPressed: () {
+                                  Navigator.pop(context, false);
+                                },
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () {
+                                  Navigator.pop(context, true);
+                                },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Reboot'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm != null && confirm) {
+                          model.rebootDaemon();
+                        }
+                      },
+                      icon: Icon(
+                        Icons.restart_alt,
+                        size: Theme.of(context).textTheme.titleLarge!.fontSize!,
+                      ),
+                      tooltip: "Restart Python Daemon",
+                    );
+                  }
+                  return Container();
+                },
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: ListenableBuilder(
+              listenable: Listenable.merge([
+                model.systemInformation,
+                model.daemonState,
+              ]),
+              builder: (context, child) {
+                return _buildSystemStats();
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -364,10 +413,10 @@ class _SystemPageState extends State<SystemPage> {
       );
     }
     if (model.daemonState.value == SystemDaemonState.starting) {
-      return _buildDaemonErrorScreen("The daemon is starting");
+      return _buildDaemonErrorScreen("The daemon is starting...");
     }
     if (model.daemonState.value == SystemDaemonState.unknown) {
-      return _buildDaemonErrorScreen("The daemon is unknown");
+      return _buildDaemonErrorScreen("The daemon state is unknown");
     }
     if (model.daemonState.value == SystemDaemonState.error) {
       return _buildDaemonErrorScreen("The daemon has had an error");
@@ -380,35 +429,68 @@ class _SystemPageState extends State<SystemPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.start,
       spacing: 20,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          spacing: 20,
-          children: [
-            Expanded(
-              child: PageUtils.buildWidgetBackground(
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0, top: 8),
-                  child: _buildChart(
-                    "CPU Usage (%)",
-                    _getChartData(model.cpuUsage),
+        Expanded(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            spacing: 20,
+            children: [
+              Expanded(
+                child: PageUtils.buildWidgetBackground(
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, top: 8),
+                    child: _buildChart(
+                      "CPU Usage (%)",
+                      _getChartData(model.cpuUsage),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: PageUtils.buildWidgetBackground(
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0, top: 8),
-                  child: _buildChart(
-                    "Memory Usage (%)",
-                    _getChartData(model.ramUsage),
+              Expanded(
+                child: PageUtils.buildWidgetBackground(
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, top: 8),
+                    child: _buildChart(
+                      "Memory Usage (%)",
+                      _getChartData(model.ramUsage),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            spacing: 20,
+            children: [
+              Expanded(
+                child: PageUtils.buildWidgetBackground(
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, top: 8),
+                    child: _buildChart(
+                      "CPU Usage (%)",
+                      _getChartData(model.cpuUsage),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: PageUtils.buildWidgetBackground(
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, top: 8),
+                    child: _buildChart(
+                      "Memory Usage (%)",
+                      _getChartData(model.ramUsage),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -418,46 +500,55 @@ class _SystemPageState extends State<SystemPage> {
     String title,
     List<FastLineSeries<UsageDataPoint, double>> data,
   ) {
-    return Column(
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        SfCartesianChart(
-          series: data,
-          crosshairBehavior: CrosshairBehavior(
-            enable: true,
-            activationMode: ActivationMode.singleTap,
-            shouldAlwaysShow: true,
-            lineColor: Colors.black,
-          ),
-          plotAreaBackgroundColor: Colors.grey.shade300,
-          plotAreaBorderColor: Colors.black,
-          primaryXAxis: NumericAxis(
-            interval: 10,
-            minimum: 0,
-            maximum: 30,
-            isInversed: true,
-            decimalPlaces: 0,
-            labelFormat: 'T+{value}s',
-            majorGridLines: MajorGridLines(color: Colors.black),
-            majorTickLines: MajorTickLines(color: Colors.black),
-            axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
-              axisLabelRenderArgs.text,
-              Theme.of(context).textTheme.labelSmall,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            SizedBox(
+              height: constraints.maxHeight / 1.2,
+              child: SfCartesianChart(
+                series: data,
+                crosshairBehavior: CrosshairBehavior(
+                  enable: true,
+                  activationMode: ActivationMode.singleTap,
+                  shouldAlwaysShow: true,
+                  lineColor: Colors.black,
+                ),
+                plotAreaBackgroundColor: Colors.grey.shade300,
+                plotAreaBorderColor: Colors.black,
+                primaryXAxis: NumericAxis(
+                  interval: 10,
+                  minimum: 0,
+                  maximum: 30,
+                  isInversed: true,
+                  decimalPlaces: 0,
+                  labelFormat: 'T+{value}s',
+                  majorGridLines: MajorGridLines(color: Colors.black),
+                  majorTickLines: MajorTickLines(color: Colors.black),
+                  axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
+                    axisLabelRenderArgs.text,
+                    Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+                primaryYAxis: NumericAxis(
+                  minimum: 0,
+                  maximum: 100,
+                  labelFormat: '{value}%',
+                  majorTickLines: MajorTickLines(color: Colors.black),
+                  majorGridLines: MajorGridLines(color: Colors.black),
+                  axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
+                    axisLabelRenderArgs.text,
+                    Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+              ),
             ),
-          ),
-          primaryYAxis: NumericAxis(
-            minimum: 0,
-            maximum: 100,
-            labelFormat: '{value}%',
-            majorTickLines: MajorTickLines(color: Colors.black),
-            majorGridLines: MajorGridLines(color: Colors.black),
-            axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
-              axisLabelRenderArgs.text,
-              Theme.of(context).textTheme.labelSmall,
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -470,7 +561,7 @@ class _SystemPageState extends State<SystemPage> {
         animationDelay: 0.0,
         sortingOrder: SortingOrder.ascending,
         color: Colors.blue,
-        width: 2,
+        width: 4,
         dataSource: sourceData,
         xValueMapper: (value, index) {
           return (DateTime.now().difference(value.time).inSeconds).toDouble();
@@ -478,7 +569,10 @@ class _SystemPageState extends State<SystemPage> {
         yValueMapper: (value, index) {
           return value.usage;
         },
-        markerSettings: MarkerSettings(isVisible: true),
+        markerSettings: MarkerSettings(
+          isVisible: true,
+          shape: DataMarkerType.diamond,
+        ),
         enableTooltip: true,
       ),
     ];
