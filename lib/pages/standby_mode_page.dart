@@ -11,7 +11,7 @@ import 'package:text_gradiate/text_gradiate.dart';
 // Project imports:
 import 'package:waterboard/widgets/time_text.dart';
 import '../services/ros_comms/ros.dart';
-import '../widgets/ros_connection_state_widget.dart';
+import '../widgets/ros_widgets/ros_connection_state_widget.dart';
 
 class StandbyModePage extends StatefulWidget {
   final ROS ros;

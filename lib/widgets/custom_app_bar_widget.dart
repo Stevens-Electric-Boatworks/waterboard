@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/widgets/ros_connection_state_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../pages/page_utils.dart';
 

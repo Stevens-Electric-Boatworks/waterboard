@@ -10,7 +10,7 @@ import 'package:latlong2/latlong.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_listenable_widget.dart';
 
 class ROSCompassDataSource {
   final ROSSubscription sub;

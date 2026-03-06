@@ -19,7 +19,7 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/custom_app_bar_widget.dart';
-import 'package:waterboard/widgets/ros_connection_state_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import 'test_helpers/fakes/fake_ros.dart';
 import 'test_helpers/test_util.dart';

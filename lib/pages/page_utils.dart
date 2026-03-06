@@ -143,7 +143,7 @@ class PageUtils {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: backgroundColor,
-        title: Center(child: Text("DANGER: $title")),
+        title: Center(child: Text("DANGER\n$title", textAlign: TextAlign.center,)),
         content: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [Text(body)],

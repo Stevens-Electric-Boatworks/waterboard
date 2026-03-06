@@ -11,6 +11,7 @@ import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/services/system_usage_service.dart';
+import 'package:waterboard/widgets/hazard_stripe_border.dart';
 
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
@@ -495,26 +496,28 @@ class _SystemPageState extends State<SystemPage> {
           spacing: 20,
           children: [
             Expanded(
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red.shade800,
-                  foregroundColor: Colors.white,
-                  textStyle: Theme.of(context).textTheme.titleMedium,
-                  padding: EdgeInsetsGeometry.all(12),
-                ),
-                onPressed: () async {
-                  PageUtils.dangerConfirmDialog(
-                    context,
-                    "Shutdown System?",
-                    "This will shutdown the host OS.",
-                    model.shutdownSystem,
-                    backgroundColor: Colors.red.shade100,
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 15,
-                  children: [Icon(Icons.warning), Text("Shutdown System")],
+              child: HazardStripeBorder(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.red.shade800,
+                    foregroundColor: Colors.white,
+                    textStyle: Theme.of(context).textTheme.titleMedium,
+                    padding: EdgeInsetsGeometry.all(12),
+                  ),
+                  onPressed: () async {
+                    PageUtils.dangerConfirmDialog(
+                      context,
+                      "Shutdown System?",
+                      "This will shutdown the host OS.",
+                      model.shutdownSystem,
+                      backgroundColor: Colors.red.shade100,
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 15,
+                    children: [Icon(Icons.warning), Text("Shutdown System")],
+                  ),
                 ),
               ),
             ),
