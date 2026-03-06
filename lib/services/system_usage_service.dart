@@ -21,6 +21,8 @@ class SystemInformation {
   final int usedMemMB;
   final double memUsagePercent;
   final double totalDiskUsagePercent;
+  final double rxMBPerSec;
+  final double txMBPerSec;
 
   SystemInformation({
     required this.cpuUtilPercent,
@@ -28,6 +30,8 @@ class SystemInformation {
     required this.usedMemMB,
     required this.memUsagePercent,
     required this.totalDiskUsagePercent,
+    required this.rxMBPerSec,
+    required this.txMBPerSec
   });
 
   @override
@@ -107,12 +111,24 @@ class SystemUsageService {
         try {
           final json = jsonDecode(message as String) as Map<String, dynamic>;
           if (json.isEmpty) return;
+          //sum up all network stats
+          final interfaces = json["network"]["interfaces"];
+          num totalTX = 0;
+          num totalRX = 0;
+          for(var interface in interfaces) {
+            totalTX += interface["tx_bytes_per_sec"] as num;
+            totalRX += interface["rx_bytes_per_sec"] as num;
+          }
+
+
           var stats = SystemInformation(
             cpuUtilPercent: json["cpu"]["percent"] as double,
             totalMemMB: (json["memory"]["total_mb"] as double).toInt(),
             usedMemMB: (json["memory"]["used_mb"] as double).toInt(),
             memUsagePercent: json["memory"]["percent"] as double,
             totalDiskUsagePercent: json["disks"][0]["percent"] as double,
+            rxMBPerSec: totalRX / 1e6,
+            txMBPerSec: totalTX.toInt() / 1e6
           );
           daemonState.value = SystemDaemonState.online;
           systemInformation.value = stats;
@@ -136,4 +152,5 @@ class SystemUsageService {
     _process?.kill(ProcessSignal.sigkill);
     _subscription?.cancel();
   }
+
 }

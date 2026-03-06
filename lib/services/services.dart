@@ -8,7 +8,7 @@ import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
-import 'package:waterboard/services/sys_utils/system_usage_service.dart';
+import 'package:waterboard/services/system_usage_service.dart';
 
 class Services {
   late final ROS _ros;

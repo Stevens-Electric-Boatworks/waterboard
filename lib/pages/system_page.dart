@@ -12,7 +12,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/services/sys_utils/system_usage_service.dart';
+import 'package:waterboard/services/system_usage_service.dart';
 
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
@@ -462,36 +462,13 @@ class _SystemPageState extends State<SystemPage> {
             ],
           ),
         ),
-        Expanded(
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            spacing: 20,
-            children: [
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0, top: 8),
-                    child: _buildChart(
-                      "CPU Usage (%)",
-                      _getChartData(model.cpuUsage),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0, top: 8),
-                    child: _buildChart(
-                      "Memory Usage (%)",
-                      _getChartData(model.ramUsage),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        Row(
+          spacing: 20,
+          children: [
+            Expanded(child: PageUtils.buildText(context, "↑${model.systemInformation.value?.txMBPerSec.toStringAsFixed(1) ?? "Unknown"}/↓${(model.systemInformation.value?.rxMBPerSec.toStringAsFixed(1)) ?? "Unknown"} MB", "TX/RX")),
+            Expanded(child: PageUtils.buildText(context, "${model.systemInformation.value?.totalDiskUsagePercent ?? "Unknown"}%", "Disk Usage")),
+          ],
+        )
       ],
     );
   }
