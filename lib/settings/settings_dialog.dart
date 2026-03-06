@@ -150,7 +150,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
           Center(
             child: HazardStripeBorder(
               child: FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: Colors.red.shade300),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red.shade300,
+                ),
                 child: Text("Restart ROSBridge Comms"),
                 onPressed: () {
                   widget.services.ros.reconnect();
@@ -164,6 +166,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 showGeneralDialog(
                   context: context,
                   barrierDismissible: true,
+                  barrierColor: Colors.blue,
                   barrierLabel: "fih",
                   pageBuilder: (context, animation, secondaryAnimation) {
                     return Center(

@@ -4,8 +4,10 @@ import 'dart:async';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 // Package imports:
 import 'package:syncfusion_flutter_charts/charts.dart';
+
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -89,13 +91,11 @@ class SystemPageViewModel extends ChangeNotifier {
   }
 
   void shutdownSystem() {
-    services.logger.info("Shutting down...");
-    // services.sysPower.shutdown();
+    services.sysPower.shutdown();
   }
 
   void rebootSystem() {
-    services.logger.info("Rebooting now...");
-    // services.sysPower.reboot();
+    services.sysPower.reboot();
   }
 }
 
@@ -475,7 +475,9 @@ class _SystemPageState extends State<SystemPage> {
                 child: PageUtils.buildText(
                   context,
                   "${model.systemInformation.value?.totalDiskUsagePercent ?? "N/A"}% (${model.systemInformation.value?.diskFreeGB.toInt() ?? "N/A"}GB Free)",
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineLarge!.merge(
+                    TextStyle(overflow: TextOverflow.ellipsis),
+                  ),
                   "Disk Usage",
                 ),
               ),

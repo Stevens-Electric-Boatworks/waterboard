@@ -1,3 +1,4 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 class DelayedWidget extends StatefulWidget {
@@ -14,7 +15,7 @@ class _DelayedWidgetState extends State<DelayedWidget> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 3), () {
-      if(!mounted) return;
+      if (!mounted) return;
       setState(() {
         _isEnabled = true;
       });
@@ -23,14 +24,12 @@ class _DelayedWidgetState extends State<DelayedWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if(_isEnabled) {
+    if (_isEnabled) {
       return widget.child;
     }
     return IgnorePointer(
       ignoring: true,
-      child: Chip(
-        label: Text("Enabling in 3 seconds..."),
-      ),
+      child: Chip(label: Text("Enabling in 3 seconds...")),
     );
   }
 }

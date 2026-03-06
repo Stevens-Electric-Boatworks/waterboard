@@ -1,10 +1,10 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+
 // Project imports:
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/delayed_button.dart';
 import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
-
 import '../settings/settings_dialog.dart';
 import '../waterboard_colors.dart';
 
@@ -143,7 +143,9 @@ class PageUtils {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: backgroundColor,
-        title: Center(child: Text("DANGER\n$title", textAlign: TextAlign.center,)),
+        title: Center(
+          child: Text("DANGER\n$title", textAlign: TextAlign.center),
+        ),
         content: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [Text(body)],

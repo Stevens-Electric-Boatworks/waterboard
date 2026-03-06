@@ -1,3 +1,4 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 class HazardStripeBorder extends StatelessWidget {
@@ -15,14 +16,8 @@ class HazardStripeBorder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _HazardPainter(
-        radius: borderRadius,
-        borderWidth: borderWidth,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(borderWidth),
-        child: child,
-      ),
+      painter: _HazardPainter(radius: borderRadius, borderWidth: borderWidth),
+      child: Padding(padding: EdgeInsets.all(borderWidth), child: child),
     );
   }
 }
@@ -31,10 +26,7 @@ class _HazardPainter extends CustomPainter {
   final double radius;
   final double borderWidth;
 
-  _HazardPainter({
-    required this.radius,
-    required this.borderWidth,
-  });
+  _HazardPainter({required this.radius, required this.borderWidth});
 
   @override
   void paint(Canvas canvas, Size size) {
