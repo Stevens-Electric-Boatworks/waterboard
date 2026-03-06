@@ -6,14 +6,12 @@ import 'dart:io';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
 // Package imports:
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
 // Project imports:
 import 'package:waterboard/services/log.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class SystemInformation {
   final double cpuUtilPercent;
@@ -21,6 +19,7 @@ class SystemInformation {
   final int usedMemMB;
   final double memUsagePercent;
   final double totalDiskUsagePercent;
+  final double diskFreeGB;
   final double rxMBPerSec;
   final double txMBPerSec;
 
@@ -30,8 +29,9 @@ class SystemInformation {
     required this.usedMemMB,
     required this.memUsagePercent,
     required this.totalDiskUsagePercent,
+    required this.diskFreeGB,
     required this.rxMBPerSec,
-    required this.txMBPerSec
+    required this.txMBPerSec,
   });
 
   @override
@@ -115,11 +115,10 @@ class SystemUsageService {
           final interfaces = json["network"]["interfaces"];
           num totalTX = 0;
           num totalRX = 0;
-          for(var interface in interfaces) {
+          for (var interface in interfaces) {
             totalTX += interface["tx_bytes_per_sec"] as num;
             totalRX += interface["rx_bytes_per_sec"] as num;
           }
-
 
           var stats = SystemInformation(
             cpuUtilPercent: json["cpu"]["percent"] as double,
@@ -127,8 +126,9 @@ class SystemUsageService {
             usedMemMB: (json["memory"]["used_mb"] as double).toInt(),
             memUsagePercent: json["memory"]["percent"] as double,
             totalDiskUsagePercent: json["disks"][0]["percent"] as double,
+            diskFreeGB: (json["disks"][0]["free_mb"] as double) / 1000,
             rxMBPerSec: totalRX / 1e6,
-            txMBPerSec: totalTX.toInt() / 1e6
+            txMBPerSec: totalTX / 1e6,
           );
           daemonState.value = SystemDaemonState.online;
           systemInformation.value = stats;
@@ -152,5 +152,4 @@ class SystemUsageService {
     _process?.kill(ProcessSignal.sigkill);
     _subscription?.cancel();
   }
-
 }

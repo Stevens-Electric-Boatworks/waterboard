@@ -1,9 +1,10 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
 // Project imports:
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/widgets/delayed_button.dart';
 import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
+
 import '../settings/settings_dialog.dart';
 import '../waterboard_colors.dart';
 
@@ -129,6 +130,49 @@ class PageUtils {
         ],
       ),
     );
+  }
+
+  static void dangerConfirmDialog(
+    BuildContext context,
+    String title,
+    String body,
+    Function onConfirm, {
+    Color backgroundColor = Colors.white,
+  }) async {
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: backgroundColor,
+        title: Center(child: Text("DANGER: $title")),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [Text(body)],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('Cancel'),
+          ),
+          DelayedWidget(
+            child: FilledButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('⚠️ CONFIRM ⚠️'),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != null && confirm) {
+      onConfirm();
+    }
   }
 }
 

@@ -4,10 +4,8 @@ import 'dart:async';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 // Package imports:
 import 'package:syncfusion_flutter_charts/charts.dart';
-
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -59,6 +57,7 @@ class SystemPageViewModel extends ChangeNotifier {
     usageList.insert(0, UsageDataPoint(time: DateTime.now(), usage: data));
     if (usageList.length > 31) {
       usageList.removeAt(usageList.length - 1);
+      usageList.removeRange(31, usageList.length);
     }
   }
 
@@ -86,6 +85,16 @@ class SystemPageViewModel extends ChangeNotifier {
   void rebootDaemon() {
     services.sysUtil.dispose();
     services.sysUtil.start();
+  }
+
+  void shutdownSystem() {
+    services.logger.info("Shutting down...");
+    // services.sysPower.shutdown();
+  }
+
+  void rebootSystem() {
+    services.logger.info("Rebooting now...");
+    // services.sysPower.reboot();
   }
 }
 
@@ -412,26 +421,23 @@ class _SystemPageState extends State<SystemPage> {
         ],
       );
     }
+    List<Widget> body = [];
     if (model.daemonState.value == SystemDaemonState.starting) {
-      return _buildDaemonErrorScreen("The daemon is starting...");
-    }
-    if (model.daemonState.value == SystemDaemonState.unknown) {
-      return _buildDaemonErrorScreen("The daemon state is unknown");
-    }
-    if (model.daemonState.value == SystemDaemonState.error) {
-      return _buildDaemonErrorScreen("The daemon has had an error");
-    }
-    if (model.systemInformation.value == null) {
-      return _buildDaemonErrorScreen(
-        "The daemon has not given any data yet...",
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.start,
-      spacing: 20,
-      children: [
+      body = [_buildDaemonErrorScreen("The daemon process is starting...")];
+    } else if (model.daemonState.value == SystemDaemonState.unknown) {
+      body = [_buildDaemonErrorScreen("The daemon state is unknown...")];
+    } else if (model.daemonState.value == SystemDaemonState.error) {
+      body = [
+        _buildDaemonErrorScreen(
+          "The daemon process encountered an error causing termination...",
+        ),
+      ];
+    } else if (model.systemInformation.value == null) {
+      body = [
+        _buildDaemonErrorScreen("The daemon has not given any data yet..."),
+      ];
+    } else {
+      body = [
         Expanded(
           child: Row(
             mainAxisSize: MainAxisSize.max,
@@ -439,36 +445,104 @@ class _SystemPageState extends State<SystemPage> {
             children: [
               Expanded(
                 child: PageUtils.buildWidgetBackground(
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0, top: 8),
-                    child: _buildChart(
-                      "CPU Usage (%)",
-                      _getChartData(model.cpuUsage),
-                    ),
-                  ),
+                  _buildChart("CPU Usage (%)", _getChartData(model.cpuUsage)),
                 ),
               ),
               Expanded(
                 child: PageUtils.buildWidgetBackground(
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0, top: 8),
-                    child: _buildChart(
-                      "Memory Usage (%)",
-                      _getChartData(model.ramUsage),
-                    ),
+                  _buildChart(
+                    "Memory Usage (%)",
+                    _getChartData(model.ramUsage),
                   ),
                 ),
               ),
             ],
           ),
         ),
+        IntrinsicHeight(
+          child: Row(
+            spacing: 20,
+            children: [
+              Expanded(
+                child: PageUtils.buildText(
+                  context,
+                  "↑${model.systemInformation.value?.txMBPerSec.toStringAsFixed(1) ?? "Unknown"}/↓${(model.systemInformation.value?.rxMBPerSec.toStringAsFixed(1)) ?? "Unknown"} MB",
+                  "TX/RX",
+                ),
+              ),
+              Expanded(
+                child: PageUtils.buildText(
+                  context,
+                  "${model.systemInformation.value?.totalDiskUsagePercent ?? "N/A"}% (${model.systemInformation.value?.diskFreeGB.toInt() ?? "N/A"}GB Free)",
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  "Disk Usage",
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 20,
+      children: [
+        ...body,
+        //Reboot Buttons
         Row(
           spacing: 20,
           children: [
-            Expanded(child: PageUtils.buildText(context, "↑${model.systemInformation.value?.txMBPerSec.toStringAsFixed(1) ?? "Unknown"}/↓${(model.systemInformation.value?.rxMBPerSec.toStringAsFixed(1)) ?? "Unknown"} MB", "TX/RX")),
-            Expanded(child: PageUtils.buildText(context, "${model.systemInformation.value?.totalDiskUsagePercent ?? "Unknown"}%", "Disk Usage")),
+            Expanded(
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red.shade800,
+                  foregroundColor: Colors.white,
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                  padding: EdgeInsetsGeometry.all(12),
+                ),
+                onPressed: () async {
+                  PageUtils.dangerConfirmDialog(
+                    context,
+                    "Shutdown System?",
+                    "This will shutdown the host OS.",
+                    model.shutdownSystem,
+                    backgroundColor: Colors.red.shade100,
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 15,
+                  children: [Icon(Icons.warning), Text("Shutdown System")],
+                ),
+              ),
+            ),
+            Expanded(
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.orange.shade300,
+                  foregroundColor: Colors.white,
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                  padding: EdgeInsetsGeometry.all(12),
+                ),
+                onPressed: () async {
+                  PageUtils.dangerConfirmDialog(
+                    context,
+                    "Reboot System?",
+                    "This will reboot the host OS.",
+                    model.rebootSystem,
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 15,
+                  children: [Icon(Icons.warning), Text("Reboot System")],
+                ),
+              ),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
