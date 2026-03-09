@@ -1,5 +1,8 @@
 # Waterboard
-<img src="waterboard_main_page.png" width="800"> 
+<p align="center">
+	<img src="wiki_images/main_page_demo.png" width="1100"> 
+</p>
+
 
 [![Waterboard](https://github.com/Stevens-Electric-Boatworks/waterboard/actions/workflows/main.yml/badge.svg)](https://github.com/Stevens-Electric-Boatworks/waterboard/actions/workflows/main.yml)
 
