@@ -13,12 +13,13 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
 import 'package:waterboard/widgets/custom_app_bar_widget.dart';
-import 'package:waterboard/widgets/ros_connection_state_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import 'test_helpers/fakes/fake_ros.dart';
 import 'test_helpers/test_util.dart';
@@ -117,12 +118,19 @@ void main() {
         expect(model.currentPage, 3);
         expect(find.byType(LogsPage), findsOneWidget);
 
-        //verify moving right does nothing
         await moveRight();
+        expect(model.currentPage, 4);
+        expect(find.byType(SystemPage), findsOneWidget);
+
+        //verify pressing right does nothing
+        await moveRight();
+        expect(model.currentPage, 4);
+        expect(find.byType(SystemPage), findsOneWidget);
+        //verify that we can move back
+        await moveLeft();
         expect(model.currentPage, 3);
         expect(find.byType(LogsPage), findsOneWidget);
 
-        //verify that we can move back
         await moveLeft();
         expect(model.currentPage, 2);
         expect(find.byType(RadiosPage), findsOneWidget);
@@ -130,6 +138,10 @@ void main() {
         await moveLeft();
         expect(model.currentPage, 1);
         expect(find.byType(ElectricsPage), findsOneWidget);
+
+        await moveLeft();
+        expect(model.currentPage, 0);
+        expect(find.byType(MainDriverPage), findsOneWidget);
       });
       testWidgets('Settings Dialog', (widgetTester) async {
         await pumpDashboardPage(

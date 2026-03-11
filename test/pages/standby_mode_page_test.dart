@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
-import 'package:waterboard/widgets/ros_connection_state_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../test_helpers/test_util.dart';
 

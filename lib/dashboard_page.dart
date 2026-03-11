@@ -15,6 +15,7 @@ import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
+import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
@@ -34,7 +35,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
     null,
   );
-  final int totalPages = 4;
+  final int totalPages = 5;
   final Services services;
   DashboardPageViewModel(this.services);
 
@@ -139,6 +140,7 @@ class _DashboardPageState extends State<DashboardPage>
   late final ElectricsPageViewModel _electricsPageViewModel;
   late final RadiosPageViewModel _radiosPageViewModel;
   late final LogsPageViewModel _logsPageViewModel;
+  late final SystemPageViewModel _systemPageViewModel;
 
   @override
   void initState() {
@@ -147,6 +149,7 @@ class _DashboardPageState extends State<DashboardPage>
     _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
     _radiosPageViewModel = RadiosPageViewModel(services: model.services);
     _logsPageViewModel = LogsPageViewModel(services: model.services);
+    _systemPageViewModel = SystemPageViewModel(services: model.services);
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
@@ -222,6 +225,7 @@ class _DashboardPageState extends State<DashboardPage>
               ),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
               KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
+              KeepAlivePage(child: SystemPage(model: _systemPageViewModel)),
             ],
           ),
           bottomNavigationBar: SizedBox(
@@ -247,6 +251,10 @@ class _DashboardPageState extends State<DashboardPage>
                     BottomNavigationBarItem(
                       icon: Icon(Icons.notes),
                       label: "Logs",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.build),
+                      label: "System",
                     ),
                   ],
                   onTap: (value) {

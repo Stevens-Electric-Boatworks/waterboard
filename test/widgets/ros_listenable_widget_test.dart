@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_listenable_widget.dart';
 import '../test_helpers/fakes/fake_ros.dart';
 import '../test_helpers/test_util.dart';
 

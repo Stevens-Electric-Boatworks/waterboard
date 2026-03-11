@@ -29,6 +29,7 @@ void main() async {
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         await windowManager.show();
         await windowManager.focus();
+        await windowManager.maximize();
       });
     }
   }
@@ -56,6 +57,12 @@ class _WaterboardAppState extends State<WaterboardApp> {
   void initState() {
     super.initState();
     _mainPageViewModel = DashboardPageViewModel(widget.services);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.services.sysUtil.dispose();
   }
 
   // This widget is the root of your application.

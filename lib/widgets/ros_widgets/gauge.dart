@@ -6,7 +6,7 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_listenable_widget.dart';
 
 class ROSGaugeDataSource {
   final ROSSubscription sub;

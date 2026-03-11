@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:waterboard/pages/standby_mode_page.dart';
 import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/widgets/hazard_stripe_border.dart';
 import 'package:waterboard/widgets/time_text.dart';
 
 // Package imports:
@@ -130,14 +131,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
             ],
           ),
           SizedBox(height: 25),
-          Center(
-            child: FilledButton(
-              child: Text("Restart ROSBridge Comms"),
-              onPressed: () {
-                widget.services.ros.reconnect();
-              },
-            ),
-          ),
           SizedBox(height: 5),
           Center(
             child: FilledButton(
@@ -154,6 +147,41 @@ class _SettingsDialogState extends State<SettingsDialog> {
             ),
           ),
           SizedBox(height: 10),
+          Center(
+            child: HazardStripeBorder(
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red.shade300,
+                ),
+                child: Text("Restart ROSBridge Comms"),
+                onPressed: () {
+                  widget.services.ros.reconnect();
+                },
+              ),
+            ),
+          ),
+          Center(
+            child: IconButton(
+              onPressed: () {
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierColor: Colors.blue,
+                  barrierLabel: "fih",
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    return Center(
+                      child: Image.asset(
+                        "assets/fih.jpg",
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
+                );
+              },
+              icon: Text("🐟"),
+            ),
+          ),
           Center(
             child: ClockText(
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

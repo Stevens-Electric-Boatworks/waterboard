@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-import 'package:waterboard/widgets/ros_listenable_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_listenable_widget.dart';
 
 class ROSTextDataSource {
   final ROSSubscription sub;
