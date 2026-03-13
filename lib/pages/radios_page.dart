@@ -35,6 +35,24 @@ class SatelliteItem {
   });
 }
 
+class GSAInfo {
+  final List<int> activeSats;
+  final double pDop;
+  final double hDop;
+  final double vDop;
+  final String mode;
+  final String opMode;
+
+  GSAInfo({
+    required this.activeSats,
+    required this.pDop,
+    required this.hDop,
+    required this.vDop,
+    required this.mode,
+    required this.opMode,
+  });
+}
+
 class RadiosPageViewModel extends ChangeNotifier {
   final Services services;
   final MapController mapController = MapController();
@@ -45,6 +63,7 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSSubscription gpsSub;
   late final ROSSubscription vtgSub;
   late final ROSSubscription satsSub;
+  late final ROSSubscription gsaSub;
 
   late final ROSTextDataSource gpsLat;
   late final ROSTextDataSource gpsLon;
@@ -57,6 +76,7 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSCompassDataSource compass;
 
   late final ValueNotifier<List<SatelliteItem>> sats = ValueNotifier([]);
+  late final ValueNotifier<GSAInfo?> gsaInfo = ValueNotifier(null);
 
   double lat = 0;
   double lon = 0;
@@ -68,7 +88,9 @@ class RadiosPageViewModel extends ChangeNotifier {
   RadiosPageViewModel({required this.services}) {
     gpsSub = ros.subscribe("/motion/gps");
     satsSub = ros.subscribe("/motion/sv");
+    gsaSub = ros.subscribe("/motion/gsa");
     satsSub.notifier.addListener(_onSatListData);
+    gsaSub.notifier.addListener(_onGSAInfo);
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
       valueBuilder: (json) =>
@@ -142,6 +164,45 @@ class RadiosPageViewModel extends ChangeNotifier {
       );
     }
     this.sats.value = sats;
+  }
+
+  void _onGSAInfo() {
+    var gsaInfo = gsaSub.notifier.value;
+    List<int> activeSats = [];
+    for (var sat in gsaInfo["prn"]) {
+      activeSats.add(sat as int);
+    }
+    double pDop = gsaInfo["pdop"] as double;
+    double hDop = gsaInfo["hdop"] as double;
+    double vDop = gsaInfo["vdop"] as double;
+
+    //parse mode data
+    String opMode = "Unknown";
+    String gsaOpMode = gsaInfo["op_mode"] as String;
+    if (gsaOpMode == "A") {
+      opMode = "AUTO";
+    } else if (gsaOpMode == "M") {
+      opMode = "MANUAL";
+    }
+    String mode = "Unknown";
+
+    int gsaMode = gsaInfo["mode"];
+    if (gsaMode == 1) {
+      mode = "NO FIX";
+    } else if (gsaMode == 2) {
+      mode = "2D FIX";
+    } else if (gsaMode == 3) {
+      mode = "3D FIX";
+    }
+
+    this.gsaInfo.value = GSAInfo(
+      activeSats: activeSats,
+      pDop: pDop,
+      hDop: hDop,
+      vDop: vDop,
+      opMode: opMode,
+      mode: mode,
+    );
   }
 }
 
@@ -432,104 +493,213 @@ class _RadiosPageState extends State<RadiosPage> {
             ),
           ],
         ),
-        ValueListenableBuilder(
-          valueListenable: model.sats,
-          builder: (context, value, child) {
-            if (value.isEmpty) {
-              return Expanded(
-                child: Column(
-                  children: [
-                    Spacer(),
-                    Center(
-                      child: Text(
-                        "No GPS Satellites Connected",
-                        style: Theme.of(context).textTheme.displayMedium!
-                            .copyWith(color: Colors.red.shade900),
-                        softWrap: true,
-                        textAlign: TextAlign.center,
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ValueListenableBuilder(
+                valueListenable: model.sats,
+                builder: (context, value, child) {
+                  if (value.isEmpty) {
+                    return Expanded(
+                      child: Column(
+                        children: [
+                          Spacer(),
+                          Center(
+                            child: Text(
+                              "No GPS Satellites Connected",
+                              style: Theme.of(context).textTheme.displayMedium!
+                                  .copyWith(color: Colors.red.shade900),
+                              softWrap: true,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Spacer(),
+                        ],
                       ),
-                    ),
-                    Spacer(),
-                  ],
-                ),
-              );
-            }
+                    );
+                  }
 
-            final titleStyle = Theme.of(context).textTheme.bodyLarge!.merge(
-              TextStyle(fontWeight: FontWeight.bold),
-            );
-            return Flexible(
-              fit: FlexFit.loose,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      border: TableBorder(
-                        horizontalInside: BorderSide(color: Colors.black),
-                      ),
-                      columns: [
-                        DataColumn(label: Container()),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text('prn', style: titleStyle),
+                  final titleStyle = Theme.of(context).textTheme.bodyLarge!
+                      .merge(TextStyle(fontWeight: FontWeight.bold));
+                  return Flexible(
+                    fit: FlexFit.loose,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text('elev', style: titleStyle),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text('azimuth', style: titleStyle),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text('snr', style: titleStyle),
-                          ),
-                        ),
-                      ],
-                      rows: value.mapIndexed((index, e) {
-                        WidgetStateProperty<Color> getColor() {
-                          if (index % 2 == 0) {
-                            return WidgetStateProperty.all(
-                              Colors.grey.shade300,
-                            );
-                          }
-                          return WidgetStateProperty.all(Colors.grey.shade100);
-                        }
-
-                        final rowStyle = Theme.of(context).textTheme.bodyMedium;
-                        return DataRow(
-                          color: getColor(),
-                          cells: [
-                            DataCell(
-                              Text(
-                                "${index + 1}.",
-                                style: rowStyle!.merge(
-                                  TextStyle(fontStyle: FontStyle.italic),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SingleChildScrollView(
+                              child: DataTable(
+                                border: TableBorder(
+                                  horizontalInside: BorderSide(
+                                    color: Colors.black,
+                                  ),
                                 ),
+                                horizontalMargin: 12,
+                                columnSpacing: constraints.maxWidth / 12,
+                                columns: [
+                                  DataColumn(
+                                    label: Text('active', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('prn', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('elev', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('azimuth', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('snr', style: titleStyle),
+                                  ),
+                                ],
+                                rows: value.mapIndexed((index, e) {
+                                  WidgetStateProperty<Color> getColor() {
+                                    if (index % 2 == 0) {
+                                      return WidgetStateProperty.all(
+                                        Colors.grey.shade300,
+                                      );
+                                    }
+                                    return WidgetStateProperty.all(
+                                      Colors.grey.shade100,
+                                    );
+                                  }
+
+                                  (String, Color) isActive() {
+                                    if (model.gsaInfo.value == null) {
+                                      return ("?", Colors.grey);
+                                    }
+                                    var gsaInfo = model.gsaInfo.value!;
+                                    if (gsaInfo.activeSats.contains(e.prn)) {
+                                      return ("Y", Colors.green);
+                                    }
+                                    return ("N", Colors.red);
+                                  }
+
+                                  final rowStyle = Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium;
+                                  return DataRow(
+                                    color: getColor(),
+                                    cells: [
+                                      DataCell(
+                                        Text(
+                                          isActive().$1,
+                                          style: rowStyle!.merge(
+                                            TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: isActive().$2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text("${e.prn}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.elev}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.azimuth}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.snr}", style: rowStyle),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
                               ),
                             ),
-                            DataCell(Text("${e.prn}", style: rowStyle)),
-                            DataCell(Text("${e.elev}", style: rowStyle)),
-                            DataCell(Text("${e.azimuth}", style: rowStyle)),
-                            DataCell(Text("${e.snr}", style: rowStyle)),
-                          ],
+                          ),
                         );
-                      }).toList(),
+                      },
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            );
-          },
+              SizedBox(height: 5),
+              ValueListenableBuilder(
+                valueListenable: model.gsaInfo,
+                builder: (context, value, child) {
+                  if (value == null) {
+                    return Text("No GSA Data");
+                  }
+                  Widget buildDOPRow(String before, double after) {
+                    return Row(
+                      children: [
+                        Text(
+                          "$before: ",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Spacer(),
+                        Text(
+                          after.toStringAsPrecision(12),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        buildDOPRow("VDOP", value.vDop),
+                        buildDOPRow("HDOP", value.hDop),
+                        buildDOPRow("PDOP", value.pDop),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  value.opMode,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineSmall,
+                                ),
+                                Text(
+                                  "Operation Mode",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  value.mode,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineSmall,
+                                ),
+                                Text(
+                                  "Status",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
