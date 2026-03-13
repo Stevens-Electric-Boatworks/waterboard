@@ -69,8 +69,6 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSTextDataSource gpsLon;
   late final ROSTextDataSource sv;
   late final ROSTextDataSource vtg;
-  late final ROSTextDataSource alt;
-  late final ROSTextDataSource climb;
   late final ROSTextDataSource cell;
 
   late final ROSCompassDataSource compass;
@@ -110,16 +108,6 @@ class RadiosPageViewModel extends ChangeNotifier {
       sub: vtgSub,
       valueBuilder: (json) =>
           ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
-    );
-    alt = ROSTextDataSource(
-      sub: ros.subscribe("/motion/gps/alt"),
-      valueBuilder: (json) =>
-          ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
-    );
-    climb = ROSTextDataSource(
-      sub: ros.subscribe("/motion/gps/climb"),
-      valueBuilder: (json) =>
-          ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
     );
     cell = ROSTextDataSource(
       sub: ros.subscribe("/cell"),
@@ -356,10 +344,7 @@ class _RadiosPageState extends State<RadiosPage> {
         spacing: 20,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "GPS and Location",
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
+          Text("GPS State", style: Theme.of(context).textTheme.headlineLarge),
 
           Expanded(
             child: Row(
@@ -630,17 +615,17 @@ class _RadiosPageState extends State<RadiosPage> {
                   if (value == null) {
                     return Text("No GSA Data");
                   }
-                  Widget buildDOPRow(String before, double after) {
-                    return Row(
+                  Widget buildDOP(String type, double after) {
+                    return Column(
                       children: [
                         Text(
-                          "$before: ",
-                          style: Theme.of(context).textTheme.titleMedium,
+                          after.toStringAsPrecision(1),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                        Spacer(),
                         Text(
-                          after.toStringAsPrecision(12),
-                          style: Theme.of(context).textTheme.titleMedium,
+                          type,
+                          style: Theme.of(context).textTheme.titleMedium!
+                              .copyWith(color: Colors.grey.shade700),
                         ),
                       ],
                     );
@@ -649,11 +634,17 @@ class _RadiosPageState extends State<RadiosPage> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      spacing: 10,
                       children: [
-                        buildDOPRow("VDOP", value.vDop),
-                        buildDOPRow("HDOP", value.hDop),
-                        buildDOPRow("PDOP", value.pDop),
-
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            buildDOP("VDOP", value.vDop),
+                            buildDOP("HDOP", value.hDop),
+                            buildDOP("PDOP", value.pDop),
+                          ],
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
