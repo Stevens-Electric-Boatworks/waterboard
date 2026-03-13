@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:collection/collection.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
@@ -20,6 +21,20 @@ import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
+class SatelliteItem {
+  final int prn;
+  final int elev;
+  final int azimuth;
+  final int snr;
+
+  SatelliteItem({
+    required this.prn,
+    required this.elev,
+    required this.azimuth,
+    required this.snr,
+  });
+}
+
 class RadiosPageViewModel extends ChangeNotifier {
   final Services services;
   final MapController mapController = MapController();
@@ -29,6 +44,8 @@ class RadiosPageViewModel extends ChangeNotifier {
   // ROS subscriptions
   late final ROSSubscription gpsSub;
   late final ROSSubscription vtgSub;
+  late final ROSSubscription satsSub;
+
   late final ROSTextDataSource gpsLat;
   late final ROSTextDataSource gpsLon;
   late final ROSTextDataSource sv;
@@ -36,7 +53,10 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSTextDataSource alt;
   late final ROSTextDataSource climb;
   late final ROSTextDataSource cell;
+
   late final ROSCompassDataSource compass;
+
+  late final ValueNotifier<List<SatelliteItem>> sats = ValueNotifier([]);
 
   double lat = 0;
   double lon = 0;
@@ -47,6 +67,8 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   RadiosPageViewModel({required this.services}) {
     gpsSub = ros.subscribe("/motion/gps");
+    satsSub = ros.subscribe("/motion/sv");
+    satsSub.notifier.addListener(_onSatListData);
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
       valueBuilder: (json) =>
@@ -58,8 +80,8 @@ class RadiosPageViewModel extends ChangeNotifier {
           ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
     );
     sv = ROSTextDataSource(
-      sub: ros.subscribe("/motion/sv"),
-      valueBuilder: (json) => ("${json["sats"]}", Colors.black),
+      sub: satsSub,
+      valueBuilder: (json) => ("${json["sats"].length}", Colors.black),
     );
     vtgSub = ros.subscribe("/motion/vtg");
     vtg = ROSTextDataSource(
@@ -104,6 +126,22 @@ class RadiosPageViewModel extends ChangeNotifier {
   void dispose() {
     connection?.dispose();
     super.dispose();
+  }
+
+  void _onSatListData() {
+    var satData = satsSub.notifier.value;
+    List<SatelliteItem> sats = [];
+    for (var sat in satData["sats"]) {
+      sats.add(
+        SatelliteItem(
+          prn: sat["prn"] as int,
+          elev: sat["elev"] as int,
+          azimuth: sat["azimuth"] as int,
+          snr: sat["snr"] as int,
+        ),
+      );
+    }
+    this.sats.value = sats;
   }
 }
 
@@ -262,66 +300,238 @@ class _RadiosPageState extends State<RadiosPage> {
             style: Theme.of(context).textTheme.headlineLarge,
           ),
 
-          // Latitude / Longitude
-          Row(
-            children: [
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
+          Expanded(
+            child: Row(
+              spacing: 20,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                //Left Side
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.gpsLon,
+                                subtext: "Longitude",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 20,
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.sv,
+                                subtext: "Satellites",
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.vtg,
+                                subtext: "Speed (mph)",
+                                subTextStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .merge(
+                                      TextStyle(
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          spacing: 20,
+                          children: [
+                            Expanded(
+                              child: PageUtils.buildWidgetBackground(
+                                MarineCompass(dataSource: model.compass),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
+
+                //Right Side
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.gpsLat,
+                                subtext: "Latitude",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PageUtils.buildWidgetBackground(
+                                _buildSatellitesList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
-          // Stats Row 1
-          Row(
-            children: [
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.sv, subtext: "Satellites"),
+          // Compass
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSatellitesList() {
+    return Column(
+      spacing: 20,
+      children: [
+        Stack(
+          children: [
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Icon(Icons.satellite_alt, size: 32),
                 ),
+              ],
+            ),
+            Center(
+              child: Text(
+                "GPS Satellites",
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(
-                    dataSource: model.vtg,
-                    subtext: "Speed (mph)",
-                    subTextStyle: Theme.of(context).textTheme.titleLarge!.merge(
-                      TextStyle(overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
+        ValueListenableBuilder(
+          valueListenable: model.sats,
+          builder: (context, value, child) {
+            if (value.isEmpty) {
+              return Expanded(
+                child: Column(
+                  children: [
+                    Spacer(),
+                    Center(
+                      child: Text(
+                        "No GPS Satellites Connected",
+                        style: Theme.of(context).textTheme.displayMedium!
+                            .copyWith(color: Colors.red.shade900),
+                        softWrap: true,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Spacer(),
+                  ],
+                ),
+              );
+            }
+
+            final titleStyle = Theme.of(context).textTheme.bodyLarge!.merge(
+              TextStyle(fontWeight: FontWeight.bold),
+            );
+            return Flexible(
+              fit: FlexFit.loose,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      border: TableBorder(
+                        horizontalInside: BorderSide(color: Colors.black),
+                      ),
+                      columns: [
+                        DataColumn(label: Container()),
+                        DataColumn(
+                          label: Expanded(
+                            child: Text('prn', style: titleStyle),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Text('elev', style: titleStyle),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Text('azimuth', style: titleStyle),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Text('snr', style: titleStyle),
+                          ),
+                        ),
+                      ],
+                      rows: value.mapIndexed((index, e) {
+                        WidgetStateProperty<Color> getColor() {
+                          if (index % 2 == 0) {
+                            return WidgetStateProperty.all(
+                              Colors.grey.shade300,
+                            );
+                          }
+                          return WidgetStateProperty.all(Colors.grey.shade100);
+                        }
+
+                        final rowStyle = Theme.of(context).textTheme.bodyMedium;
+                        return DataRow(
+                          color: getColor(),
+                          cells: [
+                            DataCell(
+                              Text(
+                                "${index + 1}.",
+                                style: rowStyle!.merge(
+                                  TextStyle(fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                            ),
+                            DataCell(Text("${e.prn}", style: rowStyle)),
+                            DataCell(Text("${e.elev}", style: rowStyle)),
+                            DataCell(Text("${e.azimuth}", style: rowStyle)),
+                            DataCell(Text("${e.snr}", style: rowStyle)),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.alt, subtext: "Altitude"),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.climb, subtext: "Climb"),
-                ),
-              ),
-            ],
-          ),
-
-          // Compass
-          Expanded(
-            child: PageUtils.buildWidgetBackground(
-              MarineCompass(dataSource: model.compass),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
