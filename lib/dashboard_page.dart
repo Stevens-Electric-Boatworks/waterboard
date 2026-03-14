@@ -4,10 +4,8 @@ import 'dart:math';
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
-
 // Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
@@ -17,10 +15,12 @@ import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
+import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/custom_app_bar_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
 
@@ -37,14 +37,21 @@ class DashboardPageViewModel extends ChangeNotifier {
   );
   final int totalPages = 5;
   final Services services;
+
   DashboardPageViewModel(this.services);
 
+  late final ROSCellDataSource rosCellDataSource;
+
   DashboardPageStateMixin? _state;
+
   DashboardPageStateMixin? get state => _state;
 
   ROS get ros => services.ros;
+
   int get currentPage => _currentPage;
+
   Log get log => services.logger;
+
   SharedPreferences get _preferences => services.preferences;
 
   bool get layoutLocked => _preferences.getBool(PrefKeys.layoutLocked) ?? false;
@@ -62,6 +69,21 @@ class DashboardPageViewModel extends ChangeNotifier {
         );
       }
     });
+    rosCellDataSource = ROSCellDataSource(
+      sub: ros.subscribe("/cell", staleDuration: 10_000),
+      valueBuilder: (json) => CellMessageSchema(
+        bars: json["bars"] as int,
+        network: json["network"] as String,
+        technology: json["technology"] as String,
+        rsrp: json["rsrp"] as int,
+        rsrq: json["rsrq"] as int,
+        apn: json["apn"] as String,
+        ipAddress: json["ip_addr"] as String,
+        pinStatus: json["pin_status"] as String,
+        regStatus: json["reg_status"] as int
+
+      ),
+    );
     services.hotkeys.register(
       LogicalKeyboardKey.keyS,
       callback: () {
@@ -207,6 +229,7 @@ class _DashboardPageState extends State<DashboardPage>
             services: model.services,
             layoutLocked: () => model.layoutLocked,
             onSettingsChanged: model.onSettingsChange,
+            rosCellDataSource: model.rosCellDataSource,
           ),
 
           body: PageView(

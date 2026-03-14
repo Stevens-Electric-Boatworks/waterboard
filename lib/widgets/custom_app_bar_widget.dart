@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import '../pages/page_utils.dart';
@@ -13,12 +14,14 @@ class WaterboardAppBarWidget extends StatelessWidget
   final Services services;
   final bool Function() layoutLocked;
   final Function() onSettingsChanged;
+  final ROSCellDataSource rosCellDataSource;
 
   const WaterboardAppBarWidget({
     super.key,
     required this.services,
     required this.layoutLocked,
     required this.onSettingsChanged,
+    required this.rosCellDataSource,
   });
 
   @override
@@ -33,7 +36,7 @@ class WaterboardAppBarWidget extends StatelessWidget
               ...getLeading(context),
               Spacer(),
               Spacer(),
-              ...getActions(context),
+              ...getTrailing(context),
             ],
           ),
           Center(child: getTitle(context)),
@@ -82,17 +85,19 @@ class WaterboardAppBarWidget extends StatelessWidget
     ];
   }
 
-  List<Widget> getActions(BuildContext context) {
+  List<Widget> getTrailing(BuildContext context) {
     return [
       ValueListenableBuilder(
         valueListenable: services.ros.connectionState,
         builder: (context, value, child) => ROSConnectionStateWidget(
           value: value,
-          fontSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
-          iconSize: Theme.of(context).textTheme.titleSmall!.fontSize!,
+          fontSize: Theme.of(context).textTheme.titleMedium!.fontSize!,
+          iconSize: Theme.of(context).textTheme.titleMedium!.fontSize!,
         ),
       ),
       SizedBox(width: 15),
+      RosCellConnectionWidget(dataSource: rosCellDataSource),
+      SizedBox(width: 15,),
       IconButton(
         onPressed: () {
           if (layoutLocked()) return;

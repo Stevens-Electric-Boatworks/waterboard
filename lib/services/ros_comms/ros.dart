@@ -20,7 +20,7 @@ abstract class ROS {
 
   DateTime get timeSinceLastMsg;
   ValueNotifier<ROSSubscription?> get onSubscription;
-  ROSSubscription subscribe(String topic);
+  ROSSubscription subscribe(String topic, {int staleDuration = 1000});
   void startConnectionLoop();
   void reconnect();
   void propagateData(String topic, Map<String, dynamic> data);
@@ -60,12 +60,12 @@ class ROSImpl extends ROS {
 
   /// Subscribe to a topic
   @override
-  ROSSubscription subscribe(String topic) {
+  ROSSubscription subscribe(String topic, {int staleDuration = 1000}) {
     if (_subs.containsKey(topic)) {
       return _subs[topic]!;
     }
     _log.info("[ROS] Creating new subscription to '$topic'");
-    var sub = ROSSubscriptionImpl(topic, _rosBridge, clock);
+    var sub = ROSSubscriptionImpl(topic, _rosBridge, clock, staleDuration: staleDuration);
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
     _onSubscription.value = sub;

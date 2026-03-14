@@ -110,8 +110,8 @@ class RadiosPageViewModel extends ChangeNotifier {
           ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
     );
     cell = ROSTextDataSource(
-      sub: ros.subscribe("/cell"),
-      valueBuilder: (json) => (json["cell_strength"].toString(), Colors.black),
+      sub: ros.subscribe("/cell", staleDuration: 10_000),
+      valueBuilder: (json) => ("${json["bars"]} Bars", Colors.black),
     );
     compass = ROSCompassDataSource(
       sub: vtgSub,

@@ -23,9 +23,11 @@ class ROSSubscriptionImpl extends ROSSubscription {
   final Clock clock;
   final ValueNotifier<Map<String, dynamic>> _valueNotifier = ValueNotifier({});
   int _timeOfLastMessage = 0;
+
+  final int staleDuration;
   final ValueNotifier<bool> _isStale = ValueNotifier(true);
 
-  ROSSubscriptionImpl(this._topic, this._rosBridge, this.clock) {
+  ROSSubscriptionImpl(this._topic, this._rosBridge, this.clock, {this.staleDuration = 1000}) {
     _valueNotifier.addListener(() {
       _timeOfLastMessage = DateTime.now().millisecondsSinceEpoch;
       _isStale.value = false;
@@ -40,7 +42,7 @@ class ROSSubscriptionImpl extends ROSSubscription {
 
   void updateStale() {
     _isStale.value =
-        clock.now().millisecondsSinceEpoch - _timeOfLastMessage > 1000;
+        clock.now().millisecondsSinceEpoch - _timeOfLastMessage > staleDuration;
   }
 
   @override
