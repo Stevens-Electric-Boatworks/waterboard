@@ -22,13 +22,14 @@ void main() async {
       WindowOptions windowOptions = WindowOptions(
         center: true,
         title: "Waterboard Driver Dashboard | Stevens Electric Boatworks",
-        backgroundColor: Colors.white,
         titleBarStyle: TitleBarStyle.normal,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         await windowManager.show();
         await windowManager.focus();
-        await windowManager.maximize();
+        Future.delayed(Duration(milliseconds: 100), () {
+          windowManager.maximize();
+        });
       });
     }
   }
