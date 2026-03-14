@@ -36,27 +36,31 @@ class MarineCompass extends StatelessWidget {
   }
 
   Widget _buildCompass(double heading, BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(
-          padding: EdgeInsetsGeometry.all(8),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return SizedBox(
-                height: constraints.maxHeight,
-                width: constraints.maxHeight,
-                child: Stack(
-                  children: [
-                    Transform.rotate(
-                      angle: -degToRadian(heading),
-                      child: Image.asset("assets/compass/compass.png"),
-                    ),
-                    Image.asset("assets/compass/overlay.png"),
-                  ],
-                ),
-              );
-            },
+        Expanded(
+          child: Padding(
+            padding: EdgeInsetsGeometry.all(8),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                // print("Constraints: ${constraints}");
+                // return Container();
+                return SizedBox(
+                  height: constraints.maxHeight,
+                  width: constraints.maxHeight,
+                  child: Stack(
+                    children: [
+                      Transform.rotate(
+                        angle: -degToRadian(heading),
+                        child: Image.asset("assets/compass/compass.png"),
+                      ),
+                      Image.asset("assets/compass/overlay.png"),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
         SizedBox(width: 100),

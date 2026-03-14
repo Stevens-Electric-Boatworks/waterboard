@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:collection/collection.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
@@ -20,6 +21,38 @@ import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
+class SatelliteItem {
+  final int prn;
+  final int elev;
+  final int azimuth;
+  final int snr;
+
+  SatelliteItem({
+    required this.prn,
+    required this.elev,
+    required this.azimuth,
+    required this.snr,
+  });
+}
+
+class GSAInfo {
+  final List<int> activeSats;
+  final double pDop;
+  final double hDop;
+  final double vDop;
+  final String mode;
+  final String opMode;
+
+  GSAInfo({
+    required this.activeSats,
+    required this.pDop,
+    required this.hDop,
+    required this.vDop,
+    required this.mode,
+    required this.opMode,
+  });
+}
+
 class RadiosPageViewModel extends ChangeNotifier {
   final Services services;
   final MapController mapController = MapController();
@@ -29,14 +62,19 @@ class RadiosPageViewModel extends ChangeNotifier {
   // ROS subscriptions
   late final ROSSubscription gpsSub;
   late final ROSSubscription vtgSub;
+  late final ROSSubscription satsSub;
+  late final ROSSubscription gsaSub;
+
   late final ROSTextDataSource gpsLat;
   late final ROSTextDataSource gpsLon;
   late final ROSTextDataSource sv;
   late final ROSTextDataSource vtg;
-  late final ROSTextDataSource alt;
-  late final ROSTextDataSource climb;
   late final ROSTextDataSource cell;
+
   late final ROSCompassDataSource compass;
+
+  late final ValueNotifier<List<SatelliteItem>> sats = ValueNotifier([]);
+  late final ValueNotifier<GSAInfo?> gsaInfo = ValueNotifier(null);
 
   double lat = 0;
   double lon = 0;
@@ -47,6 +85,10 @@ class RadiosPageViewModel extends ChangeNotifier {
 
   RadiosPageViewModel({required this.services}) {
     gpsSub = ros.subscribe("/motion/gps");
+    satsSub = ros.subscribe("/motion/sv");
+    gsaSub = ros.subscribe("/motion/gsa");
+    satsSub.notifier.addListener(_onSatListData);
+    gsaSub.notifier.addListener(_onGSAInfo);
     gpsLat = ROSTextDataSource(
       sub: gpsSub,
       valueBuilder: (json) =>
@@ -58,24 +100,14 @@ class RadiosPageViewModel extends ChangeNotifier {
           ((json["lon"] as double).toStringAsPrecision(12), Colors.black),
     );
     sv = ROSTextDataSource(
-      sub: ros.subscribe("/motion/sv"),
-      valueBuilder: (json) => ("${json["sats"]}", Colors.black),
+      sub: satsSub,
+      valueBuilder: (json) => ("${json["sats"].length}", Colors.black),
     );
     vtgSub = ros.subscribe("/motion/vtg");
     vtg = ROSTextDataSource(
       sub: vtgSub,
       valueBuilder: (json) =>
           ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
-    );
-    alt = ROSTextDataSource(
-      sub: ros.subscribe("/motion/gps/alt"),
-      valueBuilder: (json) =>
-          ((json["alt"] as double).toStringAsPrecision(7), Colors.black),
-    );
-    climb = ROSTextDataSource(
-      sub: ros.subscribe("/motion/gps/climb"),
-      valueBuilder: (json) =>
-          ((json["climb"] as double).toStringAsPrecision(2), Colors.black),
     );
     cell = ROSTextDataSource(
       sub: ros.subscribe("/cell"),
@@ -104,6 +136,61 @@ class RadiosPageViewModel extends ChangeNotifier {
   void dispose() {
     connection?.dispose();
     super.dispose();
+  }
+
+  void _onSatListData() {
+    var satData = satsSub.notifier.value;
+    List<SatelliteItem> sats = [];
+    for (var sat in satData["sats"]) {
+      sats.add(
+        SatelliteItem(
+          prn: sat["prn"] as int,
+          elev: sat["elev"] as int,
+          azimuth: sat["azimuth"] as int,
+          snr: sat["snr"] as int,
+        ),
+      );
+    }
+    this.sats.value = sats;
+  }
+
+  void _onGSAInfo() {
+    var gsaInfo = gsaSub.notifier.value;
+    List<int> activeSats = [];
+    for (var sat in gsaInfo["prn"]) {
+      activeSats.add(sat as int);
+    }
+    double pDop = gsaInfo["pdop"] as double;
+    double hDop = gsaInfo["hdop"] as double;
+    double vDop = gsaInfo["vdop"] as double;
+
+    //parse mode data
+    String opMode = "Unknown";
+    String gsaOpMode = gsaInfo["op_mode"] as String;
+    if (gsaOpMode == "A") {
+      opMode = "AUTO";
+    } else if (gsaOpMode == "M") {
+      opMode = "MANUAL";
+    }
+    String mode = "Unknown";
+
+    int gsaMode = gsaInfo["mode"];
+    if (gsaMode == 1) {
+      mode = "NO FIX";
+    } else if (gsaMode == 2) {
+      mode = "2D FIX";
+    } else if (gsaMode == 3) {
+      mode = "3D FIX";
+    }
+
+    this.gsaInfo.value = GSAInfo(
+      activeSats: activeSats,
+      pDop: pDop,
+      hDop: hDop,
+      vDop: vDop,
+      opMode: opMode,
+      mode: mode,
+    );
   }
 }
 
@@ -257,71 +344,355 @@ class _RadiosPageState extends State<RadiosPage> {
         spacing: 20,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "GPS and Location",
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
+          Text("GPS State", style: Theme.of(context).textTheme.headlineLarge),
 
-          // Latitude / Longitude
-          Row(
-            children: [
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.gpsLat, subtext: "Latitude"),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.gpsLon, subtext: "Longitude"),
-                ),
-              ),
-            ],
-          ),
-
-          // Stats Row 1
-          Row(
-            children: [
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.sv, subtext: "Satellites"),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(
-                    dataSource: model.vtg,
-                    subtext: "Speed (mph)",
-                    subTextStyle: Theme.of(context).textTheme.titleLarge!.merge(
-                      TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
+          Expanded(
+            child: Row(
+              spacing: 20,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                //Left Side
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.gpsLon,
+                                subtext: "Longitude",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 20,
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.sv,
+                                subtext: "Satellites",
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.vtg,
+                                subtext: "Speed (mph)",
+                                subTextStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .merge(
+                                      TextStyle(
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          spacing: 20,
+                          children: [
+                            Expanded(
+                              child: PageUtils.buildWidgetBackground(
+                                MarineCompass(dataSource: model.compass),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.alt, subtext: "Altitude"),
+
+                //Right Side
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PageUtils.buildWidgetBackground(
+                              ROSText(
+                                dataSource: model.gpsLat,
+                                subtext: "Latitude",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PageUtils.buildWidgetBackground(
+                                _buildSatellitesList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: PageUtils.buildWidgetBackground(
-                  ROSText(dataSource: model.climb, subtext: "Climb"),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           // Compass
-          Expanded(
-            child: PageUtils.buildWidgetBackground(
-              MarineCompass(dataSource: model.compass),
-            ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSatellitesList() {
+    return Column(
+      spacing: 20,
+      children: [
+        Stack(
+          children: [
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Icon(Icons.satellite_alt, size: 32),
+                ),
+              ],
+            ),
+            Center(
+              child: Text(
+                "GPS Satellites",
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
+          ],
+        ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ValueListenableBuilder(
+                valueListenable: model.sats,
+                builder: (context, value, child) {
+                  if (value.isEmpty) {
+                    return Expanded(
+                      child: Column(
+                        children: [
+                          Spacer(),
+                          Center(
+                            child: Text(
+                              "No GPS Satellites Connected",
+                              style: Theme.of(context).textTheme.displayMedium!
+                                  .copyWith(color: Colors.red.shade900),
+                              softWrap: true,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Spacer(),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final titleStyle = Theme.of(context).textTheme.bodyLarge!
+                      .merge(TextStyle(fontWeight: FontWeight.bold));
+                  return Flexible(
+                    fit: FlexFit.loose,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SingleChildScrollView(
+                              child: DataTable(
+                                border: TableBorder(
+                                  horizontalInside: BorderSide(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                horizontalMargin: 12,
+                                columnSpacing: constraints.maxWidth / 12,
+                                columns: [
+                                  DataColumn(
+                                    label: Text('active', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('prn', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('elev', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('azimuth', style: titleStyle),
+                                  ),
+                                  DataColumn(
+                                    label: Text('snr', style: titleStyle),
+                                  ),
+                                ],
+                                rows: value.mapIndexed((index, e) {
+                                  WidgetStateProperty<Color> getColor() {
+                                    if (index % 2 == 0) {
+                                      return WidgetStateProperty.all(
+                                        Colors.grey.shade300,
+                                      );
+                                    }
+                                    return WidgetStateProperty.all(
+                                      Colors.grey.shade100,
+                                    );
+                                  }
+
+                                  (String, Color) isActive() {
+                                    if (model.gsaInfo.value == null) {
+                                      return ("?", Colors.grey);
+                                    }
+                                    var gsaInfo = model.gsaInfo.value!;
+                                    if (gsaInfo.activeSats.contains(e.prn)) {
+                                      return ("Y", Colors.green);
+                                    }
+                                    return ("N", Colors.red);
+                                  }
+
+                                  final rowStyle = Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium;
+                                  return DataRow(
+                                    color: getColor(),
+                                    cells: [
+                                      DataCell(
+                                        Text(
+                                          isActive().$1,
+                                          style: rowStyle!.merge(
+                                            TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: isActive().$2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text("${e.prn}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.elev}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.azimuth}", style: rowStyle),
+                                      ),
+                                      DataCell(
+                                        Text("${e.snr}", style: rowStyle),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 5),
+              ValueListenableBuilder(
+                valueListenable: model.gsaInfo,
+                builder: (context, value, child) {
+                  if (value == null) {
+                    return Text("No GSA Data");
+                  }
+                  Widget buildDOP(String type, double after) {
+                    return Column(
+                      children: [
+                        Text(
+                          after.toStringAsPrecision(1),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        Text(
+                          type,
+                          style: Theme.of(context).textTheme.titleMedium!
+                              .copyWith(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      spacing: 10,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            buildDOP("VDOP", value.vDop),
+                            buildDOP("HDOP", value.hDop),
+                            buildDOP("PDOP", value.pDop),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  value.opMode,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineSmall,
+                                ),
+                                Text(
+                                  "Operation Mode",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  value.mode,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineSmall,
+                                ),
+                                Text(
+                                  "Status",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

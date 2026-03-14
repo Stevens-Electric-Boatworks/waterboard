@@ -22,8 +22,7 @@ void main() async {
       WindowOptions windowOptions = WindowOptions(
         center: true,
         title: "Waterboard Driver Dashboard | Stevens Electric Boatworks",
-        backgroundColor: Colors.blue,
-        skipTaskbar: false,
+        backgroundColor: Colors.white,
         titleBarStyle: TitleBarStyle.normal,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
