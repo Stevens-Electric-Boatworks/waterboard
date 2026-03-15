@@ -717,7 +717,7 @@ class _RadiosPageState extends State<RadiosPage> {
                     Spacer(),
                     Center(
                       child: Text(
-                        "No Data Received",
+                        "No Cell Data Received",
                         softWrap: true,
                         style: Theme.of(context).textTheme.headlineSmall!
                             .copyWith(
@@ -737,7 +737,7 @@ class _RadiosPageState extends State<RadiosPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.black),
-                  color: Colors.grey.shade200
+                  color: Colors.grey.shade100,
                 ),
                 padding: EdgeInsets.all(12),
                 child: SingleChildScrollView(

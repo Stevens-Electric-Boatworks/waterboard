@@ -37,7 +37,7 @@ class FakeROS extends ROS {
   FakeROSSubscription subscribe(
     String topic, {
     Map<String, dynamic> initialData = const {},
-    {int staleDuration = 1000}
+    int staleDuration = 1000,
   }) {
     if (subs.containsKey(topic)) return subs[topic]!;
     var sub = FakeROSSubscription(topic: topic, initialData: initialData);

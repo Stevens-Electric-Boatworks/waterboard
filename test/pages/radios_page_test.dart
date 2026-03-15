@@ -46,7 +46,8 @@ void main() {
         createOfflineMockInternetChecker(),
       ),
     );
-    expect(find.byType(ROSText), findsNWidgets(5));
+    // lat, long, sats count, speed
+    expect(find.byType(ROSText), findsNWidgets(4));
     expect(find.text("Latitude"), findsOneWidget);
     expect(find.text("Longitude"), findsOneWidget);
     expect(find.text("Satellites"), findsOneWidget);
@@ -54,7 +55,7 @@ void main() {
     expect(find.text("IP Address"), findsOneWidget);
     expect(find.text("Shore Reachable?"), findsOneWidget);
     expect(find.text("WiFi SSID"), findsOneWidget);
-    expect(find.text("Cell Strength"), findsOneWidget);
+    expect(find.text("Cell Information"), findsOneWidget);
     expect(find.byType(MarineCompass), findsOneWidget);
   });
   testWidgets('Verify Correct Subscriptions', (widgetTester) async {
@@ -95,19 +96,44 @@ void main() {
     expect(find.widgetWithText(ROSText, "13.2271727371"), findsOneWidget);
     expect(find.widgetWithText(ROSText, "-72.1726368282"), findsOneWidget);
 
-    //TODO: FIX SATS JSON TEST
-    // ros.propagateData("/motion/sv", {'sats': 12});
-    // await widgetTester.pumpAndSettle();
-    // expect(find.widgetWithText(ROSText, "12"), findsOneWidget);
-
     ros.propagateData("/motion/vtg", {'speed': 8.24, 'true_track': 14.0});
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSText, "8.2" /*2 sig figs*/), findsOneWidget);
     expect(find.widgetWithText(MarineCompass, "14°"), findsOneWidget);
 
-    //cell is unimplemented
-    //TODO: FIX #, cuz no sats rostext workin
-    expect(find.widgetWithText(ROSText, "N/A"), findsNWidgets(2));
+    //cell information test
+    expect(find.text("No Cell Data Received"), findsOneWidget);
+    ros.propagateData("/cell", {
+      "bars": 2,
+      "network": "AT&T",
+      "technology": "5G",
+      "rsrp": -17,
+      "rsrq": 56,
+      "apn": "stable",
+      "ip_addr": "192.167.1.2",
+      "pin_status": "READY",
+      "reg_status": 1,
+    });
+    await widgetTester.pumpAndSettle();
+    expect(find.text("Bars:"), findsOneWidget);
+    expect(find.text("RSRP:"), findsOneWidget);
+    expect(find.text("RSRQ:"), findsOneWidget);
+    expect(find.text("IP Address:"), findsOneWidget);
+    expect(find.text("APN:"), findsOneWidget);
+    expect(find.text("Network:"), findsOneWidget);
+    expect(find.text("Technology:"), findsOneWidget);
+    expect(find.text("Reg. Status:"), findsOneWidget);
+    expect(find.text("Pin Status:"), findsOneWidget);
+
+    expect(find.text("2"), findsOneWidget);
+    expect(find.text("-17"), findsOneWidget);
+    expect(find.text("56"), findsOneWidget);
+    expect(find.text("192.167.1.2"), findsOneWidget);
+    expect(find.text("stable"), findsOneWidget);
+    expect(find.text("AT&T"), findsOneWidget);
+    expect(find.text("5G"), findsOneWidget);
+    expect(find.text("1"), findsOneWidget);
+    expect(find.text("READY"), findsOneWidget);
   });
   group("Verify Internet State Widgets", () {
     testWidgets('Offline', (widgetTester) async {
