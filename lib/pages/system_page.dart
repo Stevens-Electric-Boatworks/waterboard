@@ -318,6 +318,7 @@ class _SystemPageState extends State<SystemPage> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
+        spacing: 10,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -380,7 +381,6 @@ class _SystemPageState extends State<SystemPage> {
               ),
             ],
           ),
-          SizedBox(height: 10),
           Expanded(
             child: ListenableBuilder(
               listenable: Listenable.merge([
@@ -489,7 +489,6 @@ class _SystemPageState extends State<SystemPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
       spacing: 20,
       children: [
         ...body,
@@ -561,11 +560,12 @@ class _SystemPageState extends State<SystemPage> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
+          spacing: 20,
           children: [
             Text(title, style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(
-              height: constraints.maxHeight / 1.2,
+            Expanded(
               child: SfCartesianChart(
+                margin: EdgeInsets.only(right: 16),
                 series: data,
                 crosshairBehavior: CrosshairBehavior(
                   enable: true,

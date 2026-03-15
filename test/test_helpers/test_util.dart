@@ -42,7 +42,9 @@ MockROSImpl createMockOfflineROS({
   when(mockROS.connectionState).thenReturn(ValueNotifier(initialState));
   Map<String, ROSSubscriptionImpl> virtualSubs = {};
   when(mockROS.subs).thenReturn(virtualSubs);
-  when(mockROS.subscribe(any)).thenAnswer((realInvocation) {
+  when(
+    mockROS.subscribe(any, staleDuration: anyNamed("staleDuration")),
+  ).thenAnswer((realInvocation) {
     final topic = realInvocation.positionalArguments.first as String;
 
     final mockSub = MockROSSubscriptionImpl();

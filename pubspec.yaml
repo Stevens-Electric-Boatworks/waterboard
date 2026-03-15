@@ -45,6 +45,7 @@ dependencies:
   scroll_table: ^1.0.1
   collection: ^1.19.1
   syncfusion_flutter_charts: ^32.2.8
+  material_symbols_icons: ^4.2906.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
