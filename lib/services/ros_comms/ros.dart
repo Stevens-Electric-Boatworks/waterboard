@@ -65,7 +65,12 @@ class ROSImpl extends ROS {
       return _subs[topic]!;
     }
     _log.info("[ROS] Creating new subscription to '$topic'");
-    var sub = ROSSubscriptionImpl(topic, _rosBridge, clock, staleDuration: staleDuration);
+    var sub = ROSSubscriptionImpl(
+      topic,
+      _rosBridge,
+      clock,
+      staleDuration: staleDuration,
+    );
     _rosBridge.sendSubscription(sub);
     _subs[topic] = sub;
     _onSubscription.value = sub;

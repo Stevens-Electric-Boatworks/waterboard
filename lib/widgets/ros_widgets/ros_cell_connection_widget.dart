@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:material_symbols_icons/symbols.dart';
+
+// Project imports:
 import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_listenable_widget.dart';
@@ -45,11 +50,11 @@ class RosCellConnectionWidget extends StatelessWidget {
     } else if (bars == 1) {
       icon = (Symbols.signal_cellular_1_bar, Colors.red);
     } else if (bars == 2) {
-      icon = (Symbols.signal_cellular_1_bar, Colors.orange);
+      icon = (Symbols.signal_cellular_2_bar, Colors.orange);
     } else if (bars == 3) {
-      icon = (Symbols.signal_cellular_1_bar, Colors.orange);
+      icon = (Symbols.signal_cellular_3_bar, Colors.orange);
     } else if (bars == 4) {
-      icon = (Symbols.signal_cellular_1_bar, Colors.green);
+      icon = (Symbols.signal_cellular_4_bar, Colors.green);
     } else {
       icon = null;
     }

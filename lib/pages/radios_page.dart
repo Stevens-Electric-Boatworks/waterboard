@@ -13,6 +13,7 @@ import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
@@ -64,17 +65,20 @@ class RadiosPageViewModel extends ChangeNotifier {
   late final ROSSubscription vtgSub;
   late final ROSSubscription satsSub;
   late final ROSSubscription gsaSub;
+  late final ROSSubscription cellSub;
 
   late final ROSTextDataSource gpsLat;
   late final ROSTextDataSource gpsLon;
   late final ROSTextDataSource sv;
   late final ROSTextDataSource vtg;
-  late final ROSTextDataSource cell;
 
   late final ROSCompassDataSource compass;
 
   late final ValueNotifier<List<SatelliteItem>> sats = ValueNotifier([]);
   late final ValueNotifier<GSAInfo?> gsaInfo = ValueNotifier(null);
+  late final ValueNotifier<CellMessageSchema?> cellMessages = ValueNotifier(
+    null,
+  );
 
   double lat = 0;
   double lon = 0;
@@ -109,9 +113,11 @@ class RadiosPageViewModel extends ChangeNotifier {
       valueBuilder: (json) =>
           ((json["speed"] as double).toStringAsPrecision(2), Colors.black),
     );
-    cell = ROSTextDataSource(
-      sub: ros.subscribe("/cell", staleDuration: 10_000),
-      valueBuilder: (json) => ("${json["bars"]} Bars", Colors.black),
+    cellSub = ros.subscribe("/cell", staleDuration: 10_000);
+    cellSub.notifier.addListener(
+      () => cellMessages.value = CellMessageSchema.fromJson(
+        cellSub.notifier.value,
+      ),
     );
     compass = ROSCompassDataSource(
       sub: vtgSub,
@@ -241,97 +247,71 @@ class _RadiosPageState extends State<RadiosPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: PageUtils.panelDecoration(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Center(
-            child: SizedBox(
-              width: constraints.maxWidth,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "Internet",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineLarge,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
+      child: Column(
+        spacing: 20,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Internet",
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineLarge,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.max,
+              spacing: 20,
+              children: [
+                !kIsWeb
+                    ? ValueListenableBuilder(
+                        valueListenable: model.connection!.ipAddress,
+                        builder: (_, value, __) {
+                          return PageUtils.buildText(
+                            context,
+                            value ?? "Disconnected",
+                            "IP Address",
+                          );
+                        },
+                      )
+                    : PageUtils.buildText(context, "Unsupported", "IP Address"),
+
+                !kIsWeb
+                    ? ValueListenableBuilder(
+                        valueListenable: model.connection!.ssid,
+                        builder: (_, value, __) {
+                          return PageUtils.buildText(
+                            context,
+                            value ?? "Disconnected",
+                            "WiFi SSID",
+                          );
+                        },
+                      )
+                    : PageUtils.buildText(context, "Unsupported", "WiFi SSID"),
+                StreamBuilder<InternetStatus>(
+                  stream: model.internetStatusStream,
+                  builder: (_, snapshot) {
+                    final connected = snapshot.data == InternetStatus.connected;
+
+                    return PageUtils.buildText(
+                      context,
+                      connected ? "Reachable" : "Unreachable",
+                      "Shore Reachable?",
+                      color: connected ? Colors.green : Colors.red,
+                    );
+                  },
+                ),
+                Expanded(
+                  child: PageUtils.buildWidgetBackground(
+                    _buildCellInformationList(),
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        PageUtils.buildWidgetBackground(
-                          !kIsWeb
-                              ? ValueListenableBuilder(
-                                  valueListenable: model.connection!.ipAddress,
-                                  builder: (_, value, __) {
-                                    return PageUtils.buildText(
-                                      context,
-                                      value ?? "Disconnected",
-                                      "IP Address",
-                                    );
-                                  },
-                                )
-                              : PageUtils.buildText(
-                                  context,
-                                  "Unsupported",
-                                  "IP Address",
-                                ),
-                        ),
-
-                        PageUtils.buildWidgetBackground(
-                          StreamBuilder<InternetStatus>(
-                            stream: model.internetStatusStream,
-                            builder: (_, snapshot) {
-                              final connected =
-                                  snapshot.data == InternetStatus.connected;
-
-                              return PageUtils.buildText(
-                                context,
-                                connected ? "Reachable" : "Unreachable",
-                                "Shore Reachable?",
-                                color: connected ? Colors.green : Colors.red,
-                              );
-                            },
-                          ),
-                        ),
-
-                        PageUtils.buildWidgetBackground(
-                          !kIsWeb
-                              ? ValueListenableBuilder(
-                                  valueListenable: model.connection!.ssid,
-                                  builder: (_, value, __) {
-                                    return PageUtils.buildText(
-                                      context,
-                                      value ?? "Disconnected",
-                                      "WiFi SSID",
-                                    );
-                                  },
-                                )
-                              : PageUtils.buildText(
-                                  context,
-                                  "Unsupported",
-                                  "WiFi SSID",
-                                ),
-                        ),
-
-                        PageUtils.buildWidgetBackground(
-                          ROSText(
-                            dataSource: model.cell,
-                            subtext: "Cell Strength",
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -691,6 +671,92 @@ class _RadiosPageState extends State<RadiosPage> {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCellInformationList() {
+    Widget makeRow(String leading, String trailing) {
+      return Row(
+        children: [
+          Text(
+            "$leading:",
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.bold),
+          ),
+          Spacer(),
+          Text(
+            trailing,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall!.copyWith(fontStyle: FontStyle.italic),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      spacing: 10,
+      children: [
+        Center(
+          child: Text(
+            "Cell Information",
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+        ),
+        ValueListenableBuilder(
+          valueListenable: model.cellMessages,
+          builder: (context, value, child) {
+            if (value == null) {
+              return Expanded(
+                child: Column(
+                  children: [
+                    Spacer(),
+                    Center(
+                      child: Text(
+                        "No Data Received",
+                        softWrap: true,
+                        style: Theme.of(context).textTheme.headlineSmall!
+                            .copyWith(
+                              color: Colors.grey.shade800,
+                              fontStyle: FontStyle.italic,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Spacer(),
+                  ],
+                ),
+              );
+            }
+            return Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.black),
+                ),
+                padding: EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      makeRow("Bars", value.bars.toString()),
+                      makeRow("RSRP", value.rsrp.toString()),
+                      makeRow("RSRQ", value.rsrq.toString()),
+                      makeRow("IP Address", value.ipAddress),
+                      makeRow("APN", value.apn),
+                      makeRow("Network", value.network),
+                      makeRow("Technology", value.technology),
+                      makeRow("Reg. Status", value.regStatus.toString()),
+                      makeRow("Pin Status", value.pinStatus),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );

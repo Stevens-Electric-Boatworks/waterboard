@@ -97,7 +97,7 @@ class WaterboardAppBarWidget extends StatelessWidget
       ),
       SizedBox(width: 15),
       RosCellConnectionWidget(dataSource: rosCellDataSource),
-      SizedBox(width: 15,),
+      SizedBox(width: 15),
       IconButton(
         onPressed: () {
           if (layoutLocked()) return;

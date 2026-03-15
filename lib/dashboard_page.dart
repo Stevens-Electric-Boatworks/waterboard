@@ -4,8 +4,10 @@ import 'dart:math';
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
+
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+
 // Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
@@ -71,18 +73,7 @@ class DashboardPageViewModel extends ChangeNotifier {
     });
     rosCellDataSource = ROSCellDataSource(
       sub: ros.subscribe("/cell", staleDuration: 10_000),
-      valueBuilder: (json) => CellMessageSchema(
-        bars: json["bars"] as int,
-        network: json["network"] as String,
-        technology: json["technology"] as String,
-        rsrp: json["rsrp"] as int,
-        rsrq: json["rsrq"] as int,
-        apn: json["apn"] as String,
-        ipAddress: json["ip_addr"] as String,
-        pinStatus: json["pin_status"] as String,
-        regStatus: json["reg_status"] as int
-
-      ),
+      valueBuilder: (json) => CellMessageSchema.fromJson(json),
     );
     services.hotkeys.register(
       LogicalKeyboardKey.keyS,
