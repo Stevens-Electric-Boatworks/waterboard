@@ -737,7 +737,7 @@ class _RadiosPageState extends State<RadiosPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.black),
-                  color: Colors.grey.shade200git a
+                  color: Colors.grey.shade200
                 ),
                 padding: EdgeInsets.all(12),
                 child: SingleChildScrollView(
