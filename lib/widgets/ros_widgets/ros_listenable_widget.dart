@@ -12,11 +12,16 @@ class ROSListenable extends StatefulWidget {
   builder;
   final Widget Function(BuildContext context) _noDataBuilder;
 
+  final EdgeInsetsGeometry padding;
+  final double strokeWidth;
+
   const ROSListenable({
     super.key,
     required this.subscription,
     required this.builder,
     required Widget Function(BuildContext) noDataBuilder,
+    this.padding = const EdgeInsetsGeometry.all(16),
+    this.strokeWidth = 8,
   }) : _noDataBuilder = noDataBuilder;
 
   @override
@@ -26,7 +31,9 @@ class ROSListenable extends StatefulWidget {
 class _ROSListenableState extends State<ROSListenable> {
   @override
   void initState() {
-    widget.subscription.isStale.addListener(() => setState(() {}));
+    widget.subscription.isStale.addListener(() {
+      if (mounted) setState(() {});
+    });
     super.initState();
   }
 
@@ -48,8 +55,10 @@ class _ROSListenableState extends State<ROSListenable> {
               Positioned.fill(
                 child: IgnorePointer(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: CustomPaint(painter: StaleXPainter()),
+                    padding: widget.padding,
+                    child: CustomPaint(
+                      painter: StaleXPainter(strokeWidth: widget.strokeWidth),
+                    ),
                   ),
                 ),
               ),

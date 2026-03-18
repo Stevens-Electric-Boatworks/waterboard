@@ -17,10 +17,12 @@ import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
+import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/custom_app_bar_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
 
@@ -37,14 +39,21 @@ class DashboardPageViewModel extends ChangeNotifier {
   );
   final int totalPages = 5;
   final Services services;
+
   DashboardPageViewModel(this.services);
 
+  late final ROSCellDataSource rosCellDataSource;
+
   DashboardPageStateMixin? _state;
+
   DashboardPageStateMixin? get state => _state;
 
   ROS get ros => services.ros;
+
   int get currentPage => _currentPage;
+
   Log get log => services.logger;
+
   SharedPreferences get _preferences => services.preferences;
 
   bool get layoutLocked => _preferences.getBool(PrefKeys.layoutLocked) ?? false;
@@ -62,6 +71,10 @@ class DashboardPageViewModel extends ChangeNotifier {
         );
       }
     });
+    rosCellDataSource = ROSCellDataSource(
+      sub: ros.subscribe("/cell", staleDuration: 10_000),
+      valueBuilder: (json) => CellMessageSchema.fromJson(json),
+    );
     services.hotkeys.register(
       LogicalKeyboardKey.keyS,
       callback: () {
@@ -207,6 +220,7 @@ class _DashboardPageState extends State<DashboardPage>
             services: model.services,
             layoutLocked: () => model.layoutLocked,
             onSettingsChanged: model.onSettingsChange,
+            rosCellDataSource: model.rosCellDataSource,
           ),
 
           body: PageView(
