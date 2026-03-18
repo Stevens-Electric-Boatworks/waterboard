@@ -739,7 +739,7 @@ class _RadiosPageState extends State<RadiosPage> {
                   border: Border.all(color: Colors.black),
                   color: Colors.grey.shade100,
                 ),
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
