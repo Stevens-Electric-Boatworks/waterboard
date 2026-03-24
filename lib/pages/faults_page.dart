@@ -4,37 +4,15 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
 
 class FaultsPageViewModel extends ChangeNotifier {
-  List<FaultMsgSchema> faults = [];
-
   final Services services;
-
-  late final ROSSubscription faultSub;
-
+  List<FaultMsgSchema> get faults => services.boatFaultsService.faults;
   FaultsPageViewModel({required this.services});
   void init() {
-    faultSub = services.ros.subscribe("/alarm/shore/publish");
-    faultSub.notifier.addListener(() => queryAlarms());
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => queryAlarms());
+    services.boatFaultsService.addListener(() => notifyListeners(),);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => services.boatFaultsService.refresh());
   }
 
-  void queryAlarms() {
-    services.ros.createService("/alarm/query").call((success, json) {
-      if (!success) return;
-      List<dynamic> alarms = json["alarms"];
-      faults.clear();
-      for (var alarm in alarms) {
-        var a = FaultMsgSchema.fromJson(alarm);
-        faults.add(a);
-      }
-      notifyListeners();
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    faultSub.notifier.removeListener(queryAlarms);
-  }
+  void refresh() => services.boatFaultsService.refresh();
 }
 
 class FaultsPage extends StatefulWidget {
@@ -70,7 +48,7 @@ class _FaultsPageState extends State<FaultsPage> {
           Text("No Faults!", style: Theme.of(context).textTheme.displayLarge),
           FilledButton(
             onPressed: () {
-              model.queryAlarms();
+              model.refresh();
             },
             child: Text("Requery Alarms"),
           ),
@@ -86,7 +64,7 @@ class _FaultsPageState extends State<FaultsPage> {
             Spacer(),
             IconButton(
               onPressed: () {
-                model.queryAlarms();
+                model.refresh();
               },
               icon: Icon(Icons.refresh),
             ),

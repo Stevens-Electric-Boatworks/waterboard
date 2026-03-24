@@ -1,20 +1,18 @@
 // Dart imports:
+import 'dart:async';
 import 'dart:math';
 
 // Flutter imports:
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter/services.dart';
-
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
-
 // Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/faults_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
-import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
@@ -22,6 +20,7 @@ import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
+import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/widgets/custom_app_bar_widget.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 
@@ -58,6 +57,8 @@ class DashboardPageViewModel extends ChangeNotifier {
   SharedPreferences get _preferences => services.preferences;
 
   bool get layoutLocked => _preferences.getBool(PrefKeys.layoutLocked) ?? false;
+
+  bool get hasFaults => services.boatFaultsService.faults.isNotEmpty;
 
   Future<void> init() async {
     ros.startConnectionLoop();
@@ -157,6 +158,11 @@ class _DashboardPageState extends State<DashboardPage>
   late final SystemPageViewModel _systemPageViewModel;
   late final FaultsPageViewModel _faultsPageViewModel;
 
+  //color will change if there are faults active
+  bool hasFault = false;
+  int faultBackgroundIndex = 0;
+  late final Timer timer;
+
   @override
   void initState() {
     super.initState();
@@ -166,6 +172,36 @@ class _DashboardPageState extends State<DashboardPage>
     _logsPageViewModel = LogsPageViewModel(services: model.services);
     _systemPageViewModel = SystemPageViewModel(services: model.services);
     _faultsPageViewModel = FaultsPageViewModel(services: model.services);
+    timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (model.hasFaults) {
+        setState(() {
+          hasFault = true;
+          faultBackgroundIndex = (faultBackgroundIndex + 1) % 2;
+        });
+      } else if (hasFault) {
+        setState(() {
+          hasFault = false;
+        });
+      }
+    });
+    model.services.boatFaultsService.addListener(() {
+      SnackBar snackBar;
+
+      if (model.services.boatFaultsService.faults.isNotEmpty) {
+        snackBar = SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('FAULT: ${model.services.boatFaultsService.faults.first.message}', style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.red),),
+          duration: Duration(seconds: 8),
+        );
+      } else {
+        snackBar = SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('All Faults Cleared', style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.green),),
+          duration: Duration(seconds: 3),
+        );
+      }
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
@@ -219,13 +255,17 @@ class _DashboardPageState extends State<DashboardPage>
         canRequestFocus: false,
         descendantsAreFocusable: false,
         child: Scaffold(
+          backgroundColor: hasFault
+              ? (faultBackgroundIndex % 2 == 0
+                    ? Colors.red.shade100
+                    : Colors.white)
+              : Colors.white,
           appBar: WaterboardAppBarWidget(
             services: model.services,
             layoutLocked: () => model.layoutLocked,
             onSettingsChanged: model.onSettingsChange,
             rosCellDataSource: model.rosCellDataSource,
           ),
-
           body: PageView(
             controller: _pageController,
             scrollBehavior: ScrollBehavior().copyWith(

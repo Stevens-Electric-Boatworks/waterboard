@@ -10,7 +10,6 @@ import 'package:flutter/cupertino.dart';
 // Package imports:
 import 'package:clock/clock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterboard/services/ros_comms/service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 // Project imports:

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/services/hotkey_manager.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
+import 'package:waterboard/services/ros_comms/boat_faults_service.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/system_power_service.dart';
@@ -19,6 +20,7 @@ class Services {
   late final HotKeyManager _hotKeyManager;
   late final SystemUsageService _systemUtilService;
   late final SystemPowerService _systemPowerService;
+  late final BoatFaultsService _boatFaultsService;
   final Clock clock = Clock();
 
   ROS get ros => _ros;
@@ -29,6 +31,7 @@ class Services {
   HotKeyManager get hotkeys => _hotKeyManager;
   SystemUsageService get sysUtil => _systemUtilService;
   SystemPowerService get sysPower => _systemPowerService;
+  BoatFaultsService get boatFaultsService => _boatFaultsService;
 
   Future<void> initialize() async {
     _preferences = await SharedPreferences.getInstance();
@@ -41,6 +44,9 @@ class Services {
     //auto start
     _systemUtilService.start();
     _systemPowerService = SystemPowerService(log: _logger);
+    _boatFaultsService = BoatFaultsService(ros: ros);
+    //grab initial if possible
+    _boatFaultsService.refresh();
   }
 
   Future<void> initializeWithMocks({

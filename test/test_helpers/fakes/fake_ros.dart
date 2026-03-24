@@ -8,7 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
-import 'package:waterboard/services/ros_comms/service.dart';
+import 'package:waterboard/services/ros_comms/ros_service.dart';
 import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {

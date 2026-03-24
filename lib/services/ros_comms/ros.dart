@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
-import 'package:waterboard/services/ros_comms/service.dart';
+import 'package:waterboard/services/ros_comms/ros_service.dart';
 import '../log.dart';
 
 // Package imports:
@@ -94,6 +94,7 @@ class ROSImpl extends ROS {
 
   @override
   ROSService createService(String topic) {
+    _log.info("[ROS] Creating a service call to '$topic'");
     return ROSService(topic: topic, rosBridge: _rosBridge);
   }
 }
