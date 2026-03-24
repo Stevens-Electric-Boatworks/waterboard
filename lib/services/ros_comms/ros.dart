@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
+import 'package:waterboard/services/ros_comms/service.dart';
 import '../log.dart';
 
 // Package imports:
@@ -21,6 +22,7 @@ abstract class ROS {
   DateTime get timeSinceLastMsg;
   ValueNotifier<ROSSubscription?> get onSubscription;
   ROSSubscription subscribe(String topic, {int staleDuration = 1000});
+  ROSService createService(String topic);
   void startConnectionLoop();
   void reconnect();
   void propagateData(String topic, Map<String, dynamic> data);
@@ -77,6 +79,8 @@ class ROSImpl extends ROS {
     return sub;
   }
 
+
+
   /// This method should be called whenever you want to propagate data to subscriptions
   @override
   void propagateData(String topic, Map<String, dynamic> data) {
@@ -89,6 +93,11 @@ class ROSImpl extends ROS {
 
   @override
   ValueNotifier<ROSSubscription?> get onSubscription => _onSubscription;
+
+  @override
+  ROSService createService(String topic) {
+    return ROSService(topic: topic, rosBridge: _rosBridge);
+  }
 }
 
 enum ROSConnectionState { noWebsocket, staleData, connected }

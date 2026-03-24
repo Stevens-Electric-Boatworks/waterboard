@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
+import 'package:waterboard/pages/page_utils.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
@@ -53,16 +54,13 @@ class ROSLogsCollector {
     String function = newData['function'] as String;
     int line = newData['line'] as int;
     int level = newData['level'] as int;
-    int msSinceEpoch =
-        (newData['stamp']['sec'] as int) * 1000 +
-        ((newData['stamp']['nanosec'] as int) / 1e6).toInt();
     var log = ROSLog(
       msg: msg,
       file: file,
       function: function,
       line: line,
       level: toString(level),
-      time: DateTime.fromMillisecondsSinceEpoch(msSinceEpoch),
+      time: PageUtils.fromROSTimeStamp(newData["stamp"]),
     );
     logs.add(log);
     onLogMessage.value = log;

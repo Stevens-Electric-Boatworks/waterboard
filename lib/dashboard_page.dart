@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
+import 'package:waterboard/pages/faults_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
@@ -37,7 +38,7 @@ class DashboardPageViewModel extends ChangeNotifier {
   ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
     null,
   );
-  final int totalPages = 5;
+  final int totalPages = 6;
   final Services services;
 
   DashboardPageViewModel(this.services);
@@ -154,6 +155,7 @@ class _DashboardPageState extends State<DashboardPage>
   late final RadiosPageViewModel _radiosPageViewModel;
   late final LogsPageViewModel _logsPageViewModel;
   late final SystemPageViewModel _systemPageViewModel;
+  late final FaultsPageViewModel _faultsPageViewModel;
 
   @override
   void initState() {
@@ -163,6 +165,7 @@ class _DashboardPageState extends State<DashboardPage>
     _radiosPageViewModel = RadiosPageViewModel(services: model.services);
     _logsPageViewModel = LogsPageViewModel(services: model.services);
     _systemPageViewModel = SystemPageViewModel(services: model.services);
+    _faultsPageViewModel = FaultsPageViewModel(services: model.services);
     model.addListener(_onModelChanged);
     model.connectionDialogType.addListener(() {
       if (model.connectionDialogType.value ==
@@ -240,6 +243,7 @@ class _DashboardPageState extends State<DashboardPage>
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
               KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
               KeepAlivePage(child: SystemPage(model: _systemPageViewModel)),
+              KeepAlivePage(child: FaultsPage(model: _faultsPageViewModel)),
             ],
           ),
           bottomNavigationBar: SizedBox(
@@ -269,6 +273,10 @@ class _DashboardPageState extends State<DashboardPage>
                     BottomNavigationBarItem(
                       icon: Icon(Icons.build),
                       label: "System",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.warning),
+                      label: "Faults",
                     ),
                   ],
                   onTap: (value) {
