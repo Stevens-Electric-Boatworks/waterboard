@@ -38,6 +38,8 @@ class LogsPageViewModel extends ChangeNotifier {
 
   Emitter selectedFilter = Emitter.none;
 
+  bool filterROSBridge = true;
+
   LogsPageViewModel({required this.services});
 
   ROS get ros => services.ros;
@@ -89,12 +91,27 @@ class LogsPageViewModel extends ChangeNotifier {
   }
 
   List<LogMessage> get filteredLogs {
-    if (selectedFilter == Emitter.none) {
+    if (selectedFilter == Emitter.none && !filterROSBridge) {
       return logMessages;
     }
 
     return logMessages
-        .where((log) => log.emitter == selectedFilter)
+        .where((log) {
+          if (log.emitter == selectedFilter || selectedFilter == Emitter.none) {
+            //check for rosbridge
+            if (log.emitter == Emitter.ros &&
+                (log.file!.contains("rosbridge_library"))) {
+              //is a rosbridge file
+              if (!filterROSBridge) {
+                return true;
+              } else {
+                return false;
+              }
+            }
+            return true;
+          }
+          return false;
+        })
         .toList(growable: false);
   }
 
@@ -247,6 +264,15 @@ class _LogsPageState extends State<LogsPage> {
                 ),
               ),
               Spacer(),
+              Text("ROSBridge"),
+              Checkbox(
+                value: model.filterROSBridge,
+                onChanged: (value) {
+                  setState(() {
+                    model.filterROSBridge = value ?? true;
+                  });
+                },
+              ),
               SegmentedButton<Emitter>(
                 showSelectedIcon: false,
                 segments: [
