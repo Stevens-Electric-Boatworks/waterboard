@@ -1,6 +1,6 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
-import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/utils/page_utils.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';

@@ -5,41 +5,35 @@ import 'package:waterboard/services/services.dart';
 
 class FaultsPageViewModel extends ChangeNotifier {
   List<FaultMsgSchema> faults = [];
-  
+
   final Services services;
-  
+
   late final ROSSubscription faultSub;
 
   FaultsPageViewModel({required this.services});
   void init() {
     faultSub = services.ros.subscribe("/alarm/shore/publish");
-    faultSub.notifier.addListener(() => _onFaultMsgRec(),);
-    //request old
-    queryAlarms();
-  }
-
-  void _onFaultMsgRec() {
-    FaultMsgSchema msg = FaultMsgSchema.fromJson(faultSub.notifier.value);
-    faults.add(msg);
-    notifyListeners();
+    faultSub.notifier.addListener(() => queryAlarms());
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => queryAlarms());
   }
 
   void queryAlarms() {
     services.ros.createService("/alarm/query").call((success, json) {
-      if(!success) return;
+      if (!success) return;
       List<dynamic> alarms = json["alarms"];
       faults.clear();
-      for(var alarm in alarms) {
+      for (var alarm in alarms) {
         var a = FaultMsgSchema.fromJson(alarm);
         faults.add(a);
       }
       notifyListeners();
-    },);
+    });
   }
+
   @override
   void dispose() {
     super.dispose();
-    faultSub.notifier.removeListener(_onFaultMsgRec);
+    faultSub.notifier.removeListener(queryAlarms);
   }
 }
 
@@ -58,8 +52,8 @@ class _FaultsPageState extends State<FaultsPage> {
   @override
   void initState() {
     super.initState();
+    model.addListener(() => setState(() {}));
     model.init();
-    model.addListener(() => setState(() {}),);
   }
 
   @override
@@ -68,14 +62,18 @@ class _FaultsPageState extends State<FaultsPage> {
     final TextStyle headerStyle = Theme.of(
       context,
     ).textTheme.labelSmall!.merge(TextStyle(fontWeight: FontWeight.bold));
-    if(model.faults.isEmpty) {
+    if (model.faults.isEmpty) {
       return Column(
+        spacing: 20,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("No Faults!", style: Theme.of(context).textTheme.displayLarge,),
-          FilledButton(onPressed: () {
-            model.queryAlarms();
-          }, child: Text("Requery Alarms"))
+          Text("No Faults!", style: Theme.of(context).textTheme.displayLarge),
+          FilledButton(
+            onPressed: () {
+              model.queryAlarms();
+            },
+            child: Text("Requery Alarms"),
+          ),
         ],
       );
     }
@@ -84,9 +82,14 @@ class _FaultsPageState extends State<FaultsPage> {
         Row(
           children: [
             Spacer(),
-            Text("Faults", style: Theme.of(context).textTheme.headlineMedium,),
+            Text("Faults", style: Theme.of(context).textTheme.headlineMedium),
             Spacer(),
-            IconButton(onPressed: () { model.queryAlarms(); }, icon: Icon(Icons.refresh),)
+            IconButton(
+              onPressed: () {
+                model.queryAlarms();
+              },
+              icon: Icon(Icons.refresh),
+            ),
           ],
         ),
         Expanded(
@@ -105,12 +108,18 @@ class _FaultsPageState extends State<FaultsPage> {
                       color: Colors.grey,
                       child: Row(
                         children: [
-                          _buildRowEntry(Text("Error Code", style: headerStyle), 1),
+                          _buildRowEntry(
+                            Text("Error Code", style: headerStyle),
+                            1,
+                          ),
                           _buildRowEntry(
                             Text("Timestamp", style: headerStyle),
                             2,
                           ),
-                          _buildRowEntry(Text("Description", style: headerStyle), 10),
+                          _buildRowEntry(
+                            Text("Description", style: headerStyle),
+                            10,
+                          ),
                         ],
                       ),
                     ),
@@ -143,10 +152,7 @@ class _FaultsPageState extends State<FaultsPage> {
                                 2,
                               ),
                               _buildRowEntry(
-                                Text(
-                                  msg.message,
-                                  style: messageStyle
-                                ),
+                                Text(msg.message, style: messageStyle),
                                 10,
                               ),
                             ],
@@ -166,6 +172,7 @@ class _FaultsPageState extends State<FaultsPage> {
       ],
     );
   }
+
   Widget _buildRowEntry(Widget child, int flex) {
     return Expanded(
       flex: flex,
@@ -175,6 +182,7 @@ class _FaultsPageState extends State<FaultsPage> {
       ),
     );
   }
+
   String _getTimeText(DateTime now) {
     int hour = now.hour % 12;
     if (hour == 0) hour = 12;

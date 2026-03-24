@@ -7,7 +7,7 @@ import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
-import '../pages/page_utils.dart';
+import '../utils/page_utils.dart';
 
 class WaterboardAppBarWidget extends StatelessWidget
     implements PreferredSizeWidget {

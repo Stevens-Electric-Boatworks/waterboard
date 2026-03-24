@@ -39,7 +39,8 @@ class ROSBridge {
   bool _sinkClosed = true;
 
   //id, function to call on service call success
-  final Map<String, Function(bool success, Map<String, dynamic> json)> _serviceCalls = {};
+  final Map<String, Function(bool success, Map<String, dynamic> json)>
+  _serviceCalls = {};
 
   Future<void> startConnectionLoop() async {
     _rosBridgeTimer?.cancel();
@@ -106,20 +107,22 @@ class ROSBridge {
       }
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
-      }
-      else if(msg["op"] == "service_response") {
-        if(_serviceCalls.containsKey(msg["id"])) {
-          if(!(msg["result"] as bool)) {
+      } else if (msg["op"] == "service_response") {
+        if (_serviceCalls.containsKey(msg["id"])) {
+          if (!(msg["result"] as bool)) {
             _log.error("Service called failed because ${msg["values"]}");
             return;
           }
-          _serviceCalls[msg["id"]]!(true, msg["values"] as Map<String, dynamic>);
+          _serviceCalls[msg["id"]]!(
+            true,
+            msg["values"] as Map<String, dynamic>,
+          );
+        } else {
+          _log.error(
+            "A random service call for '${msg["service"]}' was received, but ROSBridge is not tracking it...",
+          );
         }
-        else {
-          _log.error("A random service call for '${msg["service"]}' was received, but ROSBridge is not tracking it...");
-        }
-      }
-      else {
+      } else {
         _log.warning("[ROS] Unknown message from ROSBridge: $msg");
       }
     });
@@ -148,14 +151,15 @@ class ROSBridge {
     _channel?.sink.add(json.encode({"op": "subscribe", "topic": sub.topic}));
   }
 
-  void callService(String topic, Function(bool success, Map<String, dynamic> json) func) {
+  void callService(
+    String topic,
+    Function(bool success, Map<String, dynamic> json) func,
+  ) {
     String id = Random().nextInt(10000).toString();
     _serviceCalls[id] = func;
 
-    _channel?.sink.add(json.encode({
-      "op": "call_service",
-      "service": topic,
-      "id": id
-    }));
+    _channel?.sink.add(
+      json.encode({"op": "call_service", "service": topic, "id": id}),
+    );
   }
 }

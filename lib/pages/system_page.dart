@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/services/system_usage_service.dart';

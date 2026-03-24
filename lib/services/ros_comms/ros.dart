@@ -79,8 +79,6 @@ class ROSImpl extends ROS {
     return sub;
   }
 
-
-
   /// This method should be called whenever you want to propagate data to subscriptions
   @override
   void propagateData(String topic, Map<String, dynamic> data) {

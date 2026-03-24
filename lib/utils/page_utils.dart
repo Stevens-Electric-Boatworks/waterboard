@@ -178,8 +178,9 @@ class PageUtils {
   }
 
   static DateTime fromROSTimeStamp(Map<String, dynamic> json) {
-    return DateTime.fromMillisecondsSinceEpoch((json['sec'] as int) * 1000 +
-        ((json['nanosec'] as int) / 1e6).toInt());
+    return DateTime.fromMillisecondsSinceEpoch(
+      (json['sec'] as int) * 1000 + ((json['nanosec'] as int) / 1e6).toInt(),
+    );
   }
 }
 

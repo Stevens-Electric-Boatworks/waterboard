@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
+import 'package:waterboard/services/ros_comms/service.dart';
 import 'fake_ros_sub.dart';
 
 class FakeROS extends ROS {
@@ -57,4 +58,10 @@ class FakeROS extends ROS {
 
   @override
   DateTime get timeSinceLastMsg => clock.now();
+
+  @override
+  ROSService createService(String topic) {
+    // TODO: implement createService
+    throw UnimplementedError();
+  }
 }

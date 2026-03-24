@@ -14,7 +14,7 @@ import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/faults_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
-import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
