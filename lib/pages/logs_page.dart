@@ -185,9 +185,11 @@ class _LogsPageState extends State<LogsPage> {
   void initState() {
     super.initState();
     model.addListener(
-      () => setState(() {
-        _checkScrollState();
-      }),
+      () => WidgetsBinding.instance.addPostFrameCallback(
+        (timeStamp) => setState(() {
+          _checkScrollState();
+        }),
+      ),
     );
     model.init();
   }

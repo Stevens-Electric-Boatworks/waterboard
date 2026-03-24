@@ -5,7 +5,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
 import '../services/ros_comms/ros.dart';
 import '../widgets/ros_widgets/gauge.dart';

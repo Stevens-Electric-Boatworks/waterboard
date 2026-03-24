@@ -12,7 +12,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:vector_map_tiles_pmtiles/vector_map_tiles_pmtiles.dart';
 
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
+import 'package:waterboard/utils/page_utils.dart';
 import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/internet_connection.dart';
 import 'package:waterboard/services/log.dart';
