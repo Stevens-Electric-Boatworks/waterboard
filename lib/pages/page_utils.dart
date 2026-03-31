@@ -124,7 +124,12 @@ class PageUtils {
     return PageUtils.buildWidgetBackground(
       Column(
         children: [
-          Text(value, style: style?.merge(TextStyle(color: color))),
+          Text(
+            value,
+            style: style?.merge(TextStyle(color: color)),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 10),
           Text(subtitle, style: Theme.of(context).textTheme.titleLarge),
         ],
