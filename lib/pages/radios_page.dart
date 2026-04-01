@@ -20,6 +20,7 @@ import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/widgets/ros_widgets/marine_compass.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_stale_indicator.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
 class SatelliteItem {
@@ -448,6 +449,8 @@ class _RadiosPageState extends State<RadiosPage> {
                   padding: const EdgeInsets.all(12),
                   child: Icon(Icons.satellite_alt, size: 32),
                 ),
+                Spacer(),
+                ROSStaleIndicator(subscription: model.satsSub, textStyle: null),
               ],
             ),
             Center(
@@ -588,12 +591,17 @@ class _RadiosPageState extends State<RadiosPage> {
                   );
                 },
               ),
-              SizedBox(height: 5),
+              Divider(height: 5, color: Colors.grey.shade600, thickness: 2),
               ValueListenableBuilder(
                 valueListenable: model.gsaInfo,
                 builder: (context, value, child) {
                   if (value == null) {
-                    return Text("No GSA Data");
+                    return Text(
+                      "No GSA Data",
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Colors.red.shade900,
+                      ),
+                    );
                   }
                   Widget buildDOP(String type, double after) {
                     return Column(
@@ -625,42 +633,56 @@ class _RadiosPageState extends State<RadiosPage> {
                             buildDOP("PDOP", value.pDop),
                           ],
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Stack(
                           children: [
-                            Column(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  value.opMode,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineSmall,
+                                Column(
+                                  children: [
+                                    Text(
+                                      value.opMode,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineSmall,
+                                    ),
+                                    Text(
+                                      "Operation Mode",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                            color: Colors.grey.shade700,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  "Operation Mode",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(color: Colors.grey.shade700),
+                                Column(
+                                  children: [
+                                    Text(
+                                      value.mode,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineSmall,
+                                    ),
+                                    Text(
+                                      "Status",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                            color: Colors.grey.shade700,
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            Column(
-                              children: [
-                                Text(
-                                  value.mode,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineSmall,
-                                ),
-                                Text(
-                                  "Status",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(color: Colors.grey.shade700),
-                                ),
-                              ],
+                            Center(
+                              child: ROSStaleIndicator(
+                                subscription: model.gsaSub,
+                                textStyle: null,
+                              ),
                             ),
                           ],
                         ),
@@ -733,28 +755,38 @@ class _RadiosPageState extends State<RadiosPage> {
               );
             }
             return Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.black),
-                  color: Colors.grey.shade100,
-                ),
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      makeRow("Bars", value.bars.toString()),
-                      makeRow("RSRP", value.rsrp.toString()),
-                      makeRow("RSRQ", value.rsrq.toString()),
-                      makeRow("IP Address", value.ipAddress),
-                      makeRow("APN", value.apn),
-                      makeRow("Network", value.network),
-                      makeRow("Technology", value.technology),
-                      makeRow("Reg. Status", value.regStatus.toString()),
-                      makeRow("Pin Status", value.pinStatus),
-                    ],
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.black),
+                      color: Colors.grey.shade100,
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          makeRow("Bars", value.bars.toString()),
+                          makeRow("RSRP", value.rsrp.toString()),
+                          makeRow("RSRQ", value.rsrq.toString()),
+                          makeRow("IP Address", value.ipAddress),
+                          makeRow("APN", value.apn),
+                          makeRow("Network", value.network),
+                          makeRow("Technology", value.technology),
+                          makeRow("Reg. Status", value.regStatus.toString()),
+                          makeRow("Pin Status", value.pinStatus),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  Center(
+                    child: ROSStaleIndicator(
+                      subscription: model.cellSub,
+                      textStyle: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
               ),
             );
           },
