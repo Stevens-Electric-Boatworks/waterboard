@@ -36,11 +36,11 @@ class SystemPowerService {
     }
     if (Platform.isWindows) {
       log.warning("Running Windows reboot command");
-      Process.run("shutdown", ["/r", "/t", "0"]);
+      Process.run("reboot", ["/r", "/t", "0"]);
     }
     if (Platform.isLinux) {
       log.warning("Running Linux reboot command");
-      Process.run("reboot", ["-h", "now"]);
+      Process.run("reboot", []);
     }
     if (Platform.isMacOS) {
       log.error("No MacOS reboot command");
