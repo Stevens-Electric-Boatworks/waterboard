@@ -23,17 +23,17 @@ class ElectricsPageViewModel extends ChangeNotifier {
 
   void init() {
     motorCurrent = ROSGaugeDataSource(
-      sub: ros.subscribe("/motors/can_motor_data"),
+      sub: ros.subscribe("/motors/motorB"),
       valueBuilder: (json) => (json["current"] as int).toDouble(),
     );
 
     motorVoltage = ROSGaugeDataSource(
-      sub: ros.subscribe("/motors/can_motor_data"),
+      sub: ros.subscribe("/motors/motorB"),
       valueBuilder: (json) => (json["voltage"] as int).toDouble(),
     );
 
     motorPower = ROSGaugeDataSource(
-      sub: ros.subscribe("/motors/can_motor_data"),
+      sub: ros.subscribe("/motors/motorB"),
       valueBuilder: (json) => (json["power"] as num).toDouble(),
     );
 
@@ -108,7 +108,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
           unitText: "V",
           title: "Motor Voltage",
           ranges: [
-            GaugeRange(startValue: 0, endValue: 30, color: Colors.green),
+            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
             GaugeRange(
               startValue: 50,
               endValue: 70,
@@ -117,7 +117,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
             GaugeRange(
               startValue: 70,
               endValue: 90,
-              color: const Color.fromRGBO(255, 0, 0, 1),
+              color: Colors.red,
             ),
           ],
         ),

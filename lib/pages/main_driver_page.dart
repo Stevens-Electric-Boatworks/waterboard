@@ -23,7 +23,7 @@ class MainDriverPageViewModel extends ChangeNotifier {
   MainDriverPageViewModel({required this.ros});
 
   void init() {
-    final motorSub = ros.subscribe("/motors/can_motor_data");
+    final motorSub = ros.subscribe("/motors/motorB");
 
     motorCurrent = ROSGaugeDataSource(
       sub: motorSub,

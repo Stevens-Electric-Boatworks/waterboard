@@ -42,7 +42,7 @@ void main() {
     expect(subs.length, 5); // 2 repeated subscriptions for motor data
     expect(subs.keys, [
       '/rosout',
-      '/motors/can_motor_data',
+      '/motors/motorB',
       '/electrical/temp_sensors/in',
       '/electrical/temp_sensors/out',
       '/motion/vtg',
@@ -63,7 +63,7 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "24"), findsOneWidget);
 
-    ros.propagateData("/motors/can_motor_data", {
+    ros.propagateData("/motors/motorB", {
       'voltage': 0.0,
       'rpm': 256,
       'current': 128,
