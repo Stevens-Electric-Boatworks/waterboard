@@ -46,6 +46,7 @@ class ResponsiveGaugeGrid extends StatelessWidget {
                 height: rowHeight,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.max,
                   children: rowGauges
                       .map(
                         (config) => SizedBox(
@@ -66,7 +67,10 @@ class ResponsiveGaugeGrid extends StatelessWidget {
           return result;
         }
 
-        return Column(children: buildRows());
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+            children: buildRows()
+        );
       },
     );
   }
@@ -95,12 +99,13 @@ class PageUtils {
   static Widget buildWidgetBackground(
     Widget inside, {
     double verticalPadding = 8,
+        Color? color
   }) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: WaterboardColors.containerForeground,
+        color: color ?? WaterboardColors.containerForeground,
       ),
       child: inside,
     );
