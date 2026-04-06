@@ -114,11 +114,7 @@ class _ElectricsPageState extends State<ElectricsPage> {
               endValue: 70,
               color: Colors.yellow.shade600,
             ),
-            GaugeRange(
-              startValue: 70,
-              endValue: 90,
-              color: Colors.red,
-            ),
+            GaugeRange(startValue: 70, endValue: 90, color: Colors.red),
           ],
         ),
 

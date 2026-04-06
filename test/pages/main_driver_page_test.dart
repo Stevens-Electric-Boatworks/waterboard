@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/widgets/ros_widgets/gauge.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 import '../test_helpers/test_util.dart';
 
 Future<void> pumpPage(WidgetTester widgetTester, ROS ros) async {
@@ -27,13 +28,15 @@ void main() {
       widgetTester,
       createFakeROS(initialState: ROSConnectionState.connected),
     );
-    expect(find.byType(ROSGauge), findsNWidgets(6));
-    expect(find.widgetWithText(ROSGauge, "Motor Current"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "Inlet Temp"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "Outlet Temp"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "Motor Temp"), findsOneWidget);
+    expect(find.byType(ROSGauge), findsNWidgets(5));
+    expect(find.widgetWithText(ROSGauge, "BMS Current"), findsOneWidget);
     expect(find.widgetWithText(ROSGauge, "Speed"), findsOneWidget);
     expect(find.widgetWithText(ROSGauge, "Motor RPM"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "Motor A Temp"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "Motor B Temp"), findsOneWidget);
+    expect(find.widgetWithText(ROSGauge, "Motor RPM"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "Motor A Current"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "Motor B Current"), findsOneWidget);
   });
   testWidgets('Verify Correct Subscriptions', (widgetTester) async {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
@@ -42,36 +45,43 @@ void main() {
     expect(subs.length, 5); // 2 repeated subscriptions for motor data
     expect(subs.keys, [
       '/rosout',
+      '/bms/pack_summary',
+      '/motors/motorA',
       '/motors/motorB',
-      '/electrical/temp_sensors/in',
-      '/electrical/temp_sensors/out',
       '/motion/vtg',
     ]);
   });
   testWidgets('Verify Correct JSON Parsing', (widgetTester) async {
     var ros = createFakeROS(initialState: ROSConnectionState.connected);
     await pumpPage(widgetTester, ros);
-    ros.propagateData("/electrical/temp_sensors/in", {'inlet_temp': 13.2});
-    await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "13"), findsOneWidget);
-
-    ros.propagateData("/electrical/temp_sensors/out", {'outlet_temp': 19.1});
-    await widgetTester.pumpAndSettle();
-    expect(find.widgetWithText(ROSGauge, "19"), findsOneWidget);
 
     ros.propagateData("/motion/vtg", {'track': 0.0, 'speed': 24.3});
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "24"), findsOneWidget);
 
-    ros.propagateData("/motors/motorB", {
+    ros.propagateData("/bms/pack_summary", {'pack_current_raw': 92});
+    await widgetTester.pumpAndSettle();
+    expect(find.widgetWithText(ROSGauge, "92"), findsOneWidget);
+
+    ros.propagateData("/motors/motorA", {
       'voltage': 0.0,
       'rpm': 256,
       'current': 128,
       'motor_temp': 172,
     });
+    ros.propagateData("/motors/motorB", {
+      'voltage': 0.0,
+      'rpm': -1,
+      'current': 129,
+      'motor_temp': 39,
+    });
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "256"), findsOneWidget);
-    expect(find.widgetWithText(ROSGauge, "128"), findsOneWidget);
+
+    expect(find.widgetWithText(ROSText, "128 A"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "129 A"), findsOneWidget);
+
+    expect(find.widgetWithText(ROSGauge, "39"), findsOneWidget);
     expect(find.widgetWithText(ROSGauge, "172"), findsOneWidget);
   });
 }

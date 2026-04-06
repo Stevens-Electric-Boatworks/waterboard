@@ -69,7 +69,7 @@ class ResponsiveGaugeGrid extends StatelessWidget {
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
-            children: buildRows()
+          children: buildRows(),
         );
       },
     );
@@ -99,7 +99,7 @@ class PageUtils {
   static Widget buildWidgetBackground(
     Widget inside, {
     double verticalPadding = 8,
-        Color? color
+    Color? color,
   }) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 12),

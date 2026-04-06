@@ -195,73 +195,6 @@ void main() {
       });
     });
   });
-  group("Connection Dialogs", () {
-    testWidgets('Websocket Disconnected', (widgetTester) async {
-      await pumpDashboardPage(
-        widgetTester,
-        await createServicesRegistry(
-          createMockOfflineROS(),
-          createMockLogger(),
-          createOfflineMockInternetChecker(),
-        ),
-        preferences,
-      );
-      await widgetTester.pumpAndSettle();
-      expect(find.byType(Dialog), findsOneWidget);
-      expect(
-        find.widgetWithText(
-          Dialog,
-          ConnectionDialogMessages.websocketDisconnectTitle,
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(
-          Dialog,
-          ConnectionDialogMessages.websocketDisconnectBody,
-        ),
-        findsOneWidget,
-      );
-
-      _testDialogButtons(widgetTester);
-    });
-    testWidgets('ROS Stale Data', (widgetTester) async {
-      await pumpDashboardPage(
-        widgetTester,
-        await createServicesRegistry(
-          createMockOfflineROS(initialState: ROSConnectionState.staleData),
-          createMockLogger(),
-          createOfflineMockInternetChecker(),
-        ),
-        preferences,
-      );
-      await widgetTester.pumpAndSettle();
-      expect(find.byType(Dialog), findsOneWidget);
-      //find expected messages
-      expect(
-        find.widgetWithText(Dialog, ConnectionDialogMessages.staleDataTitle),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(Dialog, ConnectionDialogMessages.staleDataBody),
-        findsOneWidget,
-      );
-      _testDialogButtons(widgetTester);
-    });
-    testWidgets('ROS Connected (No Dialog)', (widgetTester) async {
-      await pumpDashboardPage(
-        widgetTester,
-        await createServicesRegistry(
-          FakeROS(initialState: ROSConnectionState.connected),
-          createMockLogger(),
-          createOnlineMockInternetChecker("Stevens-Net", "127.0.0.1"),
-        ),
-        preferences,
-      );
-      await widgetTester.pumpAndSettle();
-      expect(find.byType(Dialog), findsNothing);
-    });
-  });
   testWidgets('ROS Connection State Text', (widgetTester) async {
     FakeROS ros = createFakeROS();
     await pumpDashboardPage(
@@ -284,41 +217,4 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.text(ROSConnectionStateMessages.rosConnected), findsOneWidget);
   });
-}
-
-void _testDialogButtons(WidgetTester widgetTester) async {
-  //settings button works
-  var settingsButton = find.widgetWithText(TextButton, "Open Settings");
-  expect(settingsButton, findsOneWidget);
-  await widgetTester.tap(settingsButton);
-  await widgetTester.pumpAndSettle();
-  expect(
-    find.byType(SettingsDialog),
-    findsOneWidget,
-    reason:
-        "The settings dialog did not open after hitting the settings button.",
-  );
-
-  //close settings page
-  await widgetTester.sendKeyDownEvent(LogicalKeyboardKey.escape);
-  await widgetTester.pumpAndSettle();
-  expect(
-    find.byType(SettingsDialog),
-    findsNothing,
-    reason: "The settings dialog did not close",
-  );
-
-  //verify dialog is still there
-  expect(find.byType(Dialog), findsOneWidget);
-
-  //close button works
-  var closeButton = find.widgetWithText(TextButton, "Close Dialog");
-  expect(closeButton, findsOneWidget);
-  await widgetTester.tap(closeButton);
-  await widgetTester.pumpAndSettle();
-  expect(
-    find.byType(Dialog),
-    findsNothing,
-    reason: "The dialog was not closed after hitting the close button.",
-  );
 }

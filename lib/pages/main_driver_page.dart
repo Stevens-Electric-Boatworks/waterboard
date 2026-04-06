@@ -51,12 +51,18 @@ class MainDriverPageViewModel extends ChangeNotifier {
           (json["speed"] as double).round().toDouble().abs(),
     );
 
-    motorACurrent = ROSTextDataSource(sub: ros.subscribe("/motors/motorA"), valueBuilder: (json) {
-      return ("${json["current"]} A", Colors.black);
-    },);
-    motorBCurrent = ROSTextDataSource(sub: ros.subscribe("/motors/motorB"), valueBuilder: (json) {
-      return ("${json["current"]} A", Colors.black);
-    },);
+    motorACurrent = ROSTextDataSource(
+      sub: ros.subscribe("/motors/motorA"),
+      valueBuilder: (json) {
+        return ("${json["current"]} A", Colors.black);
+      },
+    );
+    motorBCurrent = ROSTextDataSource(
+      sub: ros.subscribe("/motors/motorB"),
+      valueBuilder: (json) {
+        return ("${json["current"]} A", Colors.black);
+      },
+    );
   }
 }
 
@@ -92,31 +98,38 @@ class _MainDriverPageState extends State<MainDriverPage> {
           child: Column(
             children: [
               Expanded(
-                child: ResponsiveROSGauge(config: ROSGaugeConfig(
-                  dataSource: model.bmsCurrent,
-                  minimum: 0,
-                  maximum: 200,
-                  unitText: "A",
-                  title: "BMS Current",
-                  ranges: [
-                    GaugeRange(startValue: 0, endValue: 80, color: Colors.green),
-                    GaugeRange(
-                      startValue: 80,
-                      endValue: 120,
-                      color: Colors.yellow.shade600,
-                    ),
-                    GaugeRange(
-                      startValue: 120,
-                      endValue: 150,
-                      color: Colors.red.shade400,
-                    ),
-                    GaugeRange(
-                      startValue: 150,
-                      endValue: 200,
-                      color: const Color.fromRGBO(255, 0, 0, 1),
-                    ),
-                  ],
-                ), thickness: 100),
+                child: ResponsiveROSGauge(
+                  config: ROSGaugeConfig(
+                    dataSource: model.bmsCurrent,
+                    minimum: 0,
+                    maximum: 200,
+                    unitText: "A",
+                    title: "BMS Current",
+                    ranges: [
+                      GaugeRange(
+                        startValue: 0,
+                        endValue: 80,
+                        color: Colors.green,
+                      ),
+                      GaugeRange(
+                        startValue: 80,
+                        endValue: 120,
+                        color: Colors.yellow.shade600,
+                      ),
+                      GaugeRange(
+                        startValue: 120,
+                        endValue: 150,
+                        color: Colors.red.shade400,
+                      ),
+                      GaugeRange(
+                        startValue: 150,
+                        endValue: 200,
+                        color: const Color.fromRGBO(255, 0, 0, 1),
+                      ),
+                    ],
+                  ),
+                  thickness: 100,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -124,11 +137,27 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   spacing: 16,
                   children: [
-                    Expanded(child: PageUtils.buildWidgetBackground(color:  Colors.grey.shade300, ROSText(subtext: "Motor A Current", dataSource: model.motorACurrent))),
-                    Expanded(child: PageUtils.buildWidgetBackground(color:  Colors.grey.shade300, ROSText(subtext: "Motor B Current", dataSource: model.motorBCurrent))),
+                    Expanded(
+                      child: PageUtils.buildWidgetBackground(
+                        color: Colors.grey.shade300,
+                        ROSText(
+                          subtext: "Motor A Current",
+                          dataSource: model.motorACurrent,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: PageUtils.buildWidgetBackground(
+                        color: Colors.grey.shade300,
+                        ROSText(
+                          subtext: "Motor B Current",
+                          dataSource: model.motorBCurrent,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -152,11 +181,7 @@ class _MainDriverPageState extends State<MainDriverPage> {
                   endValue: 15,
                   color: Colors.yellow.shade400,
                 ),
-                GaugeRange(
-                  startValue: 15,
-                  endValue: 25,
-                  color: Colors.green,
-                ),
+                GaugeRange(startValue: 15, endValue: 25, color: Colors.green),
               ],
             ),
             ROSGaugeConfig(
@@ -229,7 +254,6 @@ class _MainDriverPageState extends State<MainDriverPage> {
                 ),
               ],
             ),
-
           ],
         ),
       ],
