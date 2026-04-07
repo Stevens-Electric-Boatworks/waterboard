@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
-import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
@@ -34,9 +33,6 @@ mixin DashboardPageStateMixin on State<DashboardPage> {
 
 class DashboardPageViewModel extends ChangeNotifier {
   int _currentPage = 0;
-  ValueNotifier<ConnectionDialogType?> connectionDialogType = ValueNotifier(
-    null,
-  );
   final int totalPages = 5;
   final Services services;
 
@@ -60,17 +56,6 @@ class DashboardPageViewModel extends ChangeNotifier {
 
   Future<void> init() async {
     ros.startConnectionLoop();
-    ros.connectionState.addListener(() {
-      if (ros.connectionState.value == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectDialog();
-      } else if (ros.connectionState.value == ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      } else if (ros.connectionState.value == ROSConnectionState.connected) {
-        WidgetsBinding.instance.addPostFrameCallback(
-          (timeStamp) => closeAllDialogs(),
-        );
-      }
-    });
     rosCellDataSource = ROSCellDataSource(
       sub: ros.subscribe("/cell", staleDuration: 10_000),
       valueBuilder: (json) => CellMessageSchema.fromJson(json),
@@ -114,18 +99,6 @@ class DashboardPageViewModel extends ChangeNotifier {
     }
   }
 
-  void showWebsocketDisconnectDialog() {
-    connectionDialogType.value = ConnectionDialogType.noWebsocket;
-  }
-
-  void showStaleDataDialog() {
-    connectionDialogType.value = ConnectionDialogType.staleData;
-  }
-
-  void closeAllDialogs() {
-    connectionDialogType.value = null;
-  }
-
   void openSettingsDialog(BuildContext context) {
     PageUtils.showSettingsDialog(context, services, () => onSettingsChange());
   }
@@ -147,7 +120,6 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage>
     with DashboardPageStateMixin {
   Widget? dialogWidget;
-  DialogRoute? _connectionAlertDialog;
   final PageController _pageController = PageController();
   late final MainDriverPageViewModel _mainDriverPageViewModel;
   late final ElectricsPageViewModel _electricsPageViewModel;
@@ -164,26 +136,6 @@ class _DashboardPageState extends State<DashboardPage>
     _logsPageViewModel = LogsPageViewModel(services: model.services);
     _systemPageViewModel = SystemPageViewModel(services: model.services);
     model.addListener(_onModelChanged);
-    model.connectionDialogType.addListener(() {
-      if (model.connectionDialogType.value ==
-          ConnectionDialogType.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (model.connectionDialogType.value ==
-          ConnectionDialogType.staleData) {
-        showStaleDataDialog();
-      } else {
-        closeConnectionDialog();
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = model.ros.connectionState.value;
-      if (state == ROSConnectionState.noWebsocket) {
-        showWebsocketDisconnectedDialog();
-      } else if (state == ROSConnectionState.staleData) {
-        showStaleDataDialog();
-      }
-    });
     model._state = this;
     model.init();
   }
@@ -283,108 +235,5 @@ class _DashboardPageState extends State<DashboardPage>
         ),
       ),
     );
-  }
-
-  void showWebsocketDisconnectedDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(
-              child: Text(ConnectionDialogMessages.websocketDisconnectTitle),
-            ),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              ConnectionDialogMessages.websocketDisconnectBody,
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  if (model.layoutLocked) return;
-                  model.openSettingsDialog(context);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void showStaleDataDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      closeConnectionDialog();
-      _connectionAlertDialog = DialogRoute(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Center(child: Text(ConnectionDialogMessages.staleDataTitle)),
-            titleTextStyle: Theme.of(context).textTheme.displayLarge,
-            content: Text(
-              ConnectionDialogMessages.staleDataBody,
-              style: Theme.of(context).textTheme.displaySmall,
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  if (model.layoutLocked) return;
-                  model.openSettingsDialog(context);
-                },
-                child: Text("Open Settings"),
-              ),
-              TextButton(
-                onPressed: () {
-                  closeConnectionDialog();
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                ),
-                child: Text(
-                  "Close Dialog",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      );
-      Navigator.of(context).push(_connectionAlertDialog!);
-    });
-  }
-
-  void closeConnectionDialog() {
-    if (_connectionAlertDialog != null) {
-      Navigator.of(context).removeRoute(_connectionAlertDialog!);
-      _connectionAlertDialog = null;
-    }
   }
 }

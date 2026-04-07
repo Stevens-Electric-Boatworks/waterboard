@@ -108,7 +108,7 @@ class RadiosPageViewModel extends ChangeNotifier {
       sub: satsSub,
       valueBuilder: (json) => ("${json["sats"].length}", Colors.black),
     );
-    vtgSub = ros.subscribe("/motion/vtg");
+    vtgSub = ros.subscribe("/motion/vtg", staleDuration: 4500);
     vtg = ROSTextDataSource(
       sub: vtgSub,
       valueBuilder: (json) =>
