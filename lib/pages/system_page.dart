@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/services/system_usage_service.dart';
 import 'package:waterboard/widgets/hazard_stripe_border.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_graph_widget.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
@@ -16,28 +15,12 @@ import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
 
-  SystemPageViewModel({required this.services}) {
-    //initialize the counter, and start on application startup
-    services.sysUtil.systemInformation.addListener(() {
-      var val = services.sysUtil.systemInformation.value;
-      if (val != null) {
-        _addToUsageList(cpuUsage, val.cpuUtilPercent);
-        _addToUsageList(ramUsage, val.memUsagePercent);
-        notifyListeners();
-      }
-    });
-  }
+  SystemPageViewModel({required this.services});
 
   ValueNotifier<double> timeSinceLastMsg = ValueNotifier(-1);
 
   ValueNotifier<ROSSubscription?> get onROSSubscription =>
       services.ros.onSubscription;
-
-  ValueNotifier<SystemDaemonState> get daemonState =>
-      services.sysUtil.daemonState;
-
-  ValueNotifier<SystemInformation?> get systemInformation =>
-      services.sysUtil.systemInformation;
 
   int get rosSubscriptions => services.ros.subs.length;
 
@@ -121,11 +104,6 @@ class SystemPageViewModel extends ChangeNotifier {
   void dispose() {
     super.dispose();
     _lastPacketTimer.cancel();
-  }
-
-  void rebootDaemon() {
-    services.sysUtil.dispose();
-    services.sysUtil.start();
   }
 
   void shutdownSystem() {
@@ -370,17 +348,7 @@ class _SystemPageState extends State<SystemPage> {
               ),
             ],
           ),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: Listenable.merge([
-                model.systemInformation,
-                model.daemonState,
-              ]),
-              builder: (context, child) {
-                return _buildSystemStats();
-              },
-            ),
-          ),
+          Expanded(child: _buildSystemStats()),
         ],
       ),
     );

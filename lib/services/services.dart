@@ -9,7 +9,6 @@ import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
 import 'package:waterboard/services/system_power_service.dart';
-import 'package:waterboard/services/system_usage_service.dart';
 
 class Services {
   late final ROS _ros;
@@ -17,7 +16,6 @@ class Services {
   late final InternetChecker _internetChecker;
   late final SharedPreferences _preferences;
   late final HotKeyManager _hotKeyManager;
-  late final SystemUsageService _systemUtilService;
   late final SystemPowerService _systemPowerService;
   final Clock clock = Clock();
 
@@ -27,7 +25,6 @@ class Services {
   InternetChecker get internet => _internetChecker;
   SharedPreferences get preferences => _preferences;
   HotKeyManager get hotkeys => _hotKeyManager;
-  SystemUsageService get sysUtil => _systemUtilService;
   SystemPowerService get sysPower => _systemPowerService;
 
   Future<void> initialize() async {
@@ -37,9 +34,6 @@ class Services {
     _ros = ROSImpl(_logger, _preferences);
     _internetChecker = InternetCheckerImpl();
     _hotKeyManager = HotKeyManager();
-    _systemUtilService = SystemUsageService(log: _logger);
-    //auto start
-    _systemUtilService.start();
     _systemPowerService = SystemPowerService(log: _logger);
   }
 
@@ -54,7 +48,6 @@ class Services {
     _logger.initialize();
     _internetChecker = internet;
     _hotKeyManager = HotKeyManager();
-    _systemUtilService = SystemUsageService(log: _logger);
     //TODO: Add mocks for sys power service
   }
 }
