@@ -27,17 +27,17 @@ class MainDriverPageViewModel extends ChangeNotifier {
   void init() {
     bmsCurrent = ROSGaugeDataSource(
       sub: ros.subscribe("/bms/pack_summary"),
-      valueBuilder: (json) => (json["pack_current_raw"] as int).toDouble(),
+      valueBuilder: (json) => (json["pack_current_raw"] as double).toDouble(),
     );
 
     motorATemp = ROSGaugeDataSource(
       sub: ros.subscribe("/motors/motorA"),
-      valueBuilder: (json) => (json["motor_temp"] as int).toDouble(),
+      valueBuilder: (json) => (json["motor_temp"] as double).toDouble(),
     );
 
     motorBTemp = ROSGaugeDataSource(
       sub: ros.subscribe("/motors/motorB"),
-      valueBuilder: (json) => (json["motor_temp"] as int).toDouble(),
+      valueBuilder: (json) => (json["motor_temp"] as double).toDouble(),
     );
 
     motorARPM = ROSGaugeDataSource(

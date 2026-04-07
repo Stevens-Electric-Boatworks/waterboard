@@ -23,13 +23,13 @@ class ElectricsPageViewModel extends ChangeNotifier {
 
   void init() {
     motorCurrent = ROSGaugeDataSource(
-      sub: ros.subscribe("/motors/motorB"),
-      valueBuilder: (json) => (json["current"] as int).toDouble(),
+      sub: ros.subscribe("/motors/motorA"),
+      valueBuilder: (json) => (json["current"] as double).toDouble(),
     );
 
     motorVoltage = ROSGaugeDataSource(
-      sub: ros.subscribe("/motors/motorB"),
-      valueBuilder: (json) => (json["voltage"] as int).toDouble(),
+      sub: ros.subscribe("/motors/motorA"),
+      valueBuilder: (json) => (json["voltage"] as double).toDouble(),
     );
 
     motorPower = ROSGaugeDataSource(
