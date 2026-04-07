@@ -2,11 +2,7 @@
 import 'dart:async';
 
 // Flutter imports:
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-// Package imports:
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 // Project imports:
 import 'package:waterboard/pages/page_utils.dart';
@@ -155,7 +151,6 @@ class _SystemPageState extends State<SystemPage> {
 
   @override
   void initState() {
-    print("initalized!");
     super.initState();
     model.init();
     model.addListener(() => setState(() {}));
