@@ -14,6 +14,8 @@ import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/services/system_usage_service.dart';
 import 'package:waterboard/widgets/hazard_stripe_border.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_graph_widget.dart';
+import 'package:waterboard/widgets/ros_widgets/ros_text.dart';
 
 class SystemPageViewModel extends ChangeNotifier {
   final Services services;
@@ -43,10 +45,50 @@ class SystemPageViewModel extends ChangeNotifier {
 
   int get rosSubscriptions => services.ros.subs.length;
 
-  List<UsageDataPoint> cpuUsage = [];
-  List<UsageDataPoint> ramUsage = [];
+  List<GraphDataPoint> cpuUsage = [];
+  List<GraphDataPoint> ramUsage = [];
+
+  late ROSGraphDataSource cpuDataSource;
+  late ROSGraphDataSource ramDataSource;
+
+  late ROSTextDataSource diskUsageDataSource;
+  late ROSTextDataSource txRxDataSource;
 
   void init() {
+    cpuDataSource = ROSGraphDataSource(
+      subscription: services.ros.subscribe("/sys_utilization"),
+      valueBuilder: (json) {
+        _addToUsageList(cpuUsage, json["cpu_percent"]);
+        return cpuUsage;
+      },
+    );
+    ramDataSource = ROSGraphDataSource(
+      subscription: services.ros.subscribe("/sys_utilization"),
+      valueBuilder: (json) {
+        _addToUsageList(ramUsage, json["percent_mem"]);
+        return ramUsage;
+      },
+    );
+
+    diskUsageDataSource = ROSTextDataSource(
+      sub: services.ros.subscribe("/sys_utilization"),
+      valueBuilder: (json) {
+        return (
+          "${(json["disk_percent"] as double).toStringAsFixed(1)}% (${((json["disk_total"] - json["disk_used"]) / 1e7 as double).toInt()}GB Free)",
+          Colors.black,
+        );
+      },
+    );
+    txRxDataSource = ROSTextDataSource(
+      sub: services.ros.subscribe("/sys_utilization"),
+      valueBuilder: (json) {
+        return (
+          "↑${(json["tx_mb"] as double).toStringAsFixed(1)}/↓${(json["rx_mb"] as double).toStringAsFixed(1)} MB",
+          Colors.black,
+        );
+      },
+    );
+
     _lastPacketTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
       Duration timeSince = services.clock.now().difference(
         services.ros.timeSinceLastMsg,
@@ -56,12 +98,12 @@ class SystemPageViewModel extends ChangeNotifier {
     });
   }
 
-  void _addToUsageList(List<UsageDataPoint> usageList, double data) {
-    usageList.insert(0, UsageDataPoint(time: DateTime.now(), usage: data));
-    if (usageList.length > 31) {
-      usageList.removeAt(usageList.length - 1);
-      usageList.removeRange(31, usageList.length);
-    }
+  void _addToUsageList(List<GraphDataPoint> usageList, double data) {
+    usageList.insert(0, GraphDataPoint(time: DateTime.now(), value: data));
+    // if (usageList.length > 31) {
+    //   usageList.removeAt(usageList.length - 1);
+    //   usageList.removeRange(31, usageList.length);
+    // }
   }
 
   List<String> get rosSubList {
@@ -113,6 +155,7 @@ class _SystemPageState extends State<SystemPage> {
 
   @override
   void initState() {
+    print("initalized!");
     super.initState();
     model.init();
     model.addListener(() => setState(() {}));
@@ -323,61 +366,12 @@ class _SystemPageState extends State<SystemPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Spacer(),
               Text(
                 "System Information",
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineLarge,
                 overflow: TextOverflow.ellipsis,
                 softWrap: false,
-              ),
-              Spacer(),
-              ValueListenableBuilder(
-                valueListenable: model.daemonState,
-                builder: (context, value, child) {
-                  if (model.daemonState.value == SystemDaemonState.online) {
-                    return IconButton(
-                      onPressed: () async {
-                        bool? confirm = await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Center(child: Text("Reboot Python Daemon?")),
-                            content: Text(
-                              "This action will stop the python system usage daemon, and attempt to rerun the command to start it.",
-                            ),
-                            actions: [
-                              FilledButton(
-                                onPressed: () {
-                                  Navigator.pop(context, false);
-                                },
-                                child: const Text('Cancel'),
-                              ),
-                              FilledButton(
-                                onPressed: () {
-                                  Navigator.pop(context, true);
-                                },
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                ),
-                                child: const Text('Reboot'),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm != null && confirm) {
-                          model.rebootDaemon();
-                        }
-                      },
-                      icon: Icon(
-                        Icons.restart_alt,
-                        size: Theme.of(context).textTheme.titleLarge!.fontSize!,
-                      ),
-                      tooltip: "Restart Python Daemon",
-                    );
-                  }
-                  return Container();
-                },
               ),
             ],
           ),
@@ -398,47 +392,11 @@ class _SystemPageState extends State<SystemPage> {
   }
 
   Widget _buildSystemStats() {
-    if (kIsWeb) {
-      return Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.block,
-            color: Colors.blue,
-            size: Theme.of(context).textTheme.displaySmall!.fontSize,
-          ),
-          Text(
-            "This feature is unsupported on Web",
-            style: Theme.of(context).textTheme.displaySmall,
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            "Please use Windows, Linux, MacOS, or FlutterPi",
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      );
-    }
-    List<Widget> body = [];
-    if (model.daemonState.value == SystemDaemonState.starting) {
-      body = [_buildDaemonErrorScreen("The daemon process is starting...")];
-    } else if (model.daemonState.value == SystemDaemonState.unknown) {
-      body = [_buildDaemonErrorScreen("The daemon state is unknown...")];
-    } else if (model.daemonState.value == SystemDaemonState.error) {
-      body = [
-        _buildDaemonErrorScreen(
-          "The daemon process encountered an error causing termination...",
-        ),
-      ];
-    } else if (model.systemInformation.value == null) {
-      body = [
-        _buildDaemonErrorScreen("The daemon has not given any data yet..."),
-      ];
-    } else {
-      body = [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.max,
+      spacing: 20,
+      children: [
         Expanded(
           child: Row(
             mainAxisSize: MainAxisSize.max,
@@ -446,14 +404,19 @@ class _SystemPageState extends State<SystemPage> {
             children: [
               Expanded(
                 child: PageUtils.buildWidgetBackground(
-                  _buildChart("CPU Usage (%)", _getChartData(model.cpuUsage)),
+                  ROSGraphWidget(
+                    title: "CPU Usage (%)",
+                    unit: "%",
+                    dataSource: model.cpuDataSource,
+                  ),
                 ),
               ),
               Expanded(
                 child: PageUtils.buildWidgetBackground(
-                  _buildChart(
-                    "Memory Usage (%)",
-                    _getChartData(model.ramUsage),
+                  ROSGraphWidget(
+                    title: "RAM Usage (%)",
+                    unit: "%",
+                    dataSource: model.ramDataSource,
                   ),
                 ),
               ),
@@ -465,33 +428,26 @@ class _SystemPageState extends State<SystemPage> {
             spacing: 20,
             children: [
               Expanded(
-                child: PageUtils.buildText(
-                  context,
-                  "↑${model.systemInformation.value?.txMBPerSec.toStringAsFixed(1) ?? "Unknown"}/↓${(model.systemInformation.value?.rxMBPerSec.toStringAsFixed(1)) ?? "Unknown"} MB",
-                  "TX/RX",
+                child: PageUtils.buildWidgetBackground(
+                  ROSText(
+                    dataSource: model.txRxDataSource,
+                    subtext: "Network TX/RX",
+                  ),
                 ),
               ),
               Expanded(
-                child: PageUtils.buildText(
-                  context,
-                  "${model.systemInformation.value?.totalDiskUsagePercent ?? "N/A"}% (${model.systemInformation.value?.diskFreeGB.toInt() ?? "N/A"}GB Free)",
-                  style: Theme.of(context).textTheme.headlineLarge!.merge(
-                    TextStyle(overflow: TextOverflow.ellipsis),
+                child: PageUtils.buildWidgetBackground(
+                  ROSText(
+                    dataSource: model.diskUsageDataSource,
+                    subtext: "Disk Usage",
+                    valueTextStyle: Theme.of(context).textTheme.headlineLarge!
+                        .merge(TextStyle(overflow: TextOverflow.ellipsis)),
                   ),
-                  "Disk Usage",
                 ),
               ),
             ],
           ),
         ),
-      ];
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.max,
-      spacing: 20,
-      children: [
-        ...body,
         //Reboot Buttons
         Row(
           spacing: 20,
@@ -550,124 +506,4 @@ class _SystemPageState extends State<SystemPage> {
       ],
     );
   }
-
-  Widget _buildChart(
-    String title,
-    List<FastLineSeries<UsageDataPoint, double>> data,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          spacing: 20,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            Expanded(
-              child: SfCartesianChart(
-                margin: EdgeInsets.only(right: 16),
-                series: data,
-                crosshairBehavior: CrosshairBehavior(
-                  enable: true,
-                  activationMode: ActivationMode.singleTap,
-                  shouldAlwaysShow: true,
-                  lineColor: Colors.black,
-                ),
-                plotAreaBackgroundColor: Colors.grey.shade300,
-                plotAreaBorderColor: Colors.black,
-                primaryXAxis: NumericAxis(
-                  interval: 10,
-                  minimum: 0,
-                  maximum: 30,
-                  isInversed: true,
-                  decimalPlaces: 0,
-                  labelFormat: 'T+{value}s',
-                  majorGridLines: MajorGridLines(color: Colors.black),
-                  majorTickLines: MajorTickLines(color: Colors.black),
-                  axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
-                    axisLabelRenderArgs.text,
-                    Theme.of(context).textTheme.labelSmall,
-                  ),
-                ),
-                primaryYAxis: NumericAxis(
-                  minimum: 0,
-                  maximum: 100,
-                  labelFormat: '{value}%',
-                  majorTickLines: MajorTickLines(color: Colors.black),
-                  majorGridLines: MajorGridLines(color: Colors.black),
-                  axisLabelFormatter: (axisLabelRenderArgs) => ChartAxisLabel(
-                    axisLabelRenderArgs.text,
-                    Theme.of(context).textTheme.labelSmall,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  List<FastLineSeries<UsageDataPoint, double>> _getChartData(
-    List<UsageDataPoint> sourceData,
-  ) {
-    return <FastLineSeries<UsageDataPoint, double>>[
-      FastLineSeries<UsageDataPoint, double>(
-        animationDuration: 0.0,
-        animationDelay: 0.0,
-        sortingOrder: SortingOrder.ascending,
-        color: Colors.blue,
-        width: 4,
-        dataSource: sourceData,
-        xValueMapper: (value, index) {
-          return (DateTime.now().difference(value.time).inSeconds).toDouble();
-        },
-        yValueMapper: (value, index) {
-          return value.usage;
-        },
-        markerSettings: MarkerSettings(
-          isVisible: true,
-          shape: DataMarkerType.diamond,
-        ),
-        enableTooltip: true,
-      ),
-    ];
-  }
-
-  Widget _buildDaemonErrorScreen(String message) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.error,
-          color: Colors.red,
-          size: Theme.of(context).textTheme.displaySmall!.fontSize,
-        ),
-        Text(
-          message,
-          style: Theme.of(context).textTheme.displaySmall,
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 20),
-        FilledButton(
-          onPressed: () {
-            model.rebootDaemon();
-          },
-          child: Text(
-            "Reboot Daemon Process",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class UsageDataPoint {
-  final DateTime time;
-  final double usage;
-
-  UsageDataPoint({required this.time, required this.usage});
 }
