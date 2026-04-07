@@ -87,12 +87,12 @@ jobs:
             build-path: "build/windows/x64/runner/Release"
             artifact-name: Waterboard-Windows
             artifact-file: Waterboard-Windows.zip
-          - os: macos-latest
-            platform-name: "MacOS"
-            platform: "macos"
-            build-path: "build/macos/Build/Products/Release"
-            artifact-name: Waterboard-macos
-            artifact-file: Waterboard-macos.zip
+#          - os: macos-latest
+#            platform-name: "MacOS"
+#            platform: "macos"
+#            build-path: "build/macos/Build/Products/Release"
+#            artifact-name: Waterboard-macos
+#            artifact-file: Waterboard-macos.zip
           - os: ubuntu-22.04
             platform-name: "Linux"
             platform: "linux"
@@ -107,9 +107,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-#        with:
-#          lfs: true
-      # TEMPORARY WORKAROUND BECAUSE WE FILLED LFS USAGE QUOTAS
       - name: Install flutter build dependencies
         if: ${{ matrix.platform == 'linux' }}
         run: |
@@ -186,10 +183,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-#        with:
-#          lfs: true
-# TEMPORARY WORKAROUND BECAUSE WE FILLED GITHUB LFS USAGE QUOTAS. We will likely move off of LFS soon...
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -229,7 +222,7 @@ jobs:
           path: Waterboard-Pi4B.zip
           if-no-files-found: error
   build-pi-3:
-    name: "Build (Temporary) - Raspberry Pi 3"
+    name: "Build - Raspberry Pi 3"
     runs-on: "ubuntu-24.04"
     needs:
      - test
