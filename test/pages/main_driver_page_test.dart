@@ -59,27 +59,27 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "24"), findsOneWidget);
 
-    ros.propagateData("/bms/pack_summary", {'pack_current_raw': 92});
+    ros.propagateData("/bms/pack_summary", {'pack_current_raw': 92.0});
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "92"), findsOneWidget);
 
     ros.propagateData("/motors/motorA", {
       'voltage': 0.0,
       'rpm': 256,
-      'current': 128,
-      'motor_temp': 172,
+      'current': 128.0,
+      'motor_temp': 172.0,
     });
     ros.propagateData("/motors/motorB", {
       'voltage': 0.0,
       'rpm': -1,
-      'current': 129,
-      'motor_temp': 39,
+      'current': 129.0,
+      'motor_temp': 39.0,
     });
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "256"), findsOneWidget);
 
-    expect(find.widgetWithText(ROSText, "128 A"), findsOneWidget);
-    expect(find.widgetWithText(ROSText, "129 A"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "128.0 A"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "129.0 A"), findsOneWidget);
 
     expect(find.widgetWithText(ROSGauge, "39"), findsOneWidget);
     expect(find.widgetWithText(ROSGauge, "172"), findsOneWidget);

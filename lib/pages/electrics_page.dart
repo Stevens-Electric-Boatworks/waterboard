@@ -1,14 +1,11 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
-// Package imports:
-import 'package:syncfusion_flutter_gauges/gauges.dart';
-
 // Project imports:
-import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
-import 'package:waterboard/widgets/ros_widgets/responsive_gauge.dart';
 import '../widgets/ros_widgets/gauge.dart';
+
+// Package imports:
 
 class ElectricsPageViewModel extends ChangeNotifier {
   final ROS ros;
@@ -71,129 +68,130 @@ class _ElectricsPageState extends State<ElectricsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveGaugeGrid(
-      gauges: [
-        // Motor Current
-        ROSGaugeConfig(
-          dataSource: model.motorCurrent,
-          minimum: 0,
-          maximum: 200,
-          unitText: "A",
-          title: "Motor Current",
-          ranges: [
-            GaugeRange(startValue: 0, endValue: 80, color: Colors.green),
-            GaugeRange(
-              startValue: 80,
-              endValue: 120,
-              color: Colors.yellow.shade600,
-            ),
-            GaugeRange(
-              startValue: 120,
-              endValue: 150,
-              color: Colors.red.shade400,
-            ),
-            GaugeRange(
-              startValue: 150,
-              endValue: 200,
-              color: const Color.fromRGBO(255, 0, 0, 1),
-            ),
-          ],
-        ),
-
-        // Motor Voltage
-        ROSGaugeConfig(
-          dataSource: model.motorVoltage,
-          minimum: 0,
-          maximum: 90,
-          unitText: "V",
-          title: "Motor Voltage",
-          ranges: [
-            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
-            GaugeRange(
-              startValue: 50,
-              endValue: 70,
-              color: Colors.yellow.shade600,
-            ),
-            GaugeRange(startValue: 70, endValue: 90, color: Colors.red),
-          ],
-        ),
-
-        // Motor Power
-        ROSGaugeConfig(
-          dataSource: model.motorPower,
-          minimum: 0,
-          maximum: 1200,
-          unitText: "W",
-          title: "Motor Power",
-          ranges: [
-            GaugeRange(startValue: 0, endValue: 500, color: Colors.green),
-            GaugeRange(
-              startValue: 500,
-              endValue: 1000,
-              color: Colors.yellow.shade600,
-            ),
-            GaugeRange(
-              startValue: 1000,
-              endValue: 1200,
-              color: const Color.fromRGBO(255, 0, 0, 1),
-            ),
-          ],
-        ),
-
-        // Inlet Temp
-        ROSGaugeConfig(
-          dataSource: model.inletTemp,
-          minimum: 0,
-          maximum: 100,
-          unitText: "°C",
-          title: "Inlet Temp",
-          ranges: [
-            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
-            GaugeRange(
-              startValue: 50,
-              endValue: 70,
-              color: Colors.yellow.shade600,
-            ),
-            GaugeRange(
-              startValue: 70,
-              endValue: 90,
-              color: Colors.red.shade500,
-            ),
-            GaugeRange(
-              startValue: 90,
-              endValue: 100,
-              color: const Color.fromRGBO(255, 0, 0, 1),
-            ),
-          ],
-        ),
-
-        // Outlet Temp
-        ROSGaugeConfig(
-          dataSource: model.outletTemp,
-          minimum: 0,
-          maximum: 100,
-          unitText: "°C",
-          title: "Outlet Temp",
-          ranges: [
-            GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
-            GaugeRange(
-              startValue: 50,
-              endValue: 70,
-              color: Colors.yellow.shade600,
-            ),
-            GaugeRange(
-              startValue: 70,
-              endValue: 90,
-              color: Colors.red.shade500,
-            ),
-            GaugeRange(
-              startValue: 90,
-              endValue: 100,
-              color: const Color.fromRGBO(255, 0, 0, 1),
-            ),
-          ],
-        ),
-      ],
-    );
+    return Placeholder();
+    // return ResponsiveGaugeGrid(
+    //   gauges: [
+    //     // Motor Current
+    //     ROSGaugeConfig(
+    //       dataSource: model.motorCurrent,
+    //       minimum: 0,
+    //       maximum: 200,
+    //       unitText: "A",
+    //       title: "Motor Current",
+    //       ranges: [
+    //         GaugeRange(startValue: 0, endValue: 80, color: Colors.green),
+    //         GaugeRange(
+    //           startValue: 80,
+    //           endValue: 120,
+    //           color: Colors.yellow.shade600,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 120,
+    //           endValue: 150,
+    //           color: Colors.red.shade400,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 150,
+    //           endValue: 200,
+    //           color: const Color.fromRGBO(255, 0, 0, 1),
+    //         ),
+    //       ],
+    //     ),
+    //
+    //     // Motor Voltage
+    //     ROSGaugeConfig(
+    //       dataSource: model.motorVoltage,
+    //       minimum: 0,
+    //       maximum: 90,
+    //       unitText: "V",
+    //       title: "Motor Voltage",
+    //       ranges: [
+    //         GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
+    //         GaugeRange(
+    //           startValue: 50,
+    //           endValue: 70,
+    //           color: Colors.yellow.shade600,
+    //         ),
+    //         GaugeRange(startValue: 70, endValue: 90, color: Colors.red),
+    //       ],
+    //     ),
+    //
+    //     // Motor Power
+    //     ROSGaugeConfig(
+    //       dataSource: model.motorPower,
+    //       minimum: 0,
+    //       maximum: 1200,
+    //       unitText: "W",
+    //       title: "Motor Power",
+    //       ranges: [
+    //         GaugeRange(startValue: 0, endValue: 500, color: Colors.green),
+    //         GaugeRange(
+    //           startValue: 500,
+    //           endValue: 1000,
+    //           color: Colors.yellow.shade600,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 1000,
+    //           endValue: 1200,
+    //           color: const Color.fromRGBO(255, 0, 0, 1),
+    //         ),
+    //       ],
+    //     ),
+    //
+    //     // Inlet Temp
+    //     ROSGaugeConfig(
+    //       dataSource: model.inletTemp,
+    //       minimum: 0,
+    //       maximum: 100,
+    //       unitText: "°C",
+    //       title: "Inlet Temp",
+    //       ranges: [
+    //         GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
+    //         GaugeRange(
+    //           startValue: 50,
+    //           endValue: 70,
+    //           color: Colors.yellow.shade600,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 70,
+    //           endValue: 90,
+    //           color: Colors.red.shade500,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 90,
+    //           endValue: 100,
+    //           color: const Color.fromRGBO(255, 0, 0, 1),
+    //         ),
+    //       ],
+    //     ),
+    //
+    //     // Outlet Temp
+    //     ROSGaugeConfig(
+    //       dataSource: model.outletTemp,
+    //       minimum: 0,
+    //       maximum: 100,
+    //       unitText: "°C",
+    //       title: "Outlet Temp",
+    //       ranges: [
+    //         GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
+    //         GaugeRange(
+    //           startValue: 50,
+    //           endValue: 70,
+    //           color: Colors.yellow.shade600,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 70,
+    //           endValue: 90,
+    //           color: Colors.red.shade500,
+    //         ),
+    //         GaugeRange(
+    //           startValue: 90,
+    //           endValue: 100,
+    //           color: const Color.fromRGBO(255, 0, 0, 1),
+    //         ),
+    //       ],
+    //     ),
+    //   ],
+    // );
   }
 }
