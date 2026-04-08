@@ -78,8 +78,8 @@ void main() {
     await widgetTester.pumpAndSettle();
     expect(find.widgetWithText(ROSGauge, "256"), findsOneWidget);
 
-    expect(find.widgetWithText(ROSText, "128.0 A"), findsOneWidget);
-    expect(find.widgetWithText(ROSText, "129.0 A"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "128 A"), findsOneWidget);
+    expect(find.widgetWithText(ROSText, "129 A"), findsOneWidget);
 
     expect(find.widgetWithText(ROSGauge, "39"), findsOneWidget);
     expect(find.widgetWithText(ROSGauge, "172"), findsOneWidget);

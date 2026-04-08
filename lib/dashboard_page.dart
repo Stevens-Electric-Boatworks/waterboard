@@ -9,9 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
-import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
+import 'package:waterboard/pages/motors_page.dart';
 import 'package:waterboard/pages/page_utils.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
@@ -122,7 +122,7 @@ class _DashboardPageState extends State<DashboardPage>
   Widget? dialogWidget;
   final PageController _pageController = PageController();
   late final MainDriverPageViewModel _mainDriverPageViewModel;
-  late final ElectricsPageViewModel _electricsPageViewModel;
+  late final MotorsPageViewModel _electricsPageViewModel;
   late final RadiosPageViewModel _radiosPageViewModel;
   late final LogsPageViewModel _logsPageViewModel;
   late final SystemPageViewModel _systemPageViewModel;
@@ -131,7 +131,7 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
     _mainDriverPageViewModel = MainDriverPageViewModel(ros: model.ros);
-    _electricsPageViewModel = ElectricsPageViewModel(ros: model.ros);
+    _electricsPageViewModel = MotorsPageViewModel(ros: model.ros);
     _radiosPageViewModel = RadiosPageViewModel(services: model.services);
     _logsPageViewModel = LogsPageViewModel(services: model.services);
     _systemPageViewModel = SystemPageViewModel(services: model.services);
@@ -186,9 +186,7 @@ class _DashboardPageState extends State<DashboardPage>
               KeepAlivePage(
                 child: MainDriverPage(model: _mainDriverPageViewModel),
               ),
-              KeepAlivePage(
-                child: ElectricsPage(model: _electricsPageViewModel),
-              ),
+              KeepAlivePage(child: MotorsPage(model: _electricsPageViewModel)),
               KeepAlivePage(child: RadiosPage(model: _radiosPageViewModel)),
               KeepAlivePage(child: LogsPage(model: _logsPageViewModel)),
               KeepAlivePage(child: SystemPage(model: _systemPageViewModel)),
@@ -207,8 +205,8 @@ class _DashboardPageState extends State<DashboardPage>
                       label: "Primary",
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.electric_bolt),
-                      label: "Electric",
+                      icon: Icon(Icons.electrical_services),
+                      label: "Motors",
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.radio),

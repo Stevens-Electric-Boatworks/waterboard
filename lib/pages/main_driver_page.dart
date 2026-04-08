@@ -53,13 +53,13 @@ class MainDriverPageViewModel extends ChangeNotifier {
     motorACurrent = ROSTextDataSource(
       sub: ros.subscribe("/motors/motorA"),
       valueBuilder: (json) {
-        return ("${json["current"]} A", Colors.black);
+        return ("${(json["current"] as num).toInt()} A", Colors.black);
       },
     );
     motorBCurrent = ROSTextDataSource(
       sub: ros.subscribe("/motors/motorB"),
       valueBuilder: (json) {
-        return ("${json["current"]} A", Colors.black);
+        return ("${(json["current"] as num).toInt()} A", Colors.black);
       },
     );
   }

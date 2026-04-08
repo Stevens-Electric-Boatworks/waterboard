@@ -53,6 +53,7 @@ class _ROSTextState extends State<ROSText> {
 
   Widget _buildTextWidget(String value, Color color) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           value,
