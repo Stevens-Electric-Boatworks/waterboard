@@ -99,6 +99,11 @@ class DashboardPageViewModel extends ChangeNotifier {
     }
   }
 
+  void unlockLayout() {
+    _preferences.setBool(PrefKeys.layoutLocked, false);
+    onSettingsChange();
+  }
+
   void openSettingsDialog(BuildContext context) {
     PageUtils.showSettingsDialog(context, services, () => onSettingsChange());
   }
@@ -161,21 +166,22 @@ class _DashboardPageState extends State<DashboardPage>
 
   @override
   Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: model.layoutLocked,
-      child: Focus(
-        autofocus: false,
-        canRequestFocus: false,
-        descendantsAreFocusable: false,
-        child: Scaffold(
-          appBar: WaterboardAppBarWidget(
-            services: model.services,
-            layoutLocked: () => model.layoutLocked,
-            onSettingsChanged: model.onSettingsChange,
-            rosCellDataSource: model.rosCellDataSource,
-          ),
+    return Focus(
+      autofocus: false,
+      canRequestFocus: false,
+      descendantsAreFocusable: false,
+      child: Scaffold(
+        appBar: WaterboardAppBarWidget(
+          services: model.services,
+          layoutLocked: () => model.layoutLocked,
+          onSettingsChanged: model.onSettingsChange,
+          rosCellDataSource: model.rosCellDataSource,
+          unlockLayout: model.unlockLayout,
+        ),
 
-          body: PageView(
+        body: IgnorePointer(
+          ignoring: model.layoutLocked,
+          child: PageView(
             controller: _pageController,
             scrollBehavior: ScrollBehavior().copyWith(
               physics: NeverScrollableScrollPhysics(),
@@ -192,43 +198,43 @@ class _DashboardPageState extends State<DashboardPage>
               KeepAlivePage(child: SystemPage(model: _systemPageViewModel)),
             ],
           ),
-          bottomNavigationBar: SizedBox(
-            height: 60,
-            child: ListenableBuilder(
-              listenable: model,
-              builder: (BuildContext context, Widget? child) {
-                return BottomNavigationBar(
-                  type: BottomNavigationBarType.fixed,
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.sports_motorsports),
-                      label: "Primary",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.electrical_services),
-                      label: "Motors",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.radio),
-                      label: "Radios",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.notes),
-                      label: "Logs",
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.build),
-                      label: "System",
-                    ),
-                  ],
-                  onTap: (value) {
-                    if (model.layoutLocked) return;
-                    model.moveToPage(value);
-                  },
-                  currentIndex: model.currentPage,
-                );
-              },
-            ),
+        ),
+        bottomNavigationBar: SizedBox(
+          height: 60,
+          child: ListenableBuilder(
+            listenable: model,
+            builder: (BuildContext context, Widget? child) {
+              return BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.sports_motorsports),
+                    label: "Primary",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.electrical_services),
+                    label: "Motors",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.radio),
+                    label: "Radios",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.notes),
+                    label: "Logs",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.build),
+                    label: "System",
+                  ),
+                ],
+                onTap: (value) {
+                  if (model.layoutLocked) return;
+                  model.moveToPage(value);
+                },
+                currentIndex: model.currentPage,
+              );
+            },
           ),
         ),
       ),
