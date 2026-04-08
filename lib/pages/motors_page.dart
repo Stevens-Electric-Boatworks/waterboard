@@ -116,6 +116,7 @@ class _MotorsPageState extends State<MotorsPage> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: AlignmentGeometry.center,
       children: [
         ResponsiveGaugeGrid(
           columns: 4,
