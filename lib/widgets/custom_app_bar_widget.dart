@@ -1,6 +1,11 @@
 // Flutter imports:
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:slider_button/slider_button.dart';
 
 // Project imports:
 import 'package:waterboard/services/services.dart';
@@ -14,6 +19,7 @@ class WaterboardAppBarWidget extends StatelessWidget
   final Services services;
   final bool Function() layoutLocked;
   final Function() onSettingsChanged;
+  final Function() unlockLayout;
   final ROSCellDataSource rosCellDataSource;
 
   const WaterboardAppBarWidget({
@@ -22,6 +28,7 @@ class WaterboardAppBarWidget extends StatelessWidget
     required this.layoutLocked,
     required this.onSettingsChanged,
     required this.rosCellDataSource,
+    required this.unlockLayout,
   });
 
   @override
@@ -73,6 +80,31 @@ class WaterboardAppBarWidget extends StatelessWidget
           Icons.lock,
           size: Theme.of(context).textTheme.titleLarge!.fontSize!,
         ),
+        SizedBox(width: 20),
+        SliderButton(
+          action: () async {
+            unlockLayout();
+            return true;
+          },
+          useGlassEffect: true,
+
+          label: Text(
+            "Slide to unlock!",
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+          ),
+          icon: Center(
+            child: Icon(Icons.lock_open, color: Colors.white, size: 32.0),
+          ),
+
+          width: 300,
+          radius: 24,
+          buttonColor: Colors.blue.shade800,
+          backgroundColor: Colors.blue.shade200,
+          highlightedColor: Colors.blue.shade700,
+          baseColor: Colors.black,
+        ),
       ],
       kIsWeb
           ? Text(
@@ -98,14 +130,17 @@ class WaterboardAppBarWidget extends StatelessWidget
       SizedBox(width: 15),
       RosCellConnectionWidget(dataSource: rosCellDataSource),
       SizedBox(width: 15),
-      IconButton(
-        onPressed: () {
-          if (layoutLocked()) return;
-          PageUtils.showSettingsDialog(context, services, onSettingsChanged);
-        },
-        icon: Icon(
-          Icons.settings,
-          size: Theme.of(context).textTheme.titleLarge!.fontSize!,
+      IgnorePointer(
+        ignoring: layoutLocked(),
+        child: IconButton(
+          onPressed: () {
+            if (layoutLocked()) return;
+            PageUtils.showSettingsDialog(context, services, onSettingsChanged);
+          },
+          icon: Icon(
+            Icons.settings,
+            size: Theme.of(context).textTheme.titleLarge!.fontSize!,
+          ),
         ),
       ),
     ];

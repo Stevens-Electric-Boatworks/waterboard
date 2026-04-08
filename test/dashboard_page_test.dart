@@ -164,8 +164,9 @@ void main() {
         expect(find.byType(SettingsDialog), findsNothing);
       });
       testWidgets('Locked Layout', (widgetTester) async {
-        SharedPreferences.setMockInitialValues({'locked_layout': true});
+        SharedPreferences.setMockInitialValues({PrefKeys.layoutLocked: true});
         preferences = await SharedPreferences.getInstance();
+        TestWidgetsFlutterBinding.ensureInitialized();
 
         var model = await pumpDashboardPage(
           widgetTester,
@@ -178,7 +179,7 @@ void main() {
         );
         Future<void> moveRight() async {
           await widgetTester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-          await widgetTester.pumpAndSettle();
+          await widgetTester.pump(Duration(seconds: 1));
         }
 
         //on page 0, verify that moving right does nothing,
@@ -187,7 +188,7 @@ void main() {
         expect(find.byType(MainDriverPage), findsOneWidget);
         expect(find.byType(MotorsPage), findsNothing);
 
-        preferences.setBool(PrefKeys.layoutLocked, false);
+        await preferences.setBool(PrefKeys.layoutLocked, false);
         await moveRight();
         expect(model.currentPage, 1);
         expect(find.byType(MainDriverPage), findsNothing);
