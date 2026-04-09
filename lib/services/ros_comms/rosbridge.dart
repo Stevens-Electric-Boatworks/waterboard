@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
@@ -26,7 +27,9 @@ class ROSBridge {
   final ValueNotifier<ROSConnectionState> _connectionState = ValueNotifier(
     ROSConnectionState.noWebsocket,
   );
+
   ROSBridge(this._ros, this._log, this._preferences);
+
   Timer? _websocketTimer;
   Timer? _rosBridgeTimer;
   WebSocketChannel? _channel;
@@ -35,6 +38,10 @@ class ROSBridge {
       .add(Duration(seconds: -2))
       .millisecondsSinceEpoch;
   bool _sinkClosed = true;
+
+  //id, function to call on service call success
+  final Map<String, Function(bool success, Map<String, dynamic> json)>
+  _serviceCalls = {};
 
   Future<void> startConnectionLoop() async {
     _rosBridgeTimer?.cancel();
@@ -101,6 +108,22 @@ class ROSBridge {
       }
       if (msg["op"] == "publish") {
         _onDataReceive(msg["topic"], msg["msg"]);
+      } else if (msg["op"] == "service_response") {
+        if (_serviceCalls.containsKey(msg["id"])) {
+          if (!(msg["result"] as bool)) {
+            _log.error("Service called failed because ${msg["values"]}");
+            return;
+          }
+          _serviceCalls[msg["id"]]!(
+            true,
+            msg["values"] as Map<String, dynamic>,
+          );
+          _serviceCalls.remove(msg["id"]);
+        } else {
+          _log.error(
+            "A random service call for '${msg["service"]}' was received, but ROSBridge is not tracking it...",
+          );
+        }
       } else {
         _log.warning("[ROS] Unknown message from ROSBridge: $msg");
       }
@@ -128,5 +151,27 @@ class ROSBridge {
   void sendSubscription(ROSSubscription sub) {
     if (_sinkClosed) return;
     _channel?.sink.add(json.encode({"op": "subscribe", "topic": sub.topic}));
+  }
+
+  void callService(
+    String topic,
+    Function(bool success, Map<String, dynamic> json) func, {
+    int timeout = 3,
+  }) {
+    String id = Random().nextInt(10000).toString();
+    _serviceCalls[id] = func;
+
+    _channel?.sink.add(
+      json.encode({"op": "call_service", "service": topic, "id": id}),
+    );
+    Future.delayed(Duration(seconds: timeout), () {
+      if (_serviceCalls.containsKey(id)) {
+        _serviceCalls[id]!(false, {
+          "msg": "[WATERBOARD] ROS Service Call Timed Out",
+        });
+        _log.error("Service call to $topic timed out after $timeout seconds");
+        _serviceCalls.remove(id);
+      }
+    });
   }
 }

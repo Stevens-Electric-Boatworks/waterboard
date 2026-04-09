@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:waterboard/dashboard_page.dart';
 import 'package:waterboard/messages.dart';
+import 'package:waterboard/pages/actions_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/motors_page.dart';
@@ -124,9 +125,19 @@ void main() {
 
         //verify pressing right does nothing
         await moveRight();
+        expect(model.currentPage, 5);
+        expect(find.byType(ActionsPage), findsOneWidget);
+
+        //verify pressing right does nothing
+        await moveRight();
+        expect(model.currentPage, 5);
+        expect(find.byType(ActionsPage), findsOneWidget);
+        //verify that we can move back
+
+        await moveLeft();
         expect(model.currentPage, 4);
         expect(find.byType(SystemPage), findsOneWidget);
-        //verify that we can move back
+
         await moveLeft();
         expect(model.currentPage, 3);
         expect(find.byType(LogsPage), findsOneWidget);

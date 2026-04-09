@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros_logs_collector.dart';
+import 'package:waterboard/services/ros_comms/ros_service.dart';
 import 'package:waterboard/services/ros_comms/ros_subscription.dart';
 import 'package:waterboard/services/ros_comms/rosbridge.dart';
 import '../log.dart';
@@ -21,6 +22,11 @@ abstract class ROS {
   DateTime get timeSinceLastMsg;
   ValueNotifier<ROSSubscription?> get onSubscription;
   ROSSubscription subscribe(String topic, {int staleDuration = 1000});
+  ROSService createService(
+    String topic,
+    Function(bool acknowledged, Map<String, dynamic> json) onResponse, {
+    int timeout = 3,
+  });
   void startConnectionLoop();
   void reconnect();
   void propagateData(String topic, Map<String, dynamic> data);
@@ -75,6 +81,21 @@ class ROSImpl extends ROS {
     _subs[topic] = sub;
     _onSubscription.value = sub;
     return sub;
+  }
+
+  @override
+  ROSService createService(
+    String topic,
+    Function(bool acknowledged, Map<String, dynamic> json) onResponse, {
+    int timeout = 3,
+  }) {
+    _log.info("[ROS] Creating a service call to '$topic'");
+    return ROSService(
+      topic: topic,
+      rosBridge: _rosBridge,
+      onResponse: onResponse,
+      timeout: timeout,
+    );
   }
 
   /// This method should be called whenever you want to propagate data to subscriptions
