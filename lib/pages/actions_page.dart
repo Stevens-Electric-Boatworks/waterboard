@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 // Project imports:
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/widgets/hazard_stripe_border.dart';
 
 class ActionsPageViewModel extends ChangeNotifier {
   final Services services;
@@ -24,6 +23,7 @@ class ActionsPageViewModel extends ChangeNotifier {
     String loadingText = "Performing operation...",
     String successText = "Operation Success",
     String errorText = "Something went wrong...",
+    timeout = 3,
   }) async {
     if (!context.mounted) return;
 
@@ -50,7 +50,7 @@ class ActionsPageViewModel extends ChangeNotifier {
     (bool, String) success = (false, "Unknown Error");
 
     try {
-      success = await callRosService(serviceName);
+      success = await callRosService(serviceName, timeout: timeout);
     } catch (e) {
       success = (false, "Unknown Error");
     }
@@ -118,10 +118,13 @@ class ActionsPageViewModel extends ChangeNotifier {
     }
   }
 
-  Future<(bool, String msg)> callRosService(String serviceName) {
+  Future<(bool, String msg)> callRosService(
+    String serviceName, {
+    int timeout = 3,
+  }) {
     final completer = Completer<(bool, String)>();
 
-    ros.createService(serviceName, (acknowledged, json) {
+    ros.createService(serviceName, timeout: timeout, (acknowledged, json) {
       completer.complete((
         acknowledged,
         json["msg"] != null ? json["msg"] as String : "",
@@ -153,6 +156,7 @@ class ActionsPageViewModel extends ChangeNotifier {
     serviceName: "/cell/reconfigure",
     successText: "GPS Reconfiguration Operation Acknowledged",
     errorText: "Unable to Send Service Call",
+    timeout: 10,
   );
 }
 
@@ -191,45 +195,38 @@ class _ActionsPageState extends State<ActionsPage> {
             spacing: 16,
             direction: Axis.horizontal,
             children: [
-              Expanded(
-                child: Flexible(
-                  flex: 1,
-                  child: HazardStripeBorder(
-                    child: ActionTile(
-                      title: "Flush CAN TX Buffer",
-                      subTitle:
-                          "This will flush the CAN TX buffer to allow messages to be sent again. \n\nCAUTION: UNIMPLEMENTED FOR SOCKETCAN!!!!",
-                      icon: Icons.delete,
-                      color: Colors.blue,
-                      onPressed: () => model.flushCANBuffer(context),
-                    ),
-                  ),
+              Flexible(
+                flex: 1,
+                child: ActionTile(
+                  title: "Flush CAN TX Buffer",
+                  subTitle:
+                      "This will flush the CAN TX buffer to allow messages to be sent again. \n\nCAUTION: UNIMPLEMENTED FOR SOCKETCAN!!!!",
+                  icon: Icons.delete,
+                  color: Colors.blue,
+                  onPressed: () => model.flushCANBuffer(context),
                 ),
               ),
-              Expanded(
-                child: Flexible(
-                  flex: 1,
-                  child: ActionTile(
-                    title: "Restart CAN Network",
-                    subTitle:
-                        "This will reconstruct the whole CAN bus in code, and try to add motorA and motorB to the bus.",
-                    icon: Icons.refresh,
-                    color: Colors.orange,
-                    onPressed: () => model.restartCANBus(context),
-                  ),
+              Flexible(
+                flex: 1,
+                child: ActionTile(
+                  title: "Restart CAN Network",
+                  subTitle:
+                      "This will reconstruct the whole CAN bus in code, and try to add motorA and motorB to the bus.",
+                  icon: Icons.refresh,
+                  color: Colors.orange,
+                  onPressed: () => model.restartCANBus(context),
                 ),
               ),
-              Expanded(
-                child: Flexible(
-                  flex: 1,
-                  child: ActionTile(
-                    title: "Resend GPS Commands",
-                    subTitle:
-                        "It will resend the cell_node serial commands to configure and wake up the GPS submodule.",
-                    icon: Icons.satellite_alt,
-                    color: Colors.green,
-                    onPressed: () => model.reconfigureGPS(context),
-                  ),
+
+              Flexible(
+                flex: 1,
+                child: ActionTile(
+                  title: "Resend GPS Commands",
+                  subTitle:
+                      "It will resend the cell_node serial commands to configure and wake up the GPS submodule.",
+                  icon: Icons.satellite_alt,
+                  color: Colors.green,
+                  onPressed: () => model.reconfigureGPS(context),
                 ),
               ),
             ],
@@ -258,37 +255,35 @@ class ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.blue.shade100,
-          border: Border.all(color: Colors.black, width: 4),
-        ),
-        padding: EdgeInsetsGeometry.all(24),
-        child: InkWell(
-          splashColor: Colors.green,
-          onTap: onPressed,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 64, color: Colors.black),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                subTitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall!.copyWith(color: Colors.grey.shade800),
-              ),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.blue.shade100,
+        border: Border.all(color: Colors.black, width: 4),
+      ),
+      padding: EdgeInsetsGeometry.all(24),
+      child: InkWell(
+        splashColor: Colors.green,
+        onTap: onPressed,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 64, color: Colors.black),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              subTitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall!.copyWith(color: Colors.grey.shade800),
+            ),
+          ],
         ),
       ),
     );

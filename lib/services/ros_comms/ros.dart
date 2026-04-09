@@ -24,8 +24,9 @@ abstract class ROS {
   ROSSubscription subscribe(String topic, {int staleDuration = 1000});
   ROSService createService(
     String topic,
-    Function(bool acknowledged, Map<String, dynamic> json) onResponse,
-  );
+    Function(bool acknowledged, Map<String, dynamic> json) onResponse, {
+    int timeout = 3,
+  });
   void startConnectionLoop();
   void reconnect();
   void propagateData(String topic, Map<String, dynamic> data);
@@ -85,13 +86,15 @@ class ROSImpl extends ROS {
   @override
   ROSService createService(
     String topic,
-    Function(bool acknowledged, Map<String, dynamic> json) onResponse,
-  ) {
+    Function(bool acknowledged, Map<String, dynamic> json) onResponse, {
+    int timeout = 3,
+  }) {
     _log.info("[ROS] Creating a service call to '$topic'");
     return ROSService(
       topic: topic,
       rosBridge: _rosBridge,
       onResponse: onResponse,
+      timeout: timeout,
     );
   }
 

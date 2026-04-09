@@ -155,20 +155,21 @@ class ROSBridge {
 
   void callService(
     String topic,
-    Function(bool success, Map<String, dynamic> json) func,
-  ) {
+    Function(bool success, Map<String, dynamic> json) func, {
+    int timeout = 3,
+  }) {
     String id = Random().nextInt(10000).toString();
     _serviceCalls[id] = func;
 
     _channel?.sink.add(
       json.encode({"op": "call_service", "service": topic, "id": id}),
     );
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: timeout), () {
       if (_serviceCalls.containsKey(id)) {
         _serviceCalls[id]!(false, {
           "msg": "[WATERBOARD] ROS Service Call Timed Out",
         });
-        _log.error("Service call to $topic timed out after 3 seconds");
+        _log.error("Service call to $topic timed out after $timeout seconds");
         _serviceCalls.remove(id);
       }
     });

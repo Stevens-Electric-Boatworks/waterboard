@@ -62,8 +62,10 @@ class FakeROS extends ROS {
   @override
   ROSService createService(
     String topic,
-    Function(bool success, Map<String, dynamic> json) onResponse,
-  ) {
+    Function(bool success, Map<String, dynamic> json) onResponse, {
+    int timeout = 1,
+  }) {
+    //TODO: add tests for ROS services
     throw UnimplementedError();
   }
 }
