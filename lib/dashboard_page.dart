@@ -202,7 +202,10 @@ class _DashboardPageState extends State<DashboardPage>
               KeepAlivePage(child: ActionsPage(model: _actionsPageViewModel)),
             ],
           ),
-          bottomNavigationBar: SizedBox(
+        ),
+        bottomNavigationBar: IgnorePointer(
+          ignoring: model.layoutLocked,
+          child: SizedBox(
             height: 60,
             child: ListenableBuilder(
               listenable: model,
