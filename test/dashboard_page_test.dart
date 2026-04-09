@@ -10,9 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterboard/dashboard_page.dart';
 import 'package:waterboard/messages.dart';
 import 'package:waterboard/pages/actions_page.dart';
-import 'package:waterboard/pages/electrics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
+import 'package:waterboard/pages/motors_page.dart';
 import 'package:waterboard/pages/radios_page.dart';
 import 'package:waterboard/pages/system_page.dart';
 import 'package:waterboard/pref_keys.dart';
@@ -109,7 +109,7 @@ void main() {
         //on page 1, verify that moving right does something, and moves us to the correct page
         await moveRight();
         expect(model.currentPage, 1);
-        expect(find.byType(ElectricsPage), findsOneWidget);
+        expect(find.byType(MotorsPage), findsOneWidget);
 
         await moveRight();
         expect(model.currentPage, 2);
@@ -148,7 +148,7 @@ void main() {
 
         await moveLeft();
         expect(model.currentPage, 1);
-        expect(find.byType(ElectricsPage), findsOneWidget);
+        expect(find.byType(MotorsPage), findsOneWidget);
 
         await moveLeft();
         expect(model.currentPage, 0);
@@ -175,8 +175,9 @@ void main() {
         expect(find.byType(SettingsDialog), findsNothing);
       });
       testWidgets('Locked Layout', (widgetTester) async {
-        SharedPreferences.setMockInitialValues({'locked_layout': true});
+        SharedPreferences.setMockInitialValues({PrefKeys.layoutLocked: true});
         preferences = await SharedPreferences.getInstance();
+        TestWidgetsFlutterBinding.ensureInitialized();
 
         var model = await pumpDashboardPage(
           widgetTester,
@@ -189,20 +190,20 @@ void main() {
         );
         Future<void> moveRight() async {
           await widgetTester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-          await widgetTester.pumpAndSettle();
+          await widgetTester.pump(Duration(seconds: 1));
         }
 
         //on page 0, verify that moving right does nothing,
         await moveRight();
         expect(model.currentPage, 0);
         expect(find.byType(MainDriverPage), findsOneWidget);
-        expect(find.byType(ElectricsPage), findsNothing);
+        expect(find.byType(MotorsPage), findsNothing);
 
-        preferences.setBool(PrefKeys.layoutLocked, false);
+        await preferences.setBool(PrefKeys.layoutLocked, false);
         await moveRight();
         expect(model.currentPage, 1);
         expect(find.byType(MainDriverPage), findsNothing);
-        expect(find.byType(ElectricsPage), findsOneWidget);
+        expect(find.byType(MotorsPage), findsOneWidget);
       });
     });
   });
