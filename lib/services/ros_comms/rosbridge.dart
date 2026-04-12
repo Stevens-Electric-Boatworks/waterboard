@@ -5,7 +5,7 @@ import 'dart:io';
 import 'dart:math';
 
 // Flutter imports:
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:clock/clock.dart';
@@ -66,7 +66,7 @@ class ROSBridge {
 
   Future<void> _attemptConnect() async {
     final wsUrl = Uri.parse(
-      'ws://${_preferences.getString(PrefKeys.websocketIP) ?? Defaults.websocketIP}:${_preferences.getInt(PrefKeys.websocketPort) ?? Defaults.websocketPort}',
+      '${kIsWeb ? "wss" : "ws"}://${_preferences.getString(PrefKeys.websocketIP) ?? Defaults.websocketIP}:${_preferences.getInt(PrefKeys.websocketPort) ?? Defaults.websocketPort}',
     );
     _log.info("[ROS] Connecting to $wsUrl");
     _channel = WebSocketChannel.connect(wsUrl);
