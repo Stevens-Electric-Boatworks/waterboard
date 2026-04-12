@@ -65,16 +65,16 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 flutter_launcher_icons:
-  # Windows specific settings
   windows:
     generate: true
     image_path: "assets/icon.png" # Optional: Override source for Windows
-    icon_size: 256 # Size of the generated .ico file (default: 256)
-  # macOS-specific settings
+    icon_size: 256 # Size of the generated .ico file (default: 256)git
+  web:
+    generate: true
+    image_path: "assets/icon.png"
   macos:
     generate: true
     image_path: "assets/icon.png" # Optional: Override source for macOS
-  # Linux-specific settings
   linux:
     generate: true
     image_path: "assets/icon.png" # Optional: Override source for Linux
