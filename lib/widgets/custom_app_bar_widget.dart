@@ -1,7 +1,6 @@
 // Flutter imports:
 
 // Flutter imports:
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -106,14 +105,6 @@ class WaterboardAppBarWidget extends StatelessWidget
           baseColor: Colors.black,
         ),
       ],
-      kIsWeb
-          ? Text(
-              "         WARNING: Web Support is Experimental!",
-              style: Theme.of(context).textTheme.titleSmall?.merge(
-                TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-              ),
-            )
-          : Container(),
     ];
   }
 
