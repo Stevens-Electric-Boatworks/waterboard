@@ -257,7 +257,7 @@ jobs:
         run: flutter pub global activate flutterpi_tool
 
       - name: Build for Onboard Mini PC
-        run: flutterpi_tool build --arch=x86 --release
+        run: flutterpi_tool build --arch=x64 --release
 
       - name: Zip Artifact
         working-directory: build/flutter-pi/x64-generic/
