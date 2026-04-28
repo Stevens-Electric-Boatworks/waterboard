@@ -1,5 +1,9 @@
+// Dart imports:
+import 'dart:ui';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Project imports:
 import 'package:waterboard/pages/standby_mode_page.dart';
@@ -160,6 +164,28 @@ class _SettingsDialogState extends State<SettingsDialog> {
               ),
             ),
           ),
+          SizedBox(height: 10),
+          Center(
+            child: HazardStripeBorder(
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red.shade800,
+                ),
+                child: Text(
+                  "Exit Waterboard",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(color: Colors.white),
+                ),
+                onPressed: () {
+                  ServicesBinding.instance.exitApplication(
+                    AppExitType.required,
+                  );
+                },
+              ),
+            ),
+          ),
+
           Center(
             child: IconButton(
               onPressed: () {

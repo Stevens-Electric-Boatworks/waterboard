@@ -51,6 +51,10 @@ void main() {
       find.widgetWithText(FilledButton, "Enter Standby Mode"),
       findsOneWidget,
     );
+    expect(
+      find.widgetWithText(FilledButton, "Exit Waterboard"),
+      findsOneWidget,
+    );
   });
   group("Enterable Data", () {
     testWidgets('No Initial Data', (widgetTester) async {
