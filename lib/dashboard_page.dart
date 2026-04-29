@@ -61,12 +61,7 @@ class DashboardPageViewModel extends ChangeNotifier {
       sub: ros.subscribe("/cell", staleDuration: 10_000),
       valueBuilder: (json) => CellMessageSchema.fromJson(json),
     );
-    services.hotkeys.register(
-      LogicalKeyboardKey.keyS,
-      callback: () {
-        state!.openSettingsDialog();
-      },
-    );
+    //Settings Button is in the ViewModel
     services.hotkeys.register(
       LogicalKeyboardKey.arrowRight,
       callback: () {
@@ -146,6 +141,15 @@ class _DashboardPageState extends State<DashboardPage>
     model.addListener(_onModelChanged);
     model._state = this;
     model.init();
+
+    model.services.hotkeys.register(
+      LogicalKeyboardKey.comma,
+      callback: () {
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          model.openSettingsDialog(context);
+        }
+      },
+    );
   }
 
   void _onModelChanged() {

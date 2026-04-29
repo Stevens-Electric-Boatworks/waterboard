@@ -1,4 +1,5 @@
 // Dart imports:
+import 'dart:io';
 import 'dart:ui';
 
 // Flutter imports:
@@ -181,6 +182,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   ServicesBinding.instance.exitApplication(
                     AppExitType.required,
                   );
+                  exit(0);
                 },
               ),
             ),

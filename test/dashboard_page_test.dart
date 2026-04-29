@@ -166,7 +166,12 @@ void main() {
         );
         expect(find.byType(SettingsDialog), findsNothing);
 
-        await widgetTester.sendKeyEvent(LogicalKeyboardKey.keyS);
+        await widgetTester.sendKeyEvent(LogicalKeyboardKey.comma);
+        await widgetTester.pumpAndSettle();
+        expect(find.byType(SettingsDialog), findsOneWidget);
+
+        //verify that pressing the settings button does not open it again
+        await widgetTester.sendKeyEvent(LogicalKeyboardKey.comma);
         await widgetTester.pumpAndSettle();
         expect(find.byType(SettingsDialog), findsOneWidget);
 
