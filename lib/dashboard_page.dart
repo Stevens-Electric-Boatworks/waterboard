@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:waterboard/pages/actions_page.dart';
+import 'package:waterboard/pages/diagnostics/main_diagonstics_page.dart';
 import 'package:waterboard/pages/logs_page.dart';
 import 'package:waterboard/pages/main_driver_page.dart';
 import 'package:waterboard/pages/motors_page.dart';
@@ -21,7 +22,7 @@ import 'package:waterboard/schemas/cell_message_schema.dart';
 import 'package:waterboard/services/log.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
-import 'package:waterboard/widgets/custom_app_bar_widget.dart';
+import 'package:waterboard/widgets/appbars/main_page_appbar.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_cell_connection_widget.dart';
 
 enum ConnectionDialogType { noWebsocket, staleData }
@@ -128,7 +129,7 @@ class _DashboardPageState extends State<DashboardPage>
   late final LogsPageViewModel _logsPageViewModel;
   late final SystemPageViewModel _systemPageViewModel;
   late final ActionsPageViewModel _actionsPageViewModel;
-
+  late final MainDiagnosticsPageViewModel _mainDiagnosticsPageViewModel;
   @override
   void initState() {
     super.initState();
@@ -141,6 +142,9 @@ class _DashboardPageState extends State<DashboardPage>
     model.addListener(_onModelChanged);
     model._state = this;
     model.init();
+    _mainDiagnosticsPageViewModel = MainDiagnosticsPageViewModel(
+      services: model.services,
+    );
 
     model.services.hotkeys.register(
       LogicalKeyboardKey.comma,
@@ -178,12 +182,26 @@ class _DashboardPageState extends State<DashboardPage>
       canRequestFocus: false,
       descendantsAreFocusable: false,
       child: Scaffold(
-        appBar: WaterboardAppBarWidget(
+        appBar: MainPageAppbar(
           services: model.services,
           layoutLocked: () => model.layoutLocked,
           onSettingsChanged: model.onSettingsChange,
           rosCellDataSource: model.rosCellDataSource,
           unlockLayout: model.unlockLayout,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => KeepAlivePage(
+                  child: MainDiagnosticsPage(
+                    model: _mainDiagnosticsPageViewModel,
+                  ),
+                ),
+              ),
+            );
+          },
+          child: Icon(Icons.settings),
         ),
 
         body: IgnorePointer(

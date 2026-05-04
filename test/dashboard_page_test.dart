@@ -19,7 +19,7 @@ import 'package:waterboard/pref_keys.dart';
 import 'package:waterboard/services/ros_comms/ros.dart';
 import 'package:waterboard/services/services.dart';
 import 'package:waterboard/settings/settings_dialog.dart';
-import 'package:waterboard/widgets/custom_app_bar_widget.dart';
+import 'package:waterboard/widgets/appbars/main_page_appbar.dart';
 import 'package:waterboard/widgets/ros_widgets/ros_connection_state_widget.dart';
 import 'package:waterboard/widgets/time_text.dart';
 import 'test_helpers/fakes/fake_ros.dart';
@@ -62,10 +62,7 @@ void main() {
       );
       void checkInsideAppbar(Finder finder) {
         expect(
-          find.descendant(
-            of: find.byType(WaterboardAppBarWidget),
-            matching: finder,
-          ),
+          find.descendant(of: find.byType(MainPageAppbar), matching: finder),
           findsOneWidget,
         );
       }
@@ -168,6 +165,7 @@ void main() {
 
         await widgetTester.sendKeyEvent(LogicalKeyboardKey.comma);
         await widgetTester.pumpAndSettle();
+
         expect(find.byType(SettingsDialog), findsOneWidget);
 
         //verify that pressing the settings button does not open it again
